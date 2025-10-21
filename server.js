@@ -12,6 +12,43 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public')); // Serve static files (like your HTML)
 
+// Webhook endpoint for Stripe events (must be before other routes)
+app.post('/webhooks/stripe', express.raw({type: 'application/json'}), async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+  } catch (err) {
+    console.log(`Webhook signature verification failed.`, err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  // Handle the event
+  switch (event.type) {
+    case 'checkout.session.completed':
+      const session = event.data.object;
+      console.log('Payment successful for session:', session.id);
+      
+      // Generate license key and send email
+      await handleSuccessfulPayment(session);
+      break;
+      
+    case 'invoice.payment_succeeded':
+      console.log('Subscription payment succeeded');
+      break;
+      
+    case 'invoice.payment_failed':
+      console.log('Subscription payment failed');
+      break;
+      
+    default:
+      console.log(`Unhandled event type ${event.type}`);
+  }
+
+  res.json({received: true});
+});
+
 // Stripe Price ID - Using the actual price ID from the HTML file
 const PRICE_ID = process.env.STRIPE_PRICE_ID || 'price_1SKI6LIKMp3hwEiG4Pwb3I3j';
 
@@ -69,42 +106,6 @@ app.get('/cancel', (req, res) => {
   `);
 });
 
-// Webhook endpoint for Stripe events
-app.post('/webhooks/stripe', express.raw({type: 'application/json'}), async (req, res) => {
-  const sig = req.headers['stripe-signature'];
-  let event;
-
-  try {
-    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
-  } catch (err) {
-    console.log(`Webhook signature verification failed.`, err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
-  }
-
-  // Handle the event
-  switch (event.type) {
-    case 'checkout.session.completed':
-      const session = event.data.object;
-      console.log('Payment successful for session:', session.id);
-      
-      // Generate license key and send email
-      await handleSuccessfulPayment(session);
-      break;
-      
-    case 'invoice.payment_succeeded':
-      console.log('Subscription payment succeeded');
-      break;
-      
-    case 'invoice.payment_failed':
-      console.log('Subscription payment failed');
-      break;
-      
-    default:
-      console.log(`Unhandled event type ${event.type}`);
-  }
-
-  res.json({received: true});
-});
 
 // Function to handle successful payment
 async function handleSuccessfulPayment(session) {
