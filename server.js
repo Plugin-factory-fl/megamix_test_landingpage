@@ -9,10 +9,8 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors());
-app.use(express.json());
-app.use(express.static('public')); // Serve static files (like your HTML)
 
-// Webhook endpoint for Stripe events (must be before other routes)
+// Webhook endpoint for Stripe events (must be before express.json() middleware)
 app.post('/webhooks/stripe', express.raw({type: 'application/json'}), async (req, res) => {
   const sig = req.headers['stripe-signature'];
   let event;
@@ -48,6 +46,10 @@ app.post('/webhooks/stripe', express.raw({type: 'application/json'}), async (req
 
   res.json({received: true});
 });
+
+// Add express.json() middleware after webhook route
+app.use(express.json());
+app.use(express.static('public')); // Serve static files (like your HTML)
 
 // Stripe Price ID - Using the actual price ID from the HTML file
 const PRICE_ID = process.env.STRIPE_PRICE_ID || 'price_1SKI6LIKMp3hwEiG4Pwb3I3j';
