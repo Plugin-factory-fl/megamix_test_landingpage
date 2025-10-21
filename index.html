@@ -154,13 +154,13 @@
         async function handleBuyNow() {
             try {
                 // This will call your Render backend to create a Stripe checkout session
-                const response = await fetch('https://your-render-app.onrender.com/create-checkout-session', {
+                const response = await fetch('https://megamixai-mvp-backend.onrender.com/create-checkout-session', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        priceId: 'your-stripe-price-id-here' // Replace with your actual Stripe price ID
+                        priceId: 'price_1SKI6LIKMp3hwEiG4Pwb3I3j' // Replace with your actual Stripe price ID
                     })
                 });
                 
