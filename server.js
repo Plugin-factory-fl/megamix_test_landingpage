@@ -68,8 +68,8 @@ app.post('/create-checkout-session', async (req, res) => {
           quantity: 1,
         },
       ],
-      success_url: `${process.env.BASE_URL || 'http://localhost:3000'}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.BASE_URL || 'http://localhost:3000'}/cancel`,
+      success_url: `${process.env.BASE_URL || 'https://megamixai-mvp-backend.onrender.com'}/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.BASE_URL || 'https://megamixai-mvp-backend.onrender.com'}/cancel`,
       metadata: {
         product: 'megamixai-plugin'
       }
