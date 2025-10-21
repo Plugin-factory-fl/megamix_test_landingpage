@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MegaMixAI - Chat Your Way to Pro Sound</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+            padding: 60px 40px;
+            border-radius: 20px;
+            margin-bottom: 40px;
+            box-shadow: 0 20px 40px rgba(139, 92, 246, 0.3);
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .subheader {
+            font-size: 1.4rem;
+            font-weight: 300;
+            opacity: 0.9;
+            line-height: 1.6;
+            margin-bottom: 50px;
+        }
+
+        .buy-button {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 20px 50px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+            text-transform: uppercase;
+        }
+
+        .buy-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        }
+
+        .buy-button:active {
+            transform: translateY(-1px);
+        }
+
+        .features {
+            margin-top: 60px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            padding: 40px 0;
+        }
+
+        .feature {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .feature h3 {
+            color: #8b5cf6;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .feature p {
+            opacity: 0.8;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .subheader {
+                font-size: 1.1rem;
+            }
+            
+            .buy-button {
+                padding: 15px 30px;
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>MegaMixAI Chat Plugin Suite</h1>
+        </div>
+        
+        <div class="subheader">
+            The only audio plugin suite that lets you chat your way to pro-level sound.
+        </div>
+        
+        <button class="buy-button" onclick="handleBuyNow()">
+            BUY NOW
+        </button>
+        
+        <div class="features">
+            <div class="feature">
+                <h3>🎤 AI-Powered Audio Engineering</h3>
+                <p>Chat with AI to achieve professional audio engineering results in seconds</p>
+            </div>
+            <div class="feature">
+                <h3>🎵 Logic Pro X Integration</h3>
+                <p>Seamlessly works with Logic Pro X as a native AU plugin</p>
+            </div>
+            <div class="feature">
+                <h3>⚡ Real-Time Processing</h3>
+                <p>Low-latency audio processing for live performance and recording</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function handleBuyNow() {
+            try {
+                // This will call your Render backend to create a Stripe checkout session
+                const response = await fetch('https://your-render-app.onrender.com/create-checkout-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        priceId: 'your-stripe-price-id-here' // Replace with your actual Stripe price ID
+                    })
+                });
+                
+                const session = await response.json();
+                
+                // Redirect to Stripe Checkout
+                window.location.href = session.url;
+            } catch (error) {
+                console.error('Error creating checkout session:', error);
+                alert('Error processing payment. Please try again.');
+            }
+        }
+    </script>
+</body>
+</html>
