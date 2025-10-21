@@ -51,8 +51,8 @@ app.post('/webhooks/stripe', express.raw({type: 'application/json'}), async (req
 app.use(express.json());
 app.use(express.static('public')); // Serve static files (like your HTML)
 
-// Stripe Price ID - Using the actual price ID from the HTML file
-const PRICE_ID = process.env.STRIPE_PRICE_ID || 'price_1SKI6LIKMp3hwEiG4Pwb3I3j';
+// Stripe Price ID - Using the test mode price ID
+const PRICE_ID = process.env.STRIPE_PRICE_ID || 'price_1SKfpAIKMp3hwEiGikOOb0aN';
 
 // Create checkout session endpoint
 app.post('/create-checkout-session', async (req, res) => {
