@@ -1,6 +1,7 @@
 const express = require('express');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 const { pool, initializeDatabase } = require('./database/connection');
 require('dotenv').config();
 
@@ -305,7 +306,7 @@ function generateLicenseKey() {
 // License validation endpoint (for the plugin to call)
 app.post('/verify-license', async (req, res) => {
   try {
-    const { licenseKey, hardwareFingerprint } = req.body;
+    const { licenseKey } = req.body;
     
     if (!licenseKey) {
       return res.status(400).json({ error: 'License key is required' });
@@ -322,7 +323,7 @@ app.post('/verify-license', async (req, res) => {
       await pool.query(
         `INSERT INTO validation_logs (license_key, hardware_fingerprint, ip_address, user_agent, validation_result)
          VALUES ($1, $2, $3, $4, $5)`,
-        [licenseKey, hardwareFingerprint, req.ip, req.get('User-Agent'), 'invalid']
+        [licenseKey, null, req.ip, req.get('User-Agent'), 'invalid']
       );
       
       return res.status(404).json({ error: 'Invalid license key' });
@@ -335,7 +336,7 @@ app.post('/verify-license', async (req, res) => {
       await pool.query(
         `INSERT INTO validation_logs (license_key, hardware_fingerprint, ip_address, user_agent, validation_result)
          VALUES ($1, $2, $3, $4, $5)`,
-        [licenseKey, hardwareFingerprint, req.ip, req.get('User-Agent'), 'expired']
+        [licenseKey, null, req.ip, req.get('User-Agent'), 'expired']
       );
       
       return res.status(403).json({ error: 'License has expired' });
@@ -350,21 +351,32 @@ app.post('/verify-license', async (req, res) => {
     await pool.query(
       `UPDATE licenses SET 
        last_validated_at = CURRENT_TIMESTAMP,
-       validation_count = validation_count + 1,
-       hardware_fingerprint = COALESCE(hardware_fingerprint, $1)
-       WHERE id = $2`,
-      [hardwareFingerprint, license.id]
+       validation_count = validation_count + 1
+       WHERE id = $1`,
+      [license.id]
     );
     
     // Log successful validation
     await pool.query(
       `INSERT INTO validation_logs (license_key, hardware_fingerprint, ip_address, user_agent, validation_result)
        VALUES ($1, $2, $3, $4, $5)`,
-      [licenseKey, hardwareFingerprint, req.ip, req.get('User-Agent'), 'valid']
+      [licenseKey, null, req.ip, req.get('User-Agent'), 'valid']
+    );
+    
+    // Generate JWT token for offline validation (30 days)
+    const token = jwt.sign(
+      { 
+        licenseKey: license.license_key,
+        customerEmail: license.customer_email,
+        expiresAt: license.expires_at
+      },
+      process.env.JWT_SECRET || 'fallback-secret-key',
+      { expiresIn: '30d' }
     );
     
     res.json({
       valid: true,
+      token: token,
       license: {
         key: license.license_key,
         customer_email: license.customer_email,
