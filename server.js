@@ -83,16 +83,146 @@ app.post('/create-checkout-session', async (req, res) => {
 });
 
 // Success page
-app.get('/success', (req, res) => {
-  res.send(`
-    <html>
-      <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #1a1a1a; color: white;">
-        <h1 style="color: #10b981;">Payment Successful!</h1>
-        <p>Thank you for purchasing MegaMixAI. Check your email for your license key.</p>
-        <p>Session ID: ${req.query.session_id}</p>
-      </body>
-    </html>
-  `);
+app.get('/success', async (req, res) => {
+  try {
+    const sessionId = req.query.session_id;
+    
+    // Get license key from database using session ID
+    const result = await pool.query(
+      `SELECT license_key FROM licenses WHERE stripe_subscription_id = $1 OR stripe_customer_id = (
+        SELECT customer FROM stripe_sessions WHERE id = $2
+      ) ORDER BY created_at DESC LIMIT 1`,
+      [sessionId, sessionId]
+    );
+    
+    let licenseKey = 'XXXX-XXXX-XXXX-XXXX'; // Default if not found
+    if (result.rows.length > 0) {
+      licenseKey = result.rows[0].license_key;
+    }
+    
+    res.send(`
+      <html>
+        <head>
+          <title>Payment Successful - MegaMixAI</title>
+          <style>
+            body {
+              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+              background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+              color: white;
+              text-align: center;
+              padding: 50px;
+              margin: 0;
+            }
+            .container {
+              max-width: 600px;
+              margin: 0 auto;
+              background: rgba(255, 255, 255, 0.05);
+              padding: 40px;
+              border-radius: 20px;
+              backdrop-filter: blur(10px);
+              border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            h1 {
+              color: #10b981;
+              font-size: 2.5rem;
+              margin-bottom: 30px;
+            }
+            .license-key {
+              background: rgba(16, 185, 129, 0.1);
+              border: 2px solid #10b981;
+              border-radius: 10px;
+              padding: 20px;
+              margin: 30px 0;
+              font-family: 'Courier New', monospace;
+              font-size: 1.5rem;
+              font-weight: bold;
+              letter-spacing: 2px;
+              color: #10b981;
+            }
+            .download-btn {
+              background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+              color: white;
+              padding: 15px 30px;
+              border: none;
+              border-radius: 10px;
+              font-size: 1.1rem;
+              font-weight: bold;
+              text-decoration: none;
+              display: inline-block;
+              margin: 20px 0;
+              transition: all 0.3s ease;
+            }
+            .download-btn:hover {
+              transform: translateY(-2px);
+              box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);
+            }
+            .info {
+              margin: 20px 0;
+              line-height: 1.6;
+              opacity: 0.9;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>🎉 Payment Successful!</h1>
+            
+            <div class="info">
+              <p>Here's your license key for access to the MegaMixAI Chat Suite:</p>
+            </div>
+            
+            <div class="license-key">${licenseKey}</div>
+            
+            <div class="info">
+              <p>This license provides you access to the JoshSquash Chat Compressor and all upcoming plugins that will soon be available in the MegaMixAI Chat Suite.</p>
+              
+              <p>Your new plugin and license key document will automatically download now. If it doesn't start automatically, <a href="/download-license/${licenseKey}" class="download-btn" style="color: white; text-decoration: none;">click HERE</a>.</p>
+            </div>
+          </div>
+          
+          <script>
+            // Auto-download the license file
+            setTimeout(() => {
+              window.location.href = '/download-license/${licenseKey}';
+            }, 2000);
+          </script>
+        </body>
+      </html>
+    `);
+  } catch (error) {
+    console.error('Error loading success page:', error);
+    res.status(500).send('Error loading success page');
+  }
+});
+
+// Download license key file
+app.get('/download-license/:licenseKey', (req, res) => {
+  const licenseKey = req.params.licenseKey;
+  
+  const licenseContent = `MegaMixAI Chat Suite - License Key
+
+Your License Key: ${licenseKey}
+
+This license provides you access to:
+- JoshSquash Chat Compressor
+- All upcoming plugins in the MegaMixAI Chat Suite
+
+IMPORTANT: Keep this license key safe and don't share it with others.
+
+To use your license:
+1. Download the MegaMixAI plugin
+2. Open the plugin in your DAW
+3. Enter this license key when prompted
+4. Enjoy your new audio tools!
+
+For support, contact: support@megamixai.com
+
+Generated: ${new Date().toISOString()}
+`;
+
+  res.setHeader('Content-Type', 'text/plain');
+  res.setHeader('Content-Disposition', `attachment; filename="MegaMixAI_License_${licenseKey}.txt"`);
+  res.send(licenseContent);
 });
 
 // Cancel page
