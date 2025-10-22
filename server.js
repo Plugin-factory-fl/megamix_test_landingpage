@@ -326,7 +326,7 @@ app.post('/verify-license', async (req, res) => {
         [licenseKey, null, req.ip, req.get('User-Agent'), 'invalid']
       );
       
-      return res.status(404).json({ error: 'Invalid license key' });
+      return res.status(404).json({ error: 'Invalid license key. Check the .txt file you were given upon downloading to verify.' });
     }
     
     const license = result.rows[0];
