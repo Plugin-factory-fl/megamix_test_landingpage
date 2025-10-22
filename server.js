@@ -88,11 +88,14 @@ app.get('/success', async (req, res) => {
     const sessionId = req.query.session_id;
     
     // Get license key from database using session ID
+    // Get the Stripe session to find the customer
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    const customerId = session.customer;
+    
+    // Find the license for this customer
     const result = await pool.query(
-      `SELECT license_key FROM licenses WHERE stripe_subscription_id = $1 OR stripe_customer_id = (
-        SELECT customer FROM stripe_sessions WHERE id = $2
-      ) ORDER BY created_at DESC LIMIT 1`,
-      [sessionId, sessionId]
+      `SELECT license_key FROM licenses WHERE stripe_customer_id = $1 ORDER BY created_at DESC LIMIT 1`,
+      [customerId]
     );
     
     let licenseKey = 'XXXX-XXXX-XXXX-XXXX'; // Default if not found
