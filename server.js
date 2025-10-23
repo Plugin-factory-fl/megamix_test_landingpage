@@ -202,6 +202,8 @@ app.get('/success', async (req, res) => {
             
             <div class="info">
               <p>This license provides you access to the JoshSquash Chat Compressor and all upcoming plugins that will soon be available in the MegaMixAI Chat Suite.</p>
+              
+              <p>Your license key document will automatically download now. If it doesn't start automatically, <a href="/download-license/${licenseKey}" class="download-btn" style="color: white; text-decoration: none;">click HERE</a>.</p>
             </div>
             
             <div class="plugin-downloads">
@@ -216,10 +218,6 @@ app.get('/success', async (req, res) => {
                 <span class="download-text">Download AU Version</span>
                 <button class="download-btn green" onclick="downloadPlugin('au')">Download</button>
               </div>
-            </div>
-            
-            <div class="info">
-              <p>Your license key document will automatically download now. If it doesn't start automatically, <a href="/download-license/${licenseKey}" class="download-btn" style="color: white; text-decoration: none;">click HERE</a>.</p>
             </div>
           </div>
           
