@@ -237,7 +237,7 @@ app.get('/success', async (req, res) => {
             </div>
             
             <div class="plugin-downloads">
-              <h3 style="color: #8b5cf6; margin: 30px 0 20px 0; font-size: 1.3rem;">Download Your Plugin:</h3>
+              <h3 style="color: #8b5cf6; margin: 30px 0 20px 0; font-size: 1.3rem;">Download the JoshSquash Chat Compressor:</h3>
               
               <div class="download-option">
                 <span class="download-text">Download VST3 Version</span>
