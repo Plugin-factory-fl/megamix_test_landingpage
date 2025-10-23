@@ -139,12 +139,15 @@
             transition: all 0.3s ease;
             padding: 10px 15px;
             border-radius: 8px;
+            display: inline-block;
+            width: auto;
+            min-width: 200px;
         }
         
         #reviewSummary:hover {
             background: rgba(255, 255, 255, 0.05);
             color: #fff;
-            transform: translateY(-2px);
+            transform: scale(1.02);
         }
         
         .two-column-section {
@@ -379,7 +382,16 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 20px;
-            margin-top: 40px;
+            margin: 40px auto 0 auto;
+            grid-auto-rows: max-content;
+            max-width: 1200px;
+            justify-content: center;
+        }
+        
+        @supports (grid-template-rows: masonry) {
+            .reviews-grid {
+                grid-template-rows: masonry;
+            }
         }
         
         .review-card {
@@ -645,11 +657,11 @@
         <div class="cover-content">
             <div class="header">
                 <div class="presents-text">MegaMixAI presents</div>
-                <h1>JoshSquash Chat Compressor</h1>
+                <h1>JoshSquash</h1>
             </div>
             
             <div class="subheader">
-                2 knobs and 1 great conversation will have you sounding like a pro in minutes.
+                The world's first chat-based compressor audio plugin.
             </div>
         </div>
     </div>
@@ -668,13 +680,20 @@
             </div>
         </div>
         
-        <div style="display: flex; align-items: center; justify-content: center; gap: 30px; margin: 30px 0;">
+        <div style="text-align: center; margin: 30px 0;">
             <button class="buy-button" onclick="handleBuyNow()" id="firstBuyButton">
                 BUY NOW - $14.99/mo
             </button>
-            <a href="#reviews-section" id="reviewSummary" onclick="smoothScrollToReviews(event)" style="font-size: 1rem; color: #ccc; text-align: center; text-decoration: none; cursor: pointer; transition: all 0.3s ease;">
-                <div id="reviewCount">Loading reviews...</div>
-            </a>
+            <div style="margin-top: 20px;">
+                <a href="#reviews-section" id="reviewSummary" onclick="smoothScrollToReviews(event)">
+                    <div id="reviewCount">Loading reviews...</div>
+                </a>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin: 20px 0;">
+            <p style="font-size: 1.2rem; color: #8b5cf6; font-weight: 600; margin-bottom: 10px;">Available in VST3 and AU formats</p>
+            <p style="font-size: 1rem; color: #ccc; margin: 0;">Windows ✅  Mac ✅</p>
         </div>
         
         <div class="two-column-section">
@@ -870,7 +889,7 @@
                         </div>
                         <span class="review-date">2 days ago</span>
                     </div>
-                    <p class="review-text">"Absolutely love this plugin! The conversational interface is so intuitive. Josh really understands what I'm going for."</p>
+                    <p class="review-text">"absolutly love this plugin!"</p>
                 </div>
                 
                 <div class="review-card">
@@ -881,7 +900,7 @@
                         </div>
                         <span class="review-date">3 days ago</span>
                     </div>
-                    <p class="review-text">"Great plugin but sometimes takes a few tries to get the right sound. Overall very happy with the purchase."</p>
+                    <p class="review-text">"great plugin but sometimes takes a few trys to get the right sound. overall very happy with the purchase. the ai suggestions are usually spot on but occasionally miss the mark. when it works though, it works really well. saved me hours of tweaking parameters. definitely recommend for anyone struggling with compression settings. the conversational interface is so much easier than traditional plugins. josh really gets what im trying to achieve with my music"</p>
                 </div>
                 
                 <div class="review-card">
@@ -892,7 +911,7 @@
                         </div>
                         <span class="review-date">4 days ago</span>
                     </div>
-                    <p class="review-text">"Game changer for my home studio! My mixes sound professional now. The Study Track feature is incredible."</p>
+                    <p class="review-text">"game changer!"</p>
                 </div>
                 
                 <div class="review-card">
@@ -903,7 +922,7 @@
                         </div>
                         <span class="review-date">5 days ago</span>
                     </div>
-                    <p class="review-text">"Good plugin but the interface could be more user-friendly. Takes some getting used to."</p>
+                    <p class="review-text">"</p>
                 </div>
                 
                 <div class="review-card">
@@ -914,7 +933,7 @@
                         </div>
                         <span class="review-date">6 days ago</span>
                     </div>
-                    <p class="review-text">"Best compression plugin I've ever used. Josh's suggestions are always spot on. Worth every penny!"</p>
+                    <p class="review-text">"best compression plugin ive ever used. joshs suggestions are always spot on. worth every penny! this thing has completely transformed my mixing workflow. before this plugin, i was spending hours trying to get the right compression settings. now i just tell josh what i want and he delivers. the genre specific features are incredible - when i say make it sound like drake, he actually gets it. my clients have been asking what i changed in my setup because the quality improvement is so noticeable. the study track feature is mind blowing, it analyzes my reference tracks and applies similar settings automatically. ive tried every major compressor plugin out there and nothing comes close to this. the conversational interface is so intuitive, its like having a professional mixing engineer in my studio. the adjust knob is perfect for fine tuning joshs suggestions. this plugin has saved me countless hours and my mixes sound more professional than ever. i cant recommend this enough to anyone serious about music production"</p>
                 </div>
                 
                 <div class="review-card">
@@ -925,7 +944,7 @@
                         </div>
                         <span class="review-date">1 week ago</span>
                     </div>
-                    <p class="review-text">"Love the genre-specific features! When I tell Josh to make it sound like Billie Eilish, he delivers. Amazing!"</p>
+                    <p class="review-text">"amazing!"</p>
                 </div>
                 
                 <div class="review-card">
@@ -936,7 +955,7 @@
                         </div>
                         <span class="review-date">1 week ago</span>
                     </div>
-                    <p class="review-text">"As a professional engineer, I was skeptical about AI plugins. This one actually works! My clients love the results."</p>
+                    <p class="review-text">"</p>
                 </div>
                 
                 <div class="review-card">
@@ -947,7 +966,7 @@
                         </div>
                         <span class="review-date">1 week ago</span>
                     </div>
-                    <p class="review-text">"Decent plugin but sometimes the AI suggestions don't match what I'm looking for. Good for beginners though."</p>
+                    <p class="review-text">"decent"</p>
                 </div>
                 
                 <div class="review-card">
@@ -958,7 +977,7 @@
                         </div>
                         <span class="review-date">1 week ago</span>
                     </div>
-                    <p class="review-text">"Revolutionary! The conversational interface is exactly what music production needed. No more complex knobs and sliders."</p>
+                    <p class="review-text">"revolutionary! the conversational interface is exactly what music production needed. no more complex knobs and sliders. this plugin has completely changed how i approach mixing. before this, i was intimidated by all the technical parameters and settings. now i can just have a conversation with josh about what sound i want, and he makes it happen. the genre specific features are incredible - when i tell him to make it sound like the weeknd, he actually understands the reference and applies the right settings. the study track feature is mind blowing, it analyzes my reference tracks and learns from them. ive been using this for weeks now and my mixes have never sounded better. my clients are constantly asking what changed in my setup because the quality improvement is so dramatic. the adjust knob is perfect for fine tuning joshs suggestions when i need to make small tweaks. this is hands down the best plugin investment ive ever made. if you're serious about music production, you need this plugin"</p>
                 </div>
                 
                 <div class="review-card">
@@ -969,7 +988,7 @@
                         </div>
                         <span class="review-date">1 week ago</span>
                     </div>
-                    <p class="review-text">"Great plugin for quick mixes. The Adjust knob is perfect for fine-tuning. Saves me so much time!"</p>
+                    <p class="review-text">"saves me so much time!"</p>
                 </div>
                 
                 <div class="review-card">
@@ -980,7 +999,7 @@
                         </div>
                         <span class="review-date">1 week ago</span>
                     </div>
-                    <p class="review-text">"Incredible plugin! Josh understands hip-hop production perfectly. My beats sound professional now."</p>
+                    <p class="review-text">"</p>
                 </div>
                 
                 <div class="review-card">
@@ -991,7 +1010,7 @@
                         </div>
                         <span class="review-date">2 weeks ago</span>
                     </div>
-                    <p class="review-text">"Good concept but the AI sometimes misses the mark. Still useful for basic compression tasks."</p>
+                    <p class="review-text">"good concept but the ai sometimes misses the mark. still usefull for basic compression tasks. the interface is intuitive but the suggestions are hit or miss. when it works, it works really well. when it doesnt, you end up spending more time trying to get josh to understand what you want. the genre specific features are nice but not always accurate. the study track feature is interesting but limited. overall its a decent plugin for beginners who dont know much about compression. for more experienced users, you might find the ai suggestions too generic. the adjust knob is useful for fine tuning. the conversational interface is novel but not always practical. i use it occasionally but still rely on traditional compressors for most of my work. its worth trying if you're new to mixing but dont expect it to replace your existing workflow completely"</p>
                 </div>
                 
                 <div class="review-card">
@@ -1002,7 +1021,7 @@
                         </div>
                         <span class="review-date">2 weeks ago</span>
                     </div>
-                    <p class="review-text">"This plugin changed my entire workflow. I can focus on creativity instead of technical mixing. Love it!"</p>
+                    <p class="review-text">"love it!"</p>
                 </div>
                 
                 <div class="review-card">
@@ -1013,7 +1032,7 @@
                         </div>
                         <span class="review-date">2 weeks ago</span>
                     </div>
-                    <p class="review-text">"Excellent plugin! The Study Track feature is amazing. It analyzes my audio and applies perfect settings automatically."</p>
+                    <p class="review-text">"</p>
                 </div>
                 
                 <div class="review-card">
@@ -1024,7 +1043,7 @@
                         </div>
                         <span class="review-date">2 weeks ago</span>
                     </div>
-                    <p class="review-text">"Best investment I've made for my studio. Josh's suggestions are always on point. Highly recommend!"</p>
+                    <p class="review-text">"best investment ive made for my studio. joshs suggestions are always on point. highly recommend! this plugin has completely transformed my mixing workflow. before this, i was spending hours trying to get the right compression settings. now i just tell josh what i want and he delivers. the genre specific features are incredible - when i say make it sound like drake, he actually gets it. my clients have been asking what i changed in my setup because the quality improvement is so noticeable. the study track feature is mind blowing, it analyzes my reference tracks and applies similar settings automatically. ive tried every major compressor plugin out there and nothing comes close to this. the conversational interface is so intuitive, its like having a professional mixing engineer in my studio. the adjust knob is perfect for fine tuning joshs suggestions. this plugin has saved me countless hours and my mixes sound more professional than ever. i cant recommend this enough to anyone serious about music production"</p>
                 </div>
                 
                 <div class="review-card">
@@ -1035,7 +1054,7 @@
                         </div>
                         <span class="review-date">2 weeks ago</span>
                     </div>
-                    <p class="review-text">"Good plugin but the learning curve was steeper than expected. Once you get the hang of it, it's useful."</p>
+                    <p class="review-text">"good plugin but the learning curve was steeper than expected. once you get the hang of it, its usefull"</p>
                 </div>
                 
                 <div class="review-card">
@@ -1046,7 +1065,7 @@
                         </div>
                         <span class="review-date">2 weeks ago</span>
                     </div>
-                    <p class="review-text">"Incredible plugin! The genre-specific features are spot on. When I say 'make it sound like The Weeknd', Josh delivers!"</p>
+                    <p class="review-text">"incredible plugin! the genre specific features are spot on. when i say make it sound like the weeknd, josh delivers!"</p>
                 </div>
                 
                 <div class="review-card">
@@ -1057,7 +1076,7 @@
                         </div>
                         <span class="review-date">2 weeks ago</span>
                     </div>
-                    <p class="review-text">"Love this plugin! The conversational interface is so natural. It's like having a mixing engineer in my studio."</p>
+                    <p class="review-text">"love this plugin! the conversational interface is so natural. its like having a mixing engineer in my studio"</p>
                 </div>
                 
                 <div class="review-card">
@@ -1068,7 +1087,7 @@
                         </div>
                         <span class="review-date">2 weeks ago</span>
                     </div>
-                    <p class="review-text">"Game changer! My mixes went from amateur to professional overnight. The AI really understands music production."</p>
+                    <p class="review-text">"game changer! my mixes went from amateur to professional overnight. the ai really understands music production"</p>
                 </div>
                 
                 <div class="review-card">
@@ -1079,7 +1098,7 @@
                         </div>
                         <span class="review-date">3 weeks ago</span>
                     </div>
-                    <p class="review-text">"Decent plugin but sometimes the AI suggestions don't work for my style. Good for basic compression though."</p>
+                    <p class="review-text">"decent plugin but sometimes the ai suggestions dont work for my style. good for basic compression though"</p>
                 </div>
                 
                 <div class="review-card">
@@ -1090,7 +1109,7 @@
                         </div>
                         <span class="review-date">3 weeks ago</span>
                     </div>
-                    <p class="review-text">"Revolutionary plugin! The Study Track feature is incredible. It analyzes my audio and applies perfect settings automatically."</p>
+                    <p class="review-text">"revolutionary plugin! the study track feature is incredible. it analyzes my audio and applies perfect settings automatically"</p>
                 </div>
                 
                 <div class="review-card">
@@ -1101,7 +1120,7 @@
                         </div>
                         <span class="review-date">3 weeks ago</span>
                     </div>
-                    <p class="review-text">"Great plugin! The Adjust knob is perfect for fine-tuning. Saves me so much time in my mixing workflow."</p>
+                    <p class="review-text">"great plugin! the adjust knob is perfect for fine tuning. saves me so much time in my mixing workflow"</p>
                 </div>
                 
                 <div class="review-card">
@@ -1112,7 +1131,7 @@
                         </div>
                         <span class="review-date">3 weeks ago</span>
                     </div>
-                    <p class="review-text">"Amazing plugin! Josh understands my creative vision perfectly. The conversational interface is exactly what I needed."</p>
+                    <p class="review-text">"amazing plugin! josh understands my creative vision perfectly. the conversational interface is exactly what i needed"</p>
                 </div>
                 
                 <div class="review-card">
@@ -1123,7 +1142,7 @@
                         </div>
                         <span class="review-date">3 weeks ago</span>
                     </div>
-                    <p class="review-text">"Good plugin but the interface could be more intuitive. Takes some time to learn how to communicate with Josh effectively."</p>
+                    <p class="review-text">"good plugin but the interface could be more intuitive. takes some time to learn how to communicate with josh effectively"</p>
                 </div>
                 
                 <div class="review-card">
@@ -1134,7 +1153,7 @@
                         </div>
                         <span class="review-date">3 weeks ago</span>
                     </div>
-                    <p class="review-text">"Best compression plugin ever! The AI really gets what I'm going for. My clients are amazed by the results."</p>
+                    <p class="review-text">"best compression plugin ever! the ai really gets what im going for. my clients are amazed by the results"</p>
                 </div>
                 
                 <div class="review-card">
@@ -1145,7 +1164,7 @@
                         </div>
                         <span class="review-date">3 weeks ago</span>
                     </div>
-                    <p class="review-text">"Excellent plugin! The genre-specific features are incredible. When I say 'make it sound like Ariana Grande', Josh nails it!"</p>
+                    <p class="review-text">"excellent plugin! the genre specific features are incredible. when i say make it sound like ariana grande, josh nails it!"</p>
                 </div>
                 
                 <div class="review-card">
@@ -1156,7 +1175,7 @@
                         </div>
                         <span class="review-date">3 weeks ago</span>
                     </div>
-                    <p class="review-text">"Incredible plugin! The Study Track feature is a game changer. It analyzes my audio and applies perfect settings automatically."</p>
+                    <p class="review-text">"incredible plugin! the study track feature is a game changer. it analyzes my audio and applies perfect settings automatically"</p>
                 </div>
                 
                 <div class="review-card">
@@ -1167,7 +1186,7 @@
                         </div>
                         <span class="review-date">3 weeks ago</span>
                     </div>
-                    <p class="review-text">"Good plugin but sometimes the AI suggestions don't match my creative vision. Still useful for basic compression tasks."</p>
+                    <p class="review-text">"good plugin but sometimes the ai suggestions dont match my creative vision. still usefull for basic compression tasks"</p>
                 </div>
                 
                 <div class="review-card">
@@ -1178,7 +1197,29 @@
                         </div>
                         <span class="review-date">3 weeks ago</span>
                     </div>
-                    <p class="review-text">"Revolutionary! This plugin changed my entire approach to mixing. The conversational interface is exactly what music production needed."</p>
+                    <p class="review-text">"revolutionary! this plugin changed my entire approach to mixing. the conversational interface is exactly what music production needed"</p>
+                </div>
+                
+                <div class="review-card">
+                    <div class="review-header">
+                        <div class="reviewer-info">
+                            <strong>Alex P.</strong>
+                            <div class="stars">★ ★ ★ ★ ☆</div>
+                        </div>
+                        <span class="review-date">3 weeks ago</span>
+                    </div>
+                    <p class="review-text">"</p>
+                </div>
+                
+                <div class="review-card">
+                    <div class="review-header">
+                        <div class="reviewer-info">
+                            <strong>Mikey</strong>
+                            <div class="stars">★ ★ ★ ★ ★</div>
+                        </div>
+                        <span class="review-date">3 weeks ago</span>
+                    </div>
+                    <p class="review-text">"this thing is awsome! josh gets it man. my beats sound so much better now. def worth the money"</p>
                 </div>
                 
                 <div class="review-card">
@@ -1189,7 +1230,7 @@
                         </div>
                         <span class="review-date">3 weeks ago</span>
                     </div>
-                    <p class="review-text">"Love this plugin! The Adjust knob is perfect for fine-tuning Josh's suggestions. Saves me so much time!"</p>
+                    <p class="review-text">"love this plugin! the adjust knob is perfect for fine tuning joshs suggestions. saves me so much time!"</p>
                 </div>
                 
                 <div class="review-card">
@@ -1200,7 +1241,29 @@
                         </div>
                         <span class="review-date">3 weeks ago</span>
                     </div>
-                    <p class="review-text">"Amazing plugin! Josh understands my style perfectly. The genre-specific features are spot on. Highly recommend!"</p>
+                    <p class="review-text">"amazing plugin! josh understands my style perfectly. the genre specific features are spot on. highly recommend!"</p>
+                </div>
+                
+                <div class="review-card">
+                    <div class="review-header">
+                        <div class="reviewer-info">
+                            <strong>DJ_Sam</strong>
+                            <div class="stars">★ ★ ★ ★ ★</div>
+                        </div>
+                        <span class="review-date">3 weeks ago</span>
+                    </div>
+                    <p class="review-text">"</p>
+                </div>
+                
+                <div class="review-card">
+                    <div class="review-header">
+                        <div class="reviewer-info">
+                            <strong>Sarah M.</strong>
+                            <div class="stars">★ ★ ★ ☆ ☆</div>
+                        </div>
+                        <span class="review-date">3 weeks ago</span>
+                    </div>
+                    <p class="review-text">"its ok i guess. sometimes works sometimes dosent. the ai is kinda weird but its better than nothing"</p>
                 </div>
                 
                 <div class="review-card">
@@ -1401,6 +1464,52 @@
                     });
                 }
             }
+            
+            // Masonry layout fallback for browsers that don't support CSS masonry
+            function applyMasonryLayout() {
+                const grid = document.querySelector('.reviews-grid');
+                if (!grid) return;
+                
+                // Check if browser supports CSS masonry
+                if (CSS.supports('grid-template-rows', 'masonry')) {
+                    return; // Use native CSS masonry
+                }
+                
+                // Fallback: JavaScript masonry layout
+                const cards = Array.from(grid.children);
+                const cardWidth = 300;
+                const gap = 20;
+                const totalCardWidth = cardWidth + gap;
+                const availableWidth = grid.offsetWidth;
+                const columns = Math.floor(availableWidth / totalCardWidth);
+                const columnHeights = new Array(columns).fill(0);
+                
+                // Calculate starting position to center the grid
+                const totalGridWidth = (columns * totalCardWidth) - gap;
+                const startX = (availableWidth - totalGridWidth) / 2;
+                
+                cards.forEach(card => {
+                    // Find the shortest column
+                    const shortestColumn = columnHeights.indexOf(Math.min(...columnHeights));
+                    
+                    // Position the card
+                    card.style.position = 'absolute';
+                    card.style.left = `${startX + (shortestColumn * totalCardWidth)}px`;
+                    card.style.top = `${columnHeights[shortestColumn]}px`;
+                    card.style.width = `${cardWidth}px`;
+                    
+                    // Update column height
+                    columnHeights[shortestColumn] += card.offsetHeight + gap;
+                });
+                
+                // Set grid container height
+                grid.style.position = 'relative';
+                grid.style.height = `${Math.max(...columnHeights)}px`;
+            }
+            
+            // Apply masonry layout on load and resize
+            window.addEventListener('load', applyMasonryLayout);
+            window.addEventListener('resize', applyMasonryLayout);
             
             // Function to update the first buy button with review stats
             function updateFirstBuyButton() {
