@@ -209,6 +209,15 @@ app.get('/success', async (req, res) => {
               font-size: 1.1rem;
               font-weight: 500;
             }
+            .download-buttons {
+              display: flex;
+              gap: 10px;
+            }
+            .download-buttons .download-btn {
+              padding: 10px 20px;
+              font-size: 1rem;
+              margin: 0;
+            }
             .info {
               margin: 20px 0;
               line-height: 1.6;
@@ -237,16 +246,22 @@ app.get('/success', async (req, res) => {
             </div>
             
             <div class="plugin-downloads">
-              <h3 style="color: #8b5cf6; margin: 30px 0 20px 0; font-size: 1.3rem;">Download the JoshSquash Chat Compressor:</h3>
+              <h3 style="color: #8b5cf6; margin: 30px 0 20px 0; font-size: 1.3rem;">Download Your Plugin:</h3>
               
               <div class="download-option">
                 <span class="download-text">Download VST3 Version</span>
-                <button class="download-btn green" onclick="downloadPlugin('vst3')">Download</button>
+                <div class="download-buttons">
+                  <button class="download-btn green" onclick="downloadPlugin('vst3', 'mac')">Mac</button>
+                  <button class="download-btn green" onclick="downloadPlugin('vst3', 'windows')">Windows</button>
+                </div>
               </div>
               
               <div class="download-option">
                 <span class="download-text">Download AU Version</span>
-                <button class="download-btn green" onclick="downloadPlugin('au')">Download</button>
+                <div class="download-buttons">
+                  <button class="download-btn green" onclick="downloadPlugin('au', 'mac')">Mac</button>
+                  <button class="download-btn green" onclick="downloadPlugin('au', 'windows')">Windows</button>
+                </div>
               </div>
             </div>
           </div>
@@ -258,9 +273,9 @@ app.get('/success', async (req, res) => {
             }, 2000);
             
             // Function to handle plugin downloads
-            function downloadPlugin(version) {
+            function downloadPlugin(version, platform) {
               // TODO: Add actual download logic here
-              alert('Download for ' + version.toUpperCase() + ' version will be available soon!');
+              alert('Download for ' + version.toUpperCase() + ' ' + platform + ' version will be available soon!');
             }
             
             // Function to copy license key to clipboard
