@@ -129,7 +129,14 @@ app.get('/success', async (req, res) => {
             h1 {
               color: #10b981;
               font-size: 2.5rem;
+              margin-bottom: 10px;
+            }
+            .subtitle {
+              font-size: 1.2rem;
+              font-weight: bold;
+              color: white;
               margin-bottom: 30px;
+              opacity: 0.9;
             }
             .license-key {
               background: rgba(16, 185, 129, 0.1);
@@ -142,6 +149,25 @@ app.get('/success', async (req, res) => {
               font-weight: bold;
               letter-spacing: 2px;
               color: #10b981;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+            }
+            .copy-btn {
+              background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+              color: white;
+              border: none;
+              padding: 10px 20px;
+              border-radius: 8px;
+              font-size: 0.9rem;
+              font-weight: bold;
+              cursor: pointer;
+              transition: all 0.3s ease;
+              margin-left: 20px;
+            }
+            .copy-btn:hover {
+              transform: translateY(-2px);
+              box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3);
             }
             .download-btn {
               background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
@@ -193,12 +219,16 @@ app.get('/success', async (req, res) => {
         <body>
           <div class="container">
             <h1>🎉 Payment Successful!</h1>
+            <div class="subtitle">Chat your way to pro-level audio for the first time in human history.</div>
             
             <div class="info">
               <p>Here's your license key for access to the MegaMixAI Chat Suite:</p>
             </div>
             
-            <div class="license-key">${licenseKey}</div>
+            <div class="license-key">
+              <span>${licenseKey}</span>
+              <button class="copy-btn" onclick="copyLicenseKey()">Copy</button>
+            </div>
             
             <div class="info">
               <p>This license provides you access to the JoshSquash Chat Compressor and all upcoming plugins that will soon be available in the MegaMixAI Chat Suite.</p>
@@ -231,6 +261,23 @@ app.get('/success', async (req, res) => {
             function downloadPlugin(version) {
               // TODO: Add actual download logic here
               alert('Download for ' + version.toUpperCase() + ' version will be available soon!');
+            }
+            
+            // Function to copy license key to clipboard
+            function copyLicenseKey() {
+              const licenseKey = '${licenseKey}';
+              navigator.clipboard.writeText(licenseKey).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied!';
+                btn.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+                setTimeout(() => {
+                  btn.textContent = originalText;
+                  btn.style.background = 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)';
+                }, 2000);
+              }).catch(() => {
+                alert('Failed to copy license key. Please copy manually: ' + licenseKey);
+              });
             }
           </script>
         </body>
