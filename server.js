@@ -160,6 +160,29 @@ app.get('/success', async (req, res) => {
               transform: translateY(-2px);
               box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);
             }
+            .download-btn.green {
+              background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            }
+            .download-btn.green:hover {
+              box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+            }
+            .plugin-downloads {
+              margin: 30px 0;
+            }
+            .download-option {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              background: rgba(255, 255, 255, 0.05);
+              padding: 20px;
+              border-radius: 10px;
+              margin: 15px 0;
+              border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            .download-text {
+              font-size: 1.1rem;
+              font-weight: 500;
+            }
             .info {
               margin: 20px 0;
               line-height: 1.6;
@@ -179,8 +202,24 @@ app.get('/success', async (req, res) => {
             
             <div class="info">
               <p>This license provides you access to the JoshSquash Chat Compressor and all upcoming plugins that will soon be available in the MegaMixAI Chat Suite.</p>
+            </div>
+            
+            <div class="plugin-downloads">
+              <h3 style="color: #8b5cf6; margin: 30px 0 20px 0; font-size: 1.3rem;">Download Your Plugin:</h3>
               
-              <p>Your new plugin and license key document will automatically download now. If it doesn't start automatically, <a href="/download-license/${licenseKey}" class="download-btn" style="color: white; text-decoration: none;">click HERE</a>.</p>
+              <div class="download-option">
+                <span class="download-text">Download VST3 Version</span>
+                <button class="download-btn green" onclick="downloadPlugin('vst3')">Download</button>
+              </div>
+              
+              <div class="download-option">
+                <span class="download-text">Download AU Version</span>
+                <button class="download-btn green" onclick="downloadPlugin('au')">Download</button>
+              </div>
+            </div>
+            
+            <div class="info">
+              <p>Your license key document will automatically download now. If it doesn't start automatically, <a href="/download-license/${licenseKey}" class="download-btn" style="color: white; text-decoration: none;">click HERE</a>.</p>
             </div>
           </div>
           
@@ -189,6 +228,12 @@ app.get('/success', async (req, res) => {
             setTimeout(() => {
               window.location.href = '/download-license/${licenseKey}';
             }, 2000);
+            
+            // Function to handle plugin downloads
+            function downloadPlugin(version) {
+              // TODO: Add actual download logic here
+              alert('Download for ' + version.toUpperCase() + ' version will be available soon!');
+            }
           </script>
         </body>
       </html>
