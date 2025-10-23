@@ -11,6 +11,9 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 
+// Serve static files from the assets directory
+app.use('/assets', express.static('assets'));
+
 // Webhook endpoint for Stripe events (must be before express.json() middleware)
 app.post('/webhooks/stripe', express.raw({type: 'application/json'}), async (req, res) => {
   const sig = req.headers['stripe-signature'];
