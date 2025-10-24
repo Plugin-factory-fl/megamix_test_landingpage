@@ -291,6 +291,25 @@
                 margin: 0;
             }
             
+            /* Fix reviews section for mobile */
+            .reviews-grid {
+                display: grid !important;
+                grid-template-columns: 1fr !important;
+                gap: 20px !important;
+                margin: 40px auto 0 auto !important;
+                max-width: 100% !important;
+                position: static !important;
+                height: auto !important;
+            }
+            
+            .review-card {
+                position: static !important;
+                left: auto !important;
+                top: auto !important;
+                width: 100% !important;
+                margin-bottom: 20px;
+            }
+            
         }
 
         .features {
@@ -1508,6 +1527,11 @@
                 const grid = document.querySelector('.reviews-grid');
                 if (!grid) return;
                 
+                // Skip masonry layout on mobile devices
+                if (window.innerWidth <= 768) {
+                    return;
+                }
+                
                 // Check if browser supports CSS masonry
                 if (CSS.supports('grid-template-rows', 'masonry')) {
                     return; // Use native CSS masonry
@@ -1585,8 +1609,39 @@
                     `${starsDisplay} <span style="color: #8b5cf6; font-weight: bold;">${average}/5</span> <span style="color: #999;">(${totalReviews} reviews)</span>`;
             }
             
+            // Mobile tap-to-zoom functionality
+            function initMobileZoom() {
+                const pluginImage = document.querySelector('.plugin-image');
+                if (!pluginImage) return;
+                
+                let isZoomed = false;
+                
+                pluginImage.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    if (isZoomed) {
+                        // Zoom out
+                        pluginImage.style.transform = 'scale(1)';
+                        pluginImage.style.zIndex = '1';
+                        pluginImage.style.position = 'relative';
+                        pluginImage.style.cursor = 'zoom-in';
+                        isZoomed = false;
+                    } else {
+                        // Zoom in
+                        pluginImage.style.transform = 'scale(2)';
+                        pluginImage.style.zIndex = '1000';
+                        pluginImage.style.position = 'relative';
+                        pluginImage.style.cursor = 'zoom-out';
+                        isZoomed = true;
+                    }
+                });
+            }
+            
             // Initialize star rating functionality
             document.addEventListener('DOMContentLoaded', function() {
+                // Initialize mobile zoom functionality
+                initMobileZoom();
+                
                 // Update the first buy button with review stats
                 updateFirstBuyButton();
                 const stars = document.querySelectorAll('.star');
