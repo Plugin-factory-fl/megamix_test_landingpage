@@ -252,6 +252,38 @@
             .left-column {
                 position: static;
                 flex: none;
+                margin-top: 0;
+                margin-bottom: 0;
+            }
+            
+            /* Mobile layout for genre sections - ensure picture on top, text below */
+            .genre-section {
+                flex-direction: column;
+                gap: 30px;
+            }
+            
+            .genre-section .genre-image {
+                order: 1;
+                flex: none;
+            }
+            
+            .genre-section .genre-description {
+                order: 2;
+                flex: none;
+            }
+            
+            /* Ensure all images are properly sized on mobile */
+            .genre-image img {
+                width: 100%;
+                height: auto;
+                display: block;
+                border-radius: 15px;
+            }
+            
+            .genre-image.feature2 img,
+            .genre-image.feature3 img {
+                width: 100%;
+                margin: 0;
             }
         }
 
