@@ -256,6 +256,11 @@
                 margin-bottom: 0;
             }
             
+            /* Move the sticky image down on mobile to prevent overlap with format text */
+            .two-column-section .left-column {
+                margin-top: 80px;
+            }
+            
             /* Mobile layout for genre sections - ensure picture on top, text below */
             .genre-section {
                 flex-direction: column;
@@ -286,10 +291,6 @@
                 margin: 0;
             }
             
-            /* Add extra margin to the format text on mobile to prevent overlap */
-            .two-column-section + div[style*="text-align: center"] {
-                margin-top: 60px !important;
-            }
         }
 
         .features {
@@ -728,7 +729,7 @@
             </div>
         </div>
         
-        <div style="text-align: center; margin: 20px 0;">
+        <div class="format-info" style="text-align: center; margin: 20px 0;">
             <p style="font-size: 1.2rem; color: #8b5cf6; font-weight: 600; margin-bottom: 10px;">Available in VST3 and AU formats</p>
             <p style="font-size: 1rem; color: #ccc; margin: 0;">Windows ✅  Mac ✅</p>
         </div>
