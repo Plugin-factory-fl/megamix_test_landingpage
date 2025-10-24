@@ -285,6 +285,11 @@
                 width: 100%;
                 margin: 0;
             }
+            
+            /* Add extra margin to the format text on mobile to prevent overlap */
+            .two-column-section + div[style*="text-align: center"] {
+                margin-top: 60px !important;
+            }
         }
 
         .features {
