@@ -243,29 +243,16 @@ app.get('/success', async (req, res) => {
             </div>
             
             <div class="info">
-              <p>This license provides you access to the JoshSquash Chat Compressor and all upcoming plugins that will soon be available in the MegaMixAI Chat Suite.</p>
+              <p>This license provides you access to the JoshSquash™ Chat Compressor and all upcoming plugins that will soon be available in the MegaMixAI Chat Suite.</p>
               
               <p>Your license key document will automatically download now. If it doesn't start automatically, <a href="/download-license/${licenseKey}" class="download-btn" style="color: white; text-decoration: none;">click HERE</a>.</p>
             </div>
             
-            <div class="plugin-downloads">
-              <h3 style="color: #8b5cf6; margin: 30px 0 20px 0; font-size: 1.3rem;">Download Your Plugin:</h3>
-              
-              <div class="download-option">
-                <span class="download-text">Download VST3 Version</span>
-                <div class="download-buttons">
-                  <button class="download-btn green" onclick="downloadPlugin('vst3', 'mac')">Mac</button>
-                  <button class="download-btn green" onclick="downloadPlugin('vst3', 'windows')">Windows</button>
-                </div>
-              </div>
-              
-              <div class="download-option">
-                <span class="download-text">Download AU Version</span>
-                <div class="download-buttons">
-                  <button class="download-btn green" onclick="downloadPlugin('au', 'mac')">Mac</button>
-                  <button class="download-btn green" onclick="downloadPlugin('au', 'windows')">Windows</button>
-                </div>
-              </div>
+            <div class="download-redirect" style="text-align: center; margin: 40px 0; padding: 30px; background: rgba(139, 92, 246, 0.1); border-radius: 15px; border: 2px solid rgba(139, 92, 246, 0.3);">
+              <h3 style="color: #8b5cf6; margin: 0 0 20px 0; font-size: 1.8rem; font-weight: bold;">Download JoshSquash™ on the home page.</h3>
+              <button class="redirect-btn" onclick="goToHomePage()" style="background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%); color: white; border: none; padding: 15px 30px; border-radius: 10px; font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 5px 15px rgba(139, 92, 246, 0.3);">
+                Take me there
+              </button>
             </div>
           </div>
           
@@ -296,6 +283,11 @@ app.get('/success', async (req, res) => {
               }).catch(() => {
                 alert('Failed to copy license key. Please copy manually: ' + licenseKey);
               });
+            }
+            
+            function goToHomePage() {
+              // Redirect to home page and scroll to download section
+              window.location.href = '/#plugin-downloads';
             }
           </script>
         </body>

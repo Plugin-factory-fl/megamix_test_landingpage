@@ -714,7 +714,7 @@
         <div class="cover-content">
             <div class="header">
                 <div class="presents-text">MegaMixAI presents</div>
-                <h1>JoshSquash</h1>
+                <h1>JoshSquash™</h1>
             </div>
             
             <div class="subheader">
@@ -739,18 +739,19 @@
         
         <div style="text-align: center; margin: 30px 0;">
             <button class="buy-button" onclick="handleBuyNow()" id="firstBuyButton">
-                BUY NOW - $14.99/mo
+                Obtain Your Official License Key Now - $14.99/MO
             </button>
+            
+            <p style="color: white; font-size: 0.9rem; margin: 15px 0; text-align: center; opacity: 0.8; line-height: 1.4;">
+                This license key is not just for JoshSquash™. Purchasing this license key and keeping your subscription active will guarantee access to all future MegaMixAI's Chat Suite plugins.<br><br>
+                <strong>COMING SOON: JoshEQ and JoshVerb</strong>
+            </p>
+            
             <div style="margin-top: 20px;">
                 <a href="#reviews-section" id="reviewSummary" onclick="smoothScrollToReviews(event)">
                     <div id="reviewCount">Loading reviews...</div>
                 </a>
             </div>
-        </div>
-        
-        <div class="format-info" style="text-align: center; margin: 20px 0;">
-            <p style="font-size: 1.2rem; color: #8b5cf6; font-weight: 600; margin-bottom: 10px;">Available in VST3 and AU formats</p>
-            <p style="font-size: 1rem; color: #ccc; margin: 0;">Windows ✅  Mac ✅</p>
         </div>
         
         <div class="two-column-section">
@@ -763,18 +764,49 @@
             <div class="right-column">
                 <div class="plugin-description">
                     <div class="description-text">
-                        <strong>Stop struggling with knobs and sliders.</strong> JoshSquash is the first plugin that talks to you like a real mixing engineer. Just tell Josh what you want - "make my drums hit harder" or "smooth out my vocals" - and watch the magic happen.
+                        <strong>Stop struggling with knobs and sliders.</strong> JoshSquash™ is the first plugin that talks to you like a real mixing engineer. Just tell Josh what you want - "make my drums hit harder" or "smooth out my vocals" - and watch the magic happen.
                         <br><br>
                         <strong>No more guessing games.</strong> Instead of staring at 50 confusing controls, you chat with Josh in plain English. He listens to your music, understands what you're trying to achieve, and makes the right adjustments automatically. It's like having a professional mixing engineer sitting right next to you.
                         <br><br>
-                        <strong>Finally, mixing that actually works.</strong> Whether you're a bedroom producer or a seasoned musician, JoshSquash gets you professional-sounding results in minutes. No more "I tried mixing once and it sounded worse" - Josh knows exactly what your music needs and delivers it every time. Works perfectly in Logic Pro, Pro Tools, Ableton, and all your favorite DAWs.
+                        <strong>Finally, mixing that actually works.</strong> Whether you're a bedroom producer or a seasoned musician, JoshSquash™ gets you professional-sounding results in minutes. No more "I tried mixing once and it sounded worse" - Josh knows exactly what your music needs and delivers it every time. Works perfectly in Logic Pro, Pro Tools, Ableton, and all your favorite DAWs.
                     </div>
                 </div>
             </div>
         </div>
         
+        <div id="plugin-downloads" class="plugin-downloads" style="text-align: center; margin: 40px 0; padding: 30px; background: rgba(255, 255, 255, 0.05); border-radius: 15px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);">
+            <h3 style="color: #8b5cf6; margin-bottom: 20px; font-size: 1.5rem;">Download JoshSquash™ Plugin</h3>
+            <p style="color: #ccc; margin-bottom: 30px; font-size: 1.1rem;">Choose your format and platform:</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; max-width: 600px; margin: 0 auto;">
+                <!-- VST3 Downloads -->
+                <div class="download-option" style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                    <h4 style="color: #8b5cf6; margin-bottom: 15px;">VST3 Format</h4>
+                    <button class="download-btn green" onclick="downloadPlugin('vst3', 'windows')" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; width: 100%; transition: all 0.3s ease;">
+                        Windows VST3
+                    </button>
+                    <button class="download-btn green" onclick="downloadPlugin('vst3', 'mac')" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; width: 100%; transition: all 0.3s ease;">
+                        Mac VST3
+                    </button>
+                </div>
+                
+                <!-- AU Downloads -->
+                <div class="download-option" style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                    <h4 style="color: #8b5cf6; margin-bottom: 15px;">AU Format</h4>
+                    <button class="download-btn green" onclick="downloadPlugin('au', 'windows')" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; width: 100%; transition: all 0.3s ease;">
+                        Windows AU
+                    </button>
+                    <button class="download-btn green" onclick="downloadPlugin('au', 'mac')" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; width: 100%; transition: all 0.3s ease;">
+                        Mac AU
+                    </button>
+                </div>
+            </div>
+            
+            <p style="color: white; font-size: 1rem; margin-top: 20px; font-weight: bold; text-align: center;">ATTENTION: This plugin uses a license key to verify ownership. You can download the plugin for free but it will be unusable without a license key. Subscribe now to receive yours!</p>
+        </div>
+        
         <button class="buy-button" onclick="handleBuyNow()">
-            BUY NOW - $14.99/mo
+            BUY NOW
         </button>
         
         <div class="genre-section">
@@ -782,7 +814,7 @@
                 <p style="font-size: 1.1rem; line-height: 1.6; opacity: 0.9;">
                     <strong>Tired of endless parameter tweaking and steep learning curves?</strong><br><br>
                     We've got the solution for you! Josh's conversational interface is infinitely more intuitive than knobs and sliders. No more guessing games, no more technical jargon, no more hours spent fiddling with parameters!<br><br>
-                    The JoshSquash plugin eliminates the need for complex learning curves and endless parameter adjustments. Simply chat with Josh like you would a real mixing engineer - he understands your creative vision and delivers professional results instantly!
+                    The JoshSquash™ plugin eliminates the need for complex learning curves and endless parameter adjustments. Simply chat with Josh like you would a real mixing engineer - he understands your creative vision and delivers professional results instantly!
                 </p>
             </div>
             
@@ -811,7 +843,7 @@
         </div>
         
         <button class="buy-button" onclick="handleBuyNow()">
-            BUY NOW - $14.99/mo
+            BUY NOW
         </button>
         
         <h3 style="color: #8b5cf6; margin: 40px 0 20px 0; font-size: 1.5rem; text-align: center;">🎵 Genre-Smart Compression</h3>
@@ -857,7 +889,7 @@
         </div>
         
         <button class="buy-button" onclick="handleBuyNow()" style="margin-bottom: 60px;">
-            BUY NOW - $14.99/mo
+            BUY NOW
         </button>
         
         <div class="guarantee-section">
@@ -924,6 +956,10 @@
             </div>
         </div>
         
+        <button class="buy-button" onclick="handleBuyNow()" style="margin: 40px 0;">
+            BUY NOW
+        </button>
+        
         <!-- User Reviews Section -->
         <div class="reviews-section" id="reviews-section">
             <div class="reviews-header">
@@ -937,7 +973,7 @@
                 <button class="submit-review-btn" onclick="openReviewModal()">Submit Your Own Review</button>
             </div>
             
-            <div class="reviews-grid">
+            <div class="reviews-grid" id="reviewsGrid">
                 <div class="review-card">
                     <div class="review-header">
                         <div class="reviewer-info">
@@ -1367,7 +1403,17 @@
                     <p class="review-text">"Incredible plugin! The conversational interface is so intuitive. Josh really understands what I'm going for. Game changer!"</p>
                 </div>
             </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <button id="loadMoreBtn" class="load-more-btn" onclick="loadMoreReviews()" style="background: #666; color: white; border: none; padding: 10px 25px; border-radius: 8px; font-size: 0.9rem; font-style: italic; cursor: pointer; transition: all 0.3s ease;">
+                    See more reviews
+                </button>
+            </div>
         </div>
+        
+        <button class="buy-button" onclick="handleBuyNow()" style="margin: 60px 0 40px 0;">
+            BUY NOW
+        </button>
         
         <!-- Review Modal -->
         <div id="reviewModal" class="review-modal">
@@ -1637,10 +1683,60 @@
                 });
             }
             
+            // Reviews pagination functionality
+            let currentPage = 1;
+            const reviewsPerPage = 20;
+            let allReviews = [];
+            
+            function initializeReviewsPagination() {
+                const reviewsGrid = document.getElementById('reviewsGrid');
+                allReviews = Array.from(reviewsGrid.children);
+                
+                // Hide all reviews initially
+                allReviews.forEach(review => {
+                    review.style.display = 'none';
+                });
+                
+                // Show first page
+                showReviewsPage(1);
+            }
+            
+            function showReviewsPage(page) {
+                const startIndex = (page - 1) * reviewsPerPage;
+                const endIndex = startIndex + reviewsPerPage;
+                
+                // Show reviews for current page (append to existing)
+                for (let i = startIndex; i < endIndex && i < allReviews.length; i++) {
+                    allReviews[i].style.display = 'block';
+                }
+                
+                // Update button text
+                const loadMoreBtn = document.getElementById('loadMoreBtn');
+                if (endIndex >= allReviews.length) {
+                    loadMoreBtn.style.display = 'none';
+                } else {
+                    loadMoreBtn.style.display = 'inline-block';
+                    loadMoreBtn.textContent = `See more reviews (${allReviews.length - endIndex} remaining)`;
+                }
+                
+                // Reapply masonry layout after adding new reviews
+                setTimeout(() => {
+                    applyMasonryLayout();
+                }, 100);
+            }
+            
+            function loadMoreReviews() {
+                currentPage++;
+                showReviewsPage(currentPage);
+            }
+            
             // Initialize star rating functionality
             document.addEventListener('DOMContentLoaded', function() {
                 // Initialize mobile zoom functionality
                 initMobileZoom();
+                
+                // Initialize reviews pagination
+                initializeReviewsPagination();
                 
                 // Update the first buy button with review stats
                 updateFirstBuyButton();
@@ -1714,6 +1810,16 @@
                     console.error('Error creating checkout session:', error);
                     alert('Error processing payment. Please try again.');
                 }
+            }
+            
+            // Download plugin function
+            function downloadPlugin(format, platform) {
+                // For now, show an alert - you can replace this with actual download logic
+                alert(`Downloading JoshSquash™ ${format.toUpperCase()} for ${platform.charAt(0).toUpperCase() + platform.slice(1)}...\n\nNote: This is a placeholder. You'll need to implement actual file downloads.`);
+                
+                // Example of how you might implement actual downloads:
+                // const downloadUrl = `https://your-server.com/downloads/joshsquash-${format}-${platform}.zip`;
+                // window.open(downloadUrl, '_blank');
             }
             
         </script>
