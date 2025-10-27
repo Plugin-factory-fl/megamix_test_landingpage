@@ -522,6 +522,19 @@
             backdrop-filter: blur(5px);
         }
         
+        /* Email Signup Modal */
+        .email-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+        
         .modal-content {
             background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
             margin: 5% auto;
@@ -591,6 +604,19 @@
             outline: none;
             border-color: #8b5cf6;
             box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+        }
+        
+        /* Email input specific styling */
+        #emailInput:focus {
+            outline: none;
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3);
+            background: rgba(255, 255, 255, 1);
+        }
+        
+        #emailInput::placeholder {
+            color: rgba(102, 102, 102, 0.7);
+            font-style: italic;
         }
         
         .form-group textarea {
@@ -792,10 +818,10 @@
                 <!-- VST3 Downloads -->
                 <div class="download-option" style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.1);">
                     <h4 style="color: #8b5cf6; margin-bottom: 15px;">VST3 Format</h4>
-                    <button class="download-btn green" onclick="downloadPlugin('vst3', 'windows'); gtag('event', 'download_button_click', { 'button_id': 'VST_windows_download_button', 'format': 'VST3', 'platform': 'Windows' });" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; width: 100%; transition: all 0.3s ease;">
+                    <button class="download-btn green" onclick="openEmailModal('vst3', 'windows'); gtag('event', 'download_button_click', { 'button_id': 'VST_windows_download_button', 'format': 'VST3', 'platform': 'Windows' });" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; width: 100%; transition: all 0.3s ease;">
                         Windows VST3
                     </button>
-                    <button class="download-btn green" onclick="downloadPlugin('vst3', 'mac'); gtag('event', 'download_button_click', { 'button_id': 'VST_mac_download_button', 'format': 'VST3', 'platform': 'Mac' });" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; width: 100%; transition: all 0.3s ease;">
+                    <button class="download-btn green" onclick="openEmailModal('vst3', 'mac'); gtag('event', 'download_button_click', { 'button_id': 'VST_mac_download_button', 'format': 'VST3', 'platform': 'Mac' });" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; width: 100%; transition: all 0.3s ease;">
                         Mac VST3
                     </button>
                 </div>
@@ -803,10 +829,10 @@
                 <!-- AU Downloads -->
                 <div class="download-option" style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.1);">
                     <h4 style="color: #8b5cf6; margin-bottom: 15px;">AU Format</h4>
-                    <button class="download-btn green" onclick="downloadPlugin('au', 'windows'); gtag('event', 'download_button_click', { 'button_id': 'AU_windows_download_button', 'format': 'AU', 'platform': 'Windows' });" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; width: 100%; transition: all 0.3s ease;">
+                    <button class="download-btn green" onclick="openEmailModal('au', 'windows'); gtag('event', 'download_button_click', { 'button_id': 'AU_windows_download_button', 'format': 'AU', 'platform': 'Windows' });" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; width: 100%; transition: all 0.3s ease;">
                         Windows AU
                     </button>
-                    <button class="download-btn green" onclick="downloadPlugin('au', 'mac'); gtag('event', 'download_button_click', { 'button_id': 'AU_mac_download_button', 'format': 'AU', 'platform': 'Mac' });" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; width: 100%; transition: all 0.3s ease;">
+                    <button class="download-btn green" onclick="openEmailModal('au', 'mac'); gtag('event', 'download_button_click', { 'button_id': 'AU_mac_download_button', 'format': 'AU', 'platform': 'Mac' });" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; width: 100%; transition: all 0.3s ease;">
                         Mac AU
                     </button>
                 </div>
@@ -1464,6 +1490,47 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Email Signup Modal -->
+        <div id="emailModal" class="email-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>🎵 Join the MegaMixAI Community!</h3>
+                    <span class="close" onclick="closeEmailModal()">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <p style="font-size: 1.1rem; line-height: 1.6; margin-bottom: 20px; opacity: 0.9;">
+                            We are currently building a suite of the world's first chat-based plugins to help you become the best music producer you can be, without the engineering skills.<br><br>
+                            Be the first to find out about our next releases by signing up now.
+                        </p>
+                        <p style="font-size: 1rem; opacity: 0.8; margin-bottom: 30px;">
+                            <strong>Coming Soon:</strong> JoshEQ and JoshVerb
+                        </p>
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 30px;">
+                        <label for="emailInput" style="display: block; color: #fff; margin-bottom: 10px; font-weight: 500; text-align: center;">Enter your email address:</label>
+                        <input type="email" id="emailInput" name="emailInput" placeholder="your.email@example.com" required style="width: 100%; padding: 15px 20px; border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 10px; background: rgba(255, 255, 255, 0.95); color: #333; font-size: 1rem; transition: all 0.3s ease; text-align: center;">
+                    </div>
+                    
+                    <div class="modal-buttons" style="justify-content: center; gap: 20px;">
+                        <button type="button" class="submit-btn" onclick="handleEmailSignup(true)" style="background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%); color: white; border: none; padding: 15px 30px; border-radius: 10px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">
+                            Yes, Sign Me Up! 🎵
+                        </button>
+                        <button type="button" class="cancel-btn" onclick="handleEmailSignup(false)" style="background: rgba(255, 255, 255, 0.1); color: #ccc; border: 1px solid rgba(255, 255, 255, 0.2); padding: 15px 30px; border-radius: 10px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">
+                            No Thanks
+                        </button>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 20px;">
+                        <p style="font-style: italic; font-size: 0.9rem; opacity: 0.7; color: #ccc; line-height: 1.4;">
+                            *You don't have to sign up in order to get your download. If not interested, click "No Thanks" and your download will begin.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
         <script>
@@ -1797,6 +1864,13 @@
                         closeReviewModal();
                     }
                 });
+                
+                // Close email modal when clicking outside
+                document.getElementById('emailModal').addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeEmailModal();
+                    }
+                });
             });
             
             async function handleBuyNow() {
@@ -1822,14 +1896,75 @@
                 }
             }
             
+            // Email signup modal functions
+            let pendingDownload = null;
+            
+            function openEmailModal(format, platform) {
+                pendingDownload = { format: format, platform: platform };
+                document.getElementById('emailModal').style.display = 'block';
+                document.body.style.overflow = 'hidden';
+            }
+            
+            function closeEmailModal() {
+                document.getElementById('emailModal').style.display = 'none';
+                document.body.style.overflow = 'auto';
+                pendingDownload = null;
+            }
+            
+            function handleEmailSignup(signedUp) {
+                let emailAddress = '';
+                
+                // If user wants to sign up, get their email
+                if (signedUp) {
+                    const emailInput = document.getElementById('emailInput');
+                    emailAddress = emailInput.value.trim();
+                    
+                    // Basic email validation
+                    if (!emailAddress || !isValidEmail(emailAddress)) {
+                        alert('Please enter a valid email address.');
+                        return;
+                    }
+                }
+                
+                // Track email signup decision
+                if (pendingDownload) {
+                    gtag('event', 'email_signup_decision', {
+                        'signed_up': signedUp,
+                        'email_provided': emailAddress,
+                        'format': pendingDownload.format,
+                        'platform': pendingDownload.platform
+                    });
+                }
+                
+                // Close modal
+                closeEmailModal();
+                
+                // Proceed with download
+                if (pendingDownload) {
+                    downloadPlugin(pendingDownload.format, pendingDownload.platform);
+                }
+            }
+            
+            function isValidEmail(email) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return emailRegex.test(email);
+            }
+            
             // Download plugin function
             function downloadPlugin(format, platform) {
-                // For now, show an alert - you can replace this with actual download logic
-                alert(`Downloading JoshSquash™ ${format.toUpperCase()} for ${platform.charAt(0).toUpperCase() + platform.slice(1)}...\n\nNote: This is a placeholder. You'll need to implement actual file downloads.`);
+                // Create a download link for the placeholder file
+                const downloadUrl = 'JoshSquash_Plugin_Placeholder.txt';
+                const link = document.createElement('a');
+                link.href = downloadUrl;
+                link.download = `JoshSquash_${format.toUpperCase()}_${platform.charAt(0).toUpperCase() + platform.slice(1)}_Placeholder.txt`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
                 
-                // Example of how you might implement actual downloads:
-                // const downloadUrl = `https://your-server.com/downloads/joshsquash-${format}-${platform}.zip`;
-                // window.open(downloadUrl, '_blank');
+                // Show success message
+                setTimeout(() => {
+                    alert(`Download started! You'll receive the actual ${format.toUpperCase()} plugin for ${platform.charAt(0).toUpperCase() + platform.slice(1)} when it's ready. Check your downloads folder for the placeholder file.`);
+                }, 500);
             }
             
         </script>
