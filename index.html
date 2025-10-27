@@ -748,7 +748,7 @@
         </div>
         
         <div style="text-align: center; margin: 30px 0;">
-            <button class="buy-button" onclick="handleBuyNow()" id="firstBuyButton">
+            <button class="buy-button" onclick="handleBuyNow(); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_1', 'button_text': 'Obtain Your Official License Key Now' });" id="firstBuyButton">
                 Obtain Your Official License Key Now - $14.99/MO
             </button>
             
@@ -792,10 +792,10 @@
                 <!-- VST3 Downloads -->
                 <div class="download-option" style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.1);">
                     <h4 style="color: #8b5cf6; margin-bottom: 15px;">VST3 Format</h4>
-                    <button class="download-btn green" onclick="downloadPlugin('vst3', 'windows')" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; width: 100%; transition: all 0.3s ease;">
+                    <button class="download-btn green" onclick="downloadPlugin('vst3', 'windows'); gtag('event', 'download_button_click', { 'button_id': 'VST_windows_download_button', 'format': 'VST3', 'platform': 'Windows' });" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; width: 100%; transition: all 0.3s ease;">
                         Windows VST3
                     </button>
-                    <button class="download-btn green" onclick="downloadPlugin('vst3', 'mac')" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; width: 100%; transition: all 0.3s ease;">
+                    <button class="download-btn green" onclick="downloadPlugin('vst3', 'mac'); gtag('event', 'download_button_click', { 'button_id': 'VST_mac_download_button', 'format': 'VST3', 'platform': 'Mac' });" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; width: 100%; transition: all 0.3s ease;">
                         Mac VST3
                     </button>
                 </div>
@@ -803,10 +803,10 @@
                 <!-- AU Downloads -->
                 <div class="download-option" style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.1);">
                     <h4 style="color: #8b5cf6; margin-bottom: 15px;">AU Format</h4>
-                    <button class="download-btn green" onclick="downloadPlugin('au', 'windows')" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; width: 100%; transition: all 0.3s ease;">
+                    <button class="download-btn green" onclick="downloadPlugin('au', 'windows'); gtag('event', 'download_button_click', { 'button_id': 'AU_windows_download_button', 'format': 'AU', 'platform': 'Windows' });" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; width: 100%; transition: all 0.3s ease;">
                         Windows AU
                     </button>
-                    <button class="download-btn green" onclick="downloadPlugin('au', 'mac')" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; width: 100%; transition: all 0.3s ease;">
+                    <button class="download-btn green" onclick="downloadPlugin('au', 'mac'); gtag('event', 'download_button_click', { 'button_id': 'AU_mac_download_button', 'format': 'AU', 'platform': 'Mac' });" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; width: 100%; transition: all 0.3s ease;">
                         Mac AU
                     </button>
                 </div>
@@ -815,7 +815,7 @@
             <p style="color: white; font-size: 1rem; margin-top: 20px; font-weight: bold; text-align: center;">ATTENTION: This plugin uses a license key to verify ownership. You can download the plugin for free but it will be unusable without a license key. Subscribe now to receive yours!</p>
         </div>
         
-        <button class="buy-button" onclick="handleBuyNow()">
+        <button class="buy-button" onclick="handleBuyNow(); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_2', 'button_text': 'BUY NOW' });">
             BUY NOW
         </button>
         
@@ -852,7 +852,7 @@
             </div>
         </div>
         
-        <button class="buy-button" onclick="handleBuyNow()">
+        <button class="buy-button" onclick="handleBuyNow(); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_3', 'button_text': 'BUY NOW' });">
             BUY NOW
         </button>
         
@@ -898,7 +898,7 @@
             </div>
         </div>
         
-        <button class="buy-button" onclick="handleBuyNow()" style="margin-bottom: 60px;">
+        <button class="buy-button" onclick="handleBuyNow(); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_4', 'button_text': 'BUY NOW' });" style="margin-bottom: 60px;">
             BUY NOW
         </button>
         
@@ -966,7 +966,7 @@
             </div>
         </div>
         
-        <button class="buy-button" onclick="handleBuyNow()" style="margin: 40px 0;">
+        <button class="buy-button" onclick="handleBuyNow(); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_5', 'button_text': 'BUY NOW' });" style="margin: 40px 0;">
             BUY NOW
         </button>
         
@@ -1421,7 +1421,7 @@
             </div>
         </div>
         
-        <button class="buy-button" onclick="handleBuyNow()" style="margin: 60px 0 40px 0;">
+        <button class="buy-button" onclick="handleBuyNow(); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_6', 'button_text': 'BUY NOW' });" style="margin: 60px 0 40px 0;">
             BUY NOW
         </button>
         
