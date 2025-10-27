@@ -1952,19 +1952,26 @@
             
             // Download plugin function
             function downloadPlugin(format, platform) {
-                // Create a download link for the placeholder file
-                const downloadUrl = 'JoshSquash_Plugin_Placeholder.txt';
-                const link = document.createElement('a');
-                link.href = downloadUrl;
-                link.download = `JoshSquash_${format.toUpperCase()}_${platform.charAt(0).toUpperCase() + platform.slice(1)}_Placeholder.txt`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                
-                // Show success message
-                setTimeout(() => {
-                    alert(`Download started! You'll receive the actual ${format.toUpperCase()} plugin for ${platform.charAt(0).toUpperCase() + platform.slice(1)} when it's ready. Check your downloads folder for the placeholder file.`);
-                }, 500);
+                try {
+                    // Create a download link for the placeholder file
+                    const downloadUrl = './JoshSquash_Plugin_Placeholder.txt';
+                    const link = document.createElement('a');
+                    link.href = downloadUrl;
+                    link.download = `JoshSquash_${format.toUpperCase()}_${platform.charAt(0).toUpperCase() + platform.slice(1)}_Placeholder.txt`;
+                    link.style.display = 'none';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    // Show success message
+                    setTimeout(() => {
+                        alert(`Download started! You'll receive the actual ${format.toUpperCase()} plugin for ${platform.charAt(0).toUpperCase() + platform.slice(1)} when it's ready. Check your downloads folder for the placeholder file.`);
+                    }, 500);
+                } catch (error) {
+                    console.error('Download error:', error);
+                    // Fallback: show alert with download instructions
+                    alert(`Download placeholder for JoshSquash™ ${format.toUpperCase()} (${platform.charAt(0).toUpperCase() + platform.slice(1)})\n\nIf the download didn't start automatically, please contact support@megamixai.com for the placeholder file.`);
+                }
             }
             
         </script>
