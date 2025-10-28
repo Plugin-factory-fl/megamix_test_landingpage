@@ -55,6 +55,9 @@ app.post('/webhooks/stripe', express.raw({type: 'application/json'}), async (req
 app.use(express.json());
 app.use(express.static('public')); // Serve static files (like your HTML)
 
+// Serve download files
+app.use('/downloads', express.static('downloads'));
+
 // Stripe Price ID - Using the test mode price ID
 const PRICE_ID = process.env.STRIPE_PRICE_ID || 'price_1SKfpAIKMp3hwEiGikOOb0aN';
 
