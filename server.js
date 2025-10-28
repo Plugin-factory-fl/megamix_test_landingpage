@@ -4,10 +4,20 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const { pool, initializeDatabase } = require('./database/connection');
 const https = require('https');
+const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Email transporter configuration
+const transporter = nodemailer.createTransporter({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER || 'saas.factory.fl@gmail.com',
+    pass: process.env.EMAIL_PASS || process.env.GMAIL_APP_PASSWORD
+  }
+});
 
 // Middleware
 app.use(cors());
@@ -553,12 +563,33 @@ Timestamp: ${new Date().toISOString()}
     console.log(emailContent);
     console.log('===========================');
     
-    // TODO: Implement actual email sending here
-    // You can use services like:
-    // - SendGrid
-    // - Nodemailer with SMTP
-    // - AWS SES
-    // - Mailgun
+    // Send email
+    try {
+      const mailOptions = {
+        from: process.env.EMAIL_USER || 'saas.factory.fl@gmail.com',
+        to: 'saas.factory.fl@gmail.com',
+        subject: `MegaMixAI Support: ${subject}`,
+        text: emailContent,
+        html: `
+          <h2>New Support Request from MegaMixAI Website</h2>
+          <p><strong>Name:</strong> ${name}</p>
+          <p><strong>Email:</strong> ${email}</p>
+          <p><strong>Subject:</strong> ${subject}</p>
+          <p><strong>Message:</strong></p>
+          <p>${message.replace(/\n/g, '<br>')}</p>
+          <hr>
+          <p><em>Sent from MegaMixAI Contact Form</em><br>
+          <em>Timestamp: ${new Date().toISOString()}</em></p>
+        `
+      };
+      
+      await transporter.sendMail(mailOptions);
+      console.log('Email sent successfully to saas.factory.fl@gmail.com');
+      
+    } catch (emailError) {
+      console.error('Failed to send email:', emailError);
+      // Don't fail the request if email fails, just log it
+    }
     
     res.json({ 
       success: true, 
