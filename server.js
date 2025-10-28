@@ -65,7 +65,7 @@ const PRICE_ID = process.env.STRIPE_PRICE_ID || 'price_1SKfpAIKMp3hwEiGikOOb0aN'
 // Mailchimp configuration - Obfuscated for security
 const MAILCHIMP_KEY_PART1 = process.env.MC_KEY_1 || '9c5a37c0';
 const MAILCHIMP_KEY_PART2 = process.env.MC_KEY_2 || 'c84bab97';
-const MAILCHIMP_KEY_PART3 = process.env.MC_KEY_3 || '6976fe82bf3f86f119-us16';
+const MAILCHIMP_KEY_PART3 = process.env.MC_KEY_3 || '66fe82bf3f86f119-us16';
 const MAILCHIMP_API_KEY = `${MAILCHIMP_KEY_PART1}${MAILCHIMP_KEY_PART2}${MAILCHIMP_KEY_PART3}`;
 const MAILCHIMP_AUDIENCE_ID = process.env.MC_AUDIENCE_ID || 'b67d7f37af';
 const MAILCHIMP_SERVER_PREFIX = 'us16';
