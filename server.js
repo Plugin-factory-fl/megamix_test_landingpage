@@ -518,6 +518,62 @@ app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+// Contact support endpoint
+app.post('/contact-support', async (req, res) => {
+  try {
+    console.log('Contact support endpoint hit');
+    console.log('Request body:', req.body);
+    
+    const { name, email, subject, message } = req.body;
+    
+    // Validate required fields
+    if (!name || !email || !subject || !message) {
+      console.log('Missing required fields:', { name: !!name, email: !!email, subject: !!subject, message: !!message });
+      return res.status(400).json({ error: 'All fields are required' });
+    }
+    
+    // Create email content
+    const emailContent = `
+New Support Request from MegaMixAI Website
+
+Name: ${name}
+Email: ${email}
+Subject: ${subject}
+
+Message:
+${message}
+
+---
+Sent from MegaMixAI Contact Form
+Timestamp: ${new Date().toISOString()}
+    `;
+    
+    // Log the contact form submission
+    console.log('=== NEW SUPPORT REQUEST ===');
+    console.log(emailContent);
+    console.log('===========================');
+    
+    // TODO: Implement actual email sending here
+    // You can use services like:
+    // - SendGrid
+    // - Nodemailer with SMTP
+    // - AWS SES
+    // - Mailgun
+    
+    res.json({ 
+      success: true, 
+      message: 'Support request received successfully' 
+    });
+    
+  } catch (error) {
+    console.error('Contact support error:', error);
+    res.status(500).json({ 
+      error: 'Internal server error',
+      message: 'Failed to process support request'
+    });
+  }
+});
+
 // Mailchimp email signup endpoint
 app.post('/mailchimp-signup', async (req, res) => {
   try {
@@ -607,14 +663,19 @@ app.get('/', (req, res) => {
 // Initialize database and start server
 async function startServer() {
   try {
-    // Initialize database schema
-    await initializeDatabase();
+    // Initialize database schema (with error handling)
+    try {
+      await initializeDatabase();
+    } catch (dbError) {
+      console.warn('Database initialization failed, but continuing server startup:', dbError.message);
+    }
     
     // Start the server
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
       console.log(`Health check: http://localhost:${PORT}/health`);
       console.log(`License validation: POST http://localhost:${PORT}/verify-license`);
+      console.log(`Contact support: POST http://localhost:${PORT}/contact-support`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);
