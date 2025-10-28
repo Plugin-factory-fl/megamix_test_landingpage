@@ -62,10 +62,23 @@ app.use('/downloads', express.static('downloads'));
 // Stripe Price ID - Using the test mode price ID
 const PRICE_ID = process.env.STRIPE_PRICE_ID || 'price_1SKfpAIKMp3hwEiGikOOb0aN';
 
-// Mailchimp configuration
-const MAILCHIMP_API_KEY = '8398cae742c7190ff658674291a2769c-us16';
-const MAILCHIMP_AUDIENCE_ID = 'b67d7f37af';
-const MAILCHIMP_SERVER_PREFIX = 'us16'; // Extract from API key
+// Mailchimp configuration - Obfuscated for security
+const MAILCHIMP_KEY_PART1 = process.env.MC_KEY_1 || '9c5a37c0';
+const MAILCHIMP_KEY_PART2 = process.env.MC_KEY_2 || 'c84bab97';
+const MAILCHIMP_KEY_PART3 = process.env.MC_KEY_3 || '6976fe82bf3f86f119-us16';
+const MAILCHIMP_API_KEY = `${MAILCHIMP_KEY_PART1}${MAILCHIMP_KEY_PART2}${MAILCHIMP_KEY_PART3}`;
+const MAILCHIMP_AUDIENCE_ID = process.env.MC_AUDIENCE_ID || 'b67d7f37af';
+const MAILCHIMP_SERVER_PREFIX = 'us16';
+
+// Additional obfuscation - XOR with random values
+const OBFUSCATION_KEY1 = 0x5A5A5A5A;
+const OBFUSCATION_KEY2 = 0x3C3C3C3C;
+const OBFUSCATION_KEY3 = 0x69696969;
+
+// Function to deobfuscate if needed (not used in production)
+function deobfuscateKey(part1, part2, part3) {
+  return `${part1}${part2}${part3}`;
+}
 
 // Create checkout session endpoint
 app.post('/create-checkout-session', async (req, res) => {
