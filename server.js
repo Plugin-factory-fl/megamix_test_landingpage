@@ -527,12 +527,12 @@ app.post('/mailchimp-signup', async (req, res) => {
       tags: ['plugin-download', 'joshsquash', format.toLowerCase(), platform.toLowerCase()]
     };
     
-    // Mailchimp API endpoint
-    const mailchimpUrl = `https://${MAILCHIMP_SERVER_PREFIX}.api.mailchimp.com/3.0/lists/${MAILCHIMP_AUDIENCE_ID}/members`;
-    
     // Create subscriber hash (MD5 of email)
     const crypto = require('crypto');
     const subscriberHash = crypto.createHash('md5').update(email.toLowerCase()).digest('hex');
+    
+    // Mailchimp API endpoint with subscriber hash
+    const mailchimpUrl = `https://${MAILCHIMP_SERVER_PREFIX}.api.mailchimp.com/3.0/lists/${MAILCHIMP_AUDIENCE_ID}/members/${subscriberHash}`;
     
     const options = {
       method: 'PUT', // PUT for upsert (create or update)
