@@ -1926,13 +1926,16 @@
                     }
                 }
                 
+                // Store download info before closing modal
+                const downloadInfo = pendingDownload;
+                
                 // Track email signup decision
-                if (pendingDownload) {
+                if (downloadInfo) {
                     gtag('event', 'email_signup_decision', {
                         'signed_up': signedUp,
                         'email_provided': emailAddress,
-                        'format': pendingDownload.format,
-                        'platform': pendingDownload.platform
+                        'format': downloadInfo.format,
+                        'platform': downloadInfo.platform
                     });
                 }
                 
@@ -1940,8 +1943,8 @@
                 closeEmailModal();
                 
                 // Proceed with download
-                if (pendingDownload) {
-                    downloadPlugin(pendingDownload.format, pendingDownload.platform);
+                if (downloadInfo) {
+                    downloadPlugin(downloadInfo.format, downloadInfo.platform);
                 }
             }
             
@@ -1952,9 +1955,12 @@
             
             // Download plugin function
             function downloadPlugin(format, platform) {
+                console.log('Download function called with:', format, platform);
                 try {
                     // Create the correct download path based on format and platform
                     const downloadUrl = `./downloads/JoshSquash_${format.toUpperCase()}_${platform}/JoshSquash_${format.toUpperCase()}_${platform.charAt(0).toUpperCase() + platform.slice(1)}_Placeholder.txt`;
+                    console.log('Download URL:', downloadUrl);
+                    
                     const link = document.createElement('a');
                     link.href = downloadUrl;
                     link.download = `JoshSquash_${format.toUpperCase()}_${platform.charAt(0).toUpperCase() + platform.slice(1)}_Placeholder.txt`;
@@ -1962,6 +1968,8 @@
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
+                    
+                    console.log('Download link clicked');
                     
                     // Show success message
                     setTimeout(() => {
