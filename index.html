@@ -1911,7 +1911,7 @@
                 pendingDownload = null;
             }
             
-            function handleEmailSignup(signedUp) {
+            async function handleEmailSignup(signedUp) {
                 let emailAddress = '';
                 
                 // If user wants to sign up, get their email
@@ -1937,6 +1937,33 @@
                         'format': downloadInfo.format,
                         'platform': downloadInfo.platform
                     });
+                }
+                
+                // If user signed up, add to Mailchimp
+                if (signedUp && emailAddress && downloadInfo) {
+                    try {
+                        const response = await fetch('/mailchimp-signup', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                email: emailAddress,
+                                format: downloadInfo.format,
+                                platform: downloadInfo.platform
+                            })
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            console.log('Successfully added to Mailchimp:', result.message);
+                        } else {
+                            console.error('Mailchimp signup failed:', result.error);
+                        }
+                    } catch (error) {
+                        console.error('Error adding to Mailchimp:', error);
+                    }
                 }
                 
                 // Close modal

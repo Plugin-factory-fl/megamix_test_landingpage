@@ -3,6 +3,7 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const { pool, initializeDatabase } = require('./database/connection');
+const https = require('https');
 require('dotenv').config();
 
 const app = express();
@@ -60,6 +61,11 @@ app.use('/downloads', express.static('downloads'));
 
 // Stripe Price ID - Using the test mode price ID
 const PRICE_ID = process.env.STRIPE_PRICE_ID || 'price_1SKfpAIKMp3hwEiGikOOb0aN';
+
+// Mailchimp configuration
+const MAILCHIMP_API_KEY = '8398cae742c7190ff658674291a2769c-us16';
+const MAILCHIMP_AUDIENCE_ID = 'b67d7f37af';
+const MAILCHIMP_SERVER_PREFIX = 'us16'; // Extract from API key
 
 // Create checkout session endpoint
 app.post('/create-checkout-session', async (req, res) => {
@@ -497,6 +503,87 @@ app.post('/verify-license', async (req, res) => {
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+// Mailchimp email signup endpoint
+app.post('/mailchimp-signup', async (req, res) => {
+  try {
+    const { email, format, platform } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+    
+    // Create subscriber data for Mailchimp
+    const subscriberData = {
+      email_address: email,
+      status: 'subscribed',
+      merge_fields: {
+        FNAME: '', // First name (empty for now)
+        LNAME: '', // Last name (empty for now)
+        PLUGIN: `${format.toUpperCase()}_${platform.charAt(0).toUpperCase() + platform.slice(1)}`, // Plugin format/platform
+        SIGNUP_DATE: new Date().toISOString().split('T')[0] // Signup date
+      },
+      tags: ['plugin-download', 'joshsquash', format.toLowerCase(), platform.toLowerCase()]
+    };
+    
+    // Mailchimp API endpoint
+    const mailchimpUrl = `https://${MAILCHIMP_SERVER_PREFIX}.api.mailchimp.com/3.0/lists/${MAILCHIMP_AUDIENCE_ID}/members`;
+    
+    // Create subscriber hash (MD5 of email)
+    const crypto = require('crypto');
+    const subscriberHash = crypto.createHash('md5').update(email.toLowerCase()).digest('hex');
+    
+    const options = {
+      method: 'PUT', // PUT for upsert (create or update)
+      headers: {
+        'Authorization': `apikey ${MAILCHIMP_API_KEY}`,
+        'Content-Type': 'application/json'
+      }
+    };
+    
+    // Make request to Mailchimp
+    const response = await new Promise((resolve, reject) => {
+      const req = https.request(mailchimpUrl, options, (res) => {
+        let data = '';
+        res.on('data', (chunk) => data += chunk);
+        res.on('end', () => {
+          try {
+            const jsonData = JSON.parse(data);
+            resolve({ statusCode: res.statusCode, data: jsonData });
+          } catch (e) {
+            resolve({ statusCode: res.statusCode, data: data });
+          }
+        });
+      });
+      
+      req.on('error', reject);
+      req.write(JSON.stringify(subscriberData));
+      req.end();
+    });
+    
+    if (response.statusCode === 200 || response.statusCode === 201) {
+      console.log(`Successfully added ${email} to Mailchimp audience`);
+      res.json({ 
+        success: true, 
+        message: 'Successfully subscribed to MegaMixAI updates!',
+        subscriber: response.data
+      });
+    } else {
+      console.error('Mailchimp API error:', response.data);
+      res.status(400).json({ 
+        error: 'Failed to subscribe to email list',
+        details: response.data
+      });
+    }
+    
+  } catch (error) {
+    console.error('Mailchimp signup error:', error);
+    res.status(500).json({ 
+      error: 'Internal server error',
+      message: 'Failed to process email signup'
+    });
+  }
 });
 
 // Serve the main page
