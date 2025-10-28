@@ -535,6 +535,19 @@
             backdrop-filter: blur(5px);
         }
         
+        /* Contact Support Modal */
+        .contact-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+        
         .modal-content {
             background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
             margin: 5% auto;
@@ -808,6 +821,13 @@
                     </div>
                 </div>
             </div>
+        </div>
+        
+        <!-- Support Contact Button -->
+        <div style="text-align: center; margin: 40px 0;">
+            <button onclick="openContactModal()" style="background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%); color: white; border: none; padding: 20px 40px; border-radius: 12px; font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);">
+                Need help? Contact Us Now
+            </button>
         </div>
         
         <div id="plugin-downloads" class="plugin-downloads" style="text-align: center; margin: 40px 0; padding: 30px; background: rgba(255, 255, 255, 0.05); border-radius: 15px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);">
@@ -1531,6 +1551,53 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Contact Support Modal -->
+        <div id="contactModal" class="contact-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>🛠️ Contact Support</h3>
+                    <span class="close" onclick="closeContactModal()">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <form id="contactForm">
+                        <div class="form-group">
+                            <label for="contactName">Your Name:</label>
+                            <input type="text" id="contactName" name="contactName" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="contactEmail">Your Email:</label>
+                            <input type="email" id="contactEmail" name="contactEmail" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="contactSubject">Subject:</label>
+                            <select id="contactSubject" name="contactSubject" required>
+                                <option value="">Select a topic...</option>
+                                <option value="Plugin Installation Help">Plugin Installation Help</option>
+                                <option value="License Key Issues">License Key Issues</option>
+                                <option value="Plugin Not Working">Plugin Not Working</option>
+                                <option value="Feature Request">Feature Request</option>
+                                <option value="Bug Report">Bug Report</option>
+                                <option value="General Question">General Question</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="contactMessage">Message:</label>
+                            <textarea id="contactMessage" name="contactMessage" rows="5" placeholder="Please describe your issue or question in detail..." required></textarea>
+                        </div>
+                        
+                        <div class="modal-buttons">
+                            <button type="button" class="cancel-btn" onclick="closeContactModal()">Cancel</button>
+                            <button type="submit" class="submit-btn">Send Message</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 
         <script>
@@ -1871,6 +1938,53 @@
                         closeEmailModal();
                     }
                 });
+                
+                // Close contact modal when clicking outside
+                document.getElementById('contactModal').addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeContactModal();
+                    }
+                });
+                
+                // Handle contact form submission
+                document.getElementById('contactForm').addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const formData = {
+                        name: document.getElementById('contactName').value.trim(),
+                        email: document.getElementById('contactEmail').value.trim(),
+                        subject: document.getElementById('contactSubject').value,
+                        message: document.getElementById('contactMessage').value.trim()
+                    };
+                    
+                    // Basic validation
+                    if (!formData.name || !formData.email || !formData.subject || !formData.message) {
+                        alert('Please fill in all fields.');
+                        return;
+                    }
+                    
+                    try {
+                        const response = await fetch('/contact-support', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(formData)
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            alert('Thank you for contacting us! We\'ll get back to you within 24 hours.');
+                            closeContactModal();
+                        } else {
+                            alert('Sorry, there was an error sending your message. Please try again or email us directly at support@megamixai.com');
+                        }
+                    } catch (error) {
+                        console.error('Contact form error:', error);
+                        alert('Sorry, there was an error sending your message. Please try again or email us directly at support@megamixai.com');
+                    }
+                });
             });
             
             async function handleBuyNow() {
@@ -1909,6 +2023,18 @@
                 document.getElementById('emailModal').style.display = 'none';
                 document.body.style.overflow = 'auto';
                 pendingDownload = null;
+            }
+            
+            // Contact support modal functions
+            function openContactModal() {
+                document.getElementById('contactModal').style.display = 'block';
+                document.body.style.overflow = 'hidden';
+            }
+            
+            function closeContactModal() {
+                document.getElementById('contactModal').style.display = 'none';
+                document.body.style.overflow = 'auto';
+                document.getElementById('contactForm').reset();
             }
             
             async function handleEmailSignup(signedUp) {
