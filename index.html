@@ -1953,8 +1953,8 @@
             // Download plugin function
             function downloadPlugin(format, platform) {
                 try {
-                    // Create a download link for the placeholder file
-                    const downloadUrl = './JoshSquash_Plugin_Placeholder.txt';
+                    // Create the correct download path based on format and platform
+                    const downloadUrl = `./downloads/JoshSquash_${format.toUpperCase()}_${platform}/JoshSquash_${format.toUpperCase()}_${platform.charAt(0).toUpperCase() + platform.slice(1)}_Placeholder.txt`;
                     const link = document.createElement('a');
                     link.href = downloadUrl;
                     link.download = `JoshSquash_${format.toUpperCase()}_${platform.charAt(0).toUpperCase() + platform.slice(1)}_Placeholder.txt`;

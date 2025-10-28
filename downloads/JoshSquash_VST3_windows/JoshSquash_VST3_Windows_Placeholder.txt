@@ -1,0 +1,38 @@
+🎵 JoshSquash™ Plugin - VST3 Format for Windows 🎵
+
+Thank you for downloading JoshSquash™ VST3 for Windows!
+
+This is a placeholder file while we finalize the plugin development.
+
+Plugin Details:
+- Format: VST3
+- Platform: Windows
+- Compatible with: Pro Tools, Ableton Live, FL Studio, Cubase, and more
+
+What you can expect:
+- Revolutionary chat-based compression
+- AI-powered audio engineering
+- Genre-smart settings
+- Professional results without the complexity
+
+System Requirements:
+- Windows 10+ (64-bit recommended)
+- VST3-compatible DAW
+
+Installation Instructions (when ready):
+1. Download the actual .vst3 file
+2. Place in C:\Program Files\Common Files\VST3\
+3. Restart your DAW
+4. Find JoshSquash™ in your VST3 plugins
+
+Stay tuned for the official release!
+
+For updates and early access:
+- Visit: megamixai.com
+- Email: support@megamixai.com
+
+Coming Soon: JoshEQ and JoshVerb
+
+---
+MegaMixAI - Democratizing Audio Engineering
+© 2024 MegaMixAI. All rights reserved.
