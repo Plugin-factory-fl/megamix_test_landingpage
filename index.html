@@ -849,9 +849,6 @@
                 <!-- AU Downloads -->
                 <div class="download-option" style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.1);">
                     <h4 style="color: #8b5cf6; margin-bottom: 15px;">AU Format</h4>
-                    <button class="download-btn green" onclick="openEmailModal('au', 'windows'); gtag('event', 'download_button_click', { 'button_id': 'AU_windows_download_button', 'format': 'AU', 'platform': 'Windows' });" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; width: 100%; transition: all 0.3s ease;">
-                        Windows AU
-                    </button>
                     <button class="download-btn green" onclick="openEmailModal('au', 'mac'); gtag('event', 'download_button_click', { 'button_id': 'AU_mac_download_button', 'format': 'AU', 'platform': 'Mac' });" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; width: 100%; transition: all 0.3s ease;">
                         Mac AU
                     </button>
@@ -2108,31 +2105,24 @@
             
             // Download plugin function
             function downloadPlugin(format, platform) {
-                console.log('Download function called with:', format, platform);
-                try {
-                    // Create the correct download path based on format and platform
-                    const downloadUrl = `./downloads/JoshSquash_${format.toUpperCase()}_${platform}/JoshSquash_${format.toUpperCase()}_${platform.charAt(0).toUpperCase() + platform.slice(1)}_Placeholder.txt`;
-                    console.log('Download URL:', downloadUrl);
-                    
-                    const link = document.createElement('a');
-                    link.href = downloadUrl;
-                    link.download = `JoshSquash_${format.toUpperCase()}_${platform.charAt(0).toUpperCase() + platform.slice(1)}_Placeholder.txt`;
-                    link.style.display = 'none';
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    
-                    console.log('Download link clicked');
-                    
-                    // Show success message
-                    setTimeout(() => {
-                        alert(`Download started! You'll receive the actual ${format.toUpperCase()} plugin for ${platform.charAt(0).toUpperCase() + platform.slice(1)} when it's ready. Check your downloads folder for the placeholder file.`);
-                    }, 500);
-                } catch (error) {
-                    console.error('Download error:', error);
-                    // Fallback: show alert with download instructions
-                    alert(`Download placeholder for JoshSquash™ ${format.toUpperCase()} (${platform.charAt(0).toUpperCase() + platform.slice(1)})\n\nIf the download didn't start automatically, please contact support@megamixai.com for the placeholder file.`);
+                // Map format/platform to real files in ./downloads
+                const map = {
+                    'au:mac': './downloads/JoshSquash_AU_mac/MegaMixAI_AU_mac.pkg',
+                    'vst3:mac': './downloads/JoshSquash_VST3_mac/MegaMixAI_VST3_mac.pkg',
+                    // Windows VST3 to be added when ready
+                };
+                const key = `${format}:${platform}`;
+                const url = map[key];
+                if (!url) {
+                    alert('Download for this format/platform is not available yet.');
+                    return;
                 }
+                const link = document.createElement('a');
+                link.href = url;
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
             }
             
         </script>
