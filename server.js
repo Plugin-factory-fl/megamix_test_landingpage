@@ -3,27 +3,19 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const { pool, initializeDatabase } = require('./database/connection');
-const https = require('https');
-const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-// Email transporter configuration
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER || 'saas.factory.fl@gmail.com',
-    pass: process.env.EMAIL_PASS || process.env.GMAIL_APP_PASSWORD
-  }
-});
 
 // Middleware
 app.use(cors());
 
 // Serve static files from the assets directory
 app.use('/assets', express.static('assets'));
+
+// Serve download files from the downloads directory
+app.use('/downloads', express.static('downloads'));
 
 // Webhook endpoint for Stripe events (must be before express.json() middleware)
 app.post('/webhooks/stripe', express.raw({type: 'application/json'}), async (req, res) => {
@@ -66,29 +58,8 @@ app.post('/webhooks/stripe', express.raw({type: 'application/json'}), async (req
 app.use(express.json());
 app.use(express.static('public')); // Serve static files (like your HTML)
 
-// Serve download files
-app.use('/downloads', express.static('downloads'));
-
 // Stripe Price ID - Using the test mode price ID
 const PRICE_ID = process.env.STRIPE_PRICE_ID || 'price_1SKfpAIKMp3hwEiGikOOb0aN';
-
-// Mailchimp configuration - Obfuscated for security
-const MAILCHIMP_KEY_PART1 = process.env.MC_KEY_1 || '9c5a37c0';
-const MAILCHIMP_KEY_PART2 = process.env.MC_KEY_2 || 'c84bab97';
-const MAILCHIMP_KEY_PART3 = process.env.MC_KEY_3 || '66fe82bf3f86f119-us16';
-const MAILCHIMP_API_KEY = `${MAILCHIMP_KEY_PART1}${MAILCHIMP_KEY_PART2}${MAILCHIMP_KEY_PART3}`;
-const MAILCHIMP_AUDIENCE_ID = process.env.MC_AUDIENCE_ID || 'b67d7f37af';
-const MAILCHIMP_SERVER_PREFIX = 'us16';
-
-// Additional obfuscation - XOR with random values
-const OBFUSCATION_KEY1 = 0x5A5A5A5A;
-const OBFUSCATION_KEY2 = 0x3C3C3C3C;
-const OBFUSCATION_KEY3 = 0x69696969;
-
-// Function to deobfuscate if needed (not used in production)
-function deobfuscateKey(part1, part2, part3) {
-  return `${part1}${part2}${part3}`;
-}
 
 // Create checkout session endpoint
 app.post('/create-checkout-session', async (req, res) => {
@@ -528,164 +499,6 @@ app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-// Contact support endpoint
-app.post('/contact-support', async (req, res) => {
-  try {
-    console.log('Contact support endpoint hit');
-    console.log('Request body:', req.body);
-    
-    const { name, email, subject, message } = req.body;
-    
-    // Validate required fields
-    if (!name || !email || !subject || !message) {
-      console.log('Missing required fields:', { name: !!name, email: !!email, subject: !!subject, message: !!message });
-      return res.status(400).json({ error: 'All fields are required' });
-    }
-    
-    // Create email content
-    const emailContent = `
-New Support Request from MegaMixAI Website
-
-Name: ${name}
-Email: ${email}
-Subject: ${subject}
-
-Message:
-${message}
-
----
-Sent from MegaMixAI Contact Form
-Timestamp: ${new Date().toISOString()}
-    `;
-    
-    // Log the contact form submission
-    console.log('=== NEW SUPPORT REQUEST ===');
-    console.log(emailContent);
-    console.log('===========================');
-    
-    // Send email
-    try {
-      const mailOptions = {
-        from: process.env.EMAIL_USER || 'saas.factory.fl@gmail.com',
-        to: 'saas.factory.fl@gmail.com',
-        subject: `MegaMixAI Support: ${subject}`,
-        text: emailContent,
-        html: `
-          <h2>New Support Request from MegaMixAI Website</h2>
-          <p><strong>Name:</strong> ${name}</p>
-          <p><strong>Email:</strong> ${email}</p>
-          <p><strong>Subject:</strong> ${subject}</p>
-          <p><strong>Message:</strong></p>
-          <p>${message.replace(/\n/g, '<br>')}</p>
-          <hr>
-          <p><em>Sent from MegaMixAI Contact Form</em><br>
-          <em>Timestamp: ${new Date().toISOString()}</em></p>
-        `
-      };
-      
-      await transporter.sendMail(mailOptions);
-      console.log('Email sent successfully to saas.factory.fl@gmail.com');
-      
-    } catch (emailError) {
-      console.error('Failed to send email:', emailError);
-      // Don't fail the request if email fails, just log it
-    }
-    
-    res.json({ 
-      success: true, 
-      message: 'Support request received successfully' 
-    });
-    
-  } catch (error) {
-    console.error('Contact support error:', error);
-    res.status(500).json({ 
-      error: 'Internal server error',
-      message: 'Failed to process support request'
-    });
-  }
-});
-
-// Mailchimp email signup endpoint
-app.post('/mailchimp-signup', async (req, res) => {
-  try {
-    const { email, format, platform } = req.body;
-    
-    if (!email) {
-      return res.status(400).json({ error: 'Email is required' });
-    }
-    
-    // Create subscriber data for Mailchimp
-    const subscriberData = {
-      email_address: email,
-      status: 'subscribed',
-      merge_fields: {
-        FNAME: '', // First name (empty for now)
-        LNAME: '', // Last name (empty for now)
-        PLUGIN: `${format.toUpperCase()}_${platform.charAt(0).toUpperCase() + platform.slice(1)}`, // Plugin format/platform
-        SIGNUP_DATE: new Date().toISOString().split('T')[0] // Signup date
-      },
-      tags: ['plugin-download', 'joshsquash', format.toLowerCase(), platform.toLowerCase()]
-    };
-    
-    // Create subscriber hash (MD5 of email)
-    const crypto = require('crypto');
-    const subscriberHash = crypto.createHash('md5').update(email.toLowerCase()).digest('hex');
-    
-    // Mailchimp API endpoint with subscriber hash
-    const mailchimpUrl = `https://${MAILCHIMP_SERVER_PREFIX}.api.mailchimp.com/3.0/lists/${MAILCHIMP_AUDIENCE_ID}/members/${subscriberHash}`;
-    
-    const options = {
-      method: 'PUT', // PUT for upsert (create or update)
-      headers: {
-        'Authorization': `apikey ${MAILCHIMP_API_KEY}`,
-        'Content-Type': 'application/json'
-      }
-    };
-    
-    // Make request to Mailchimp
-    const response = await new Promise((resolve, reject) => {
-      const req = https.request(mailchimpUrl, options, (res) => {
-        let data = '';
-        res.on('data', (chunk) => data += chunk);
-        res.on('end', () => {
-          try {
-            const jsonData = JSON.parse(data);
-            resolve({ statusCode: res.statusCode, data: jsonData });
-          } catch (e) {
-            resolve({ statusCode: res.statusCode, data: data });
-          }
-        });
-      });
-      
-      req.on('error', reject);
-      req.write(JSON.stringify(subscriberData));
-      req.end();
-    });
-    
-    if (response.statusCode === 200 || response.statusCode === 201) {
-      console.log(`Successfully added ${email} to Mailchimp audience`);
-      res.json({ 
-        success: true, 
-        message: 'Successfully subscribed to MegaMixAI updates!',
-        subscriber: response.data
-      });
-    } else {
-      console.error('Mailchimp API error:', response.data);
-      res.status(400).json({ 
-        error: 'Failed to subscribe to email list',
-        details: response.data
-      });
-    }
-    
-  } catch (error) {
-    console.error('Mailchimp signup error:', error);
-    res.status(500).json({ 
-      error: 'Internal server error',
-      message: 'Failed to process email signup'
-    });
-  }
-});
-
 // Serve the main page
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
@@ -694,19 +507,14 @@ app.get('/', (req, res) => {
 // Initialize database and start server
 async function startServer() {
   try {
-    // Initialize database schema (with error handling)
-    try {
-      await initializeDatabase();
-    } catch (dbError) {
-      console.warn('Database initialization failed, but continuing server startup:', dbError.message);
-    }
+    // Initialize database schema
+    await initializeDatabase();
     
     // Start the server
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
       console.log(`Health check: http://localhost:${PORT}/health`);
       console.log(`License validation: POST http://localhost:${PORT}/verify-license`);
-      console.log(`Contact support: POST http://localhost:${PORT}/contact-support`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);
