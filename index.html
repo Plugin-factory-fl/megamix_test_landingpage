@@ -1993,9 +1993,8 @@
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({
-                            priceId: 'price_1SKfpAIKMp3hwEiGikOOb0aN' // Test mode Stripe price ID
-                        })
+                        // Let the server use the PRICE_ID environment variable
+                        body: JSON.stringify({})
                     });
                     
                     const session = await response.json();
