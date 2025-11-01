@@ -58,6 +58,11 @@ app.use(express.static('public')); // Serve static files (like your HTML)
 // Stripe Price ID - from environment variable (required in production)
 const PRICE_ID = process.env.STRIPE_PRICE_ID;
 
+// Debug logging
+console.log('=== STRIPE_PRICE_ID DEBUG ===');
+console.log('PRICE_ID value:', PRICE_ID);
+console.log('Type:', typeof PRICE_ID);
+
 if (!PRICE_ID) {
     console.error('ERROR: STRIPE_PRICE_ID environment variable is not set!');
     console.error('Please set this in your Render dashboard under Environment Variables.');
