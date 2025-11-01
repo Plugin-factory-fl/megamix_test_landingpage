@@ -14,9 +14,6 @@ app.use(cors());
 // Serve static files from the assets directory
 app.use('/assets', express.static('assets'));
 
-// Serve download files from the downloads directory
-app.use('/downloads', express.static('downloads'));
-
 // Webhook endpoint for Stripe events (must be before express.json() middleware)
 app.post('/webhooks/stripe', express.raw({type: 'application/json'}), async (req, res) => {
   const sig = req.headers['stripe-signature'];
@@ -492,6 +489,11 @@ app.post('/verify-license', async (req, res) => {
     console.error('Error verifying license:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
+});
+
+// Version check endpoint for plugin
+app.get('/api/version', (req, res) => {
+  res.json({ version: '1.0.1' });
 });
 
 // Health check endpoint
