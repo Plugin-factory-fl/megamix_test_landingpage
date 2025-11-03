@@ -38,10 +38,72 @@ app.post('/webhooks/stripe', express.raw({type: 'application/json'}), async (req
       
     case 'invoice.payment_succeeded':
       console.log('Subscription payment succeeded');
+      // Update license status to active and extend expires_at
+      const paymentSucceededSession = event.data.object;
+      if (paymentSucceededSession.subscription) {
+        try {
+          const subscription = await stripe.subscriptions.retrieve(paymentSucceededSession.subscription);
+          const expiresAt = new Date(subscription.current_period_end * 1000);
+          
+          await pool.query(
+            `UPDATE licenses 
+             SET status = 'active', expires_at = $1, last_validated_at = CURRENT_TIMESTAMP
+             WHERE stripe_subscription_id = $2`,
+            [expiresAt, paymentSucceededSession.subscription]
+          );
+          console.log(`Updated license status to active for subscription ${paymentSucceededSession.subscription}`);
+        } catch (error) {
+          console.error('Error updating license on payment success:', error);
+        }
+      }
       break;
       
     case 'invoice.payment_failed':
       console.log('Subscription payment failed');
+      // Mark license as expired/cancelled after payment failure
+      const paymentFailedSession = event.data.object;
+      if (paymentFailedSession.subscription) {
+        try {
+          // Check if subscription will be cancelled or is past due
+          const subscription = await stripe.subscriptions.retrieve(paymentFailedSession.subscription);
+          
+          let newStatus = 'expired';
+          if (subscription.status === 'canceled' || subscription.status === 'unpaid') {
+            newStatus = 'cancelled';
+          } else if (subscription.status === 'past_due') {
+            newStatus = 'expired'; // Give grace period for past_due
+          }
+          
+          await pool.query(
+            `UPDATE licenses 
+             SET status = $1
+             WHERE stripe_subscription_id = $2`,
+            [newStatus, paymentFailedSession.subscription]
+          );
+          console.log(`Updated license status to ${newStatus} for subscription ${paymentFailedSession.subscription}`);
+        } catch (error) {
+          console.error('Error updating license on payment failure:', error);
+        }
+      }
+      break;
+      
+    case 'customer.subscription.deleted':
+      console.log('Subscription cancelled');
+      // Update license status when subscription is cancelled
+      const deletedSubscription = event.data.object;
+      if (deletedSubscription.id) {
+        try {
+          await pool.query(
+            `UPDATE licenses 
+             SET status = 'cancelled'
+             WHERE stripe_subscription_id = $1`,
+            [deletedSubscription.id]
+          );
+          console.log(`Updated license status to cancelled for subscription ${deletedSubscription.id}`);
+        } catch (error) {
+          console.error('Error updating license on subscription deletion:', error);
+        }
+      }
       break;
       
     default:
@@ -458,9 +520,87 @@ app.post('/verify-license', async (req, res) => {
       return res.status(403).json({ error: 'License has expired' });
     }
     
-    // Check if license is active
+    // Check if license is active in database
     if (license.status !== 'active') {
       return res.status(403).json({ error: 'License is not active' });
+    }
+    
+    // CRITICAL: Verify subscription is actually active in Stripe
+    // This prevents use of cancelled or failed subscriptions
+    if (license.stripe_subscription_id) {
+      try {
+        const subscription = await stripe.subscriptions.retrieve(license.stripe_subscription_id);
+        
+        // Check if subscription is active in Stripe
+        // Allow 'active' and 'trialing' states, reject everything else
+        const validStripeStatuses = ['active', 'trialing'];
+        if (!validStripeStatuses.includes(subscription.status)) {
+          // Subscription is not active in Stripe - update database and reject
+          const newStatus = subscription.status === 'canceled' || subscription.status === 'unpaid' 
+            ? 'cancelled' 
+            : 'expired';
+          
+          await pool.query(
+            `UPDATE licenses SET status = $1 WHERE id = $2`,
+            [newStatus, license.id]
+          );
+          
+          await pool.query(
+            `INSERT INTO validation_logs (license_key, hardware_fingerprint, ip_address, user_agent, validation_result)
+             VALUES ($1, $2, $3, $4, $5)`,
+            [licenseKey, null, req.ip, req.get('User-Agent'), 'invalid']
+          );
+          
+          let errorMessage = 'Subscription is not active';
+          if (subscription.status === 'canceled') {
+            errorMessage = 'Your subscription has been cancelled. Please renew your subscription to continue using the plugin.';
+          } else if (subscription.status === 'past_due') {
+            errorMessage = 'Your subscription payment is past due. Please update your payment method to continue using the plugin.';
+          } else if (subscription.status === 'unpaid') {
+            errorMessage = 'Your subscription payment failed. Please update your payment method to continue using the plugin.';
+          }
+          
+          return res.status(403).json({ error: errorMessage });
+        }
+        
+        // Subscription is active in Stripe - update expires_at to match Stripe's current_period_end
+        // This keeps database in sync with actual billing cycle
+        const stripeExpiresAt = new Date(subscription.current_period_end * 1000);
+        if (stripeExpiresAt.getTime() !== new Date(license.expires_at).getTime()) {
+          await pool.query(
+            `UPDATE licenses SET expires_at = $1 WHERE id = $2`,
+            [stripeExpiresAt, license.id]
+          );
+        }
+        
+      } catch (stripeError) {
+        // Handle Stripe API errors gracefully
+        console.error('Error verifying Stripe subscription:', stripeError);
+        
+        // If subscription doesn't exist or was deleted, mark license as cancelled
+        if (stripeError.type === 'StripeInvalidRequestError' && stripeError.code === 'resource_missing') {
+          await pool.query(
+            `UPDATE licenses SET status = 'cancelled' WHERE id = $1`,
+            [license.id]
+          );
+          
+          await pool.query(
+            `INSERT INTO validation_logs (license_key, hardware_fingerprint, ip_address, user_agent, validation_result)
+             VALUES ($1, $2, $3, $4, $5)`,
+            [licenseKey, null, req.ip, req.get('User-Agent'), 'invalid']
+          );
+          
+          return res.status(403).json({ error: 'Subscription not found. Please contact support.' });
+        }
+        
+        // For other Stripe errors, log but don't block validation (fail open for network issues)
+        // This prevents network problems from blocking valid users
+        console.error('Stripe API error during validation (allowing validation to proceed):', stripeError.message);
+      }
+    } else {
+      // No Stripe subscription ID stored - this shouldn't happen for subscriptions
+      // But handle gracefully for legacy licenses or one-time purchases
+      console.warn(`License ${licenseKey} has no stripe_subscription_id - skipping Stripe verification`);
     }
     
     // Update license validation info
