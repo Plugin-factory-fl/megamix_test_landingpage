@@ -14,6 +14,9 @@ app.use(cors());
 // Serve static files from the assets directory
 app.use('/assets', express.static('assets'));
 
+// Serve download files
+app.use('/downloads', express.static('downloads'));
+
 // Webhook endpoint for Stripe events (must be before express.json() middleware)
 app.post('/webhooks/stripe', express.raw({type: 'application/json'}), async (req, res) => {
   const sig = req.headers['stripe-signature'];
@@ -577,25 +580,37 @@ app.post('/verify-license', async (req, res) => {
         // Handle Stripe API errors gracefully
         console.error('Error verifying Stripe subscription:', stripeError);
         
-        // If subscription doesn't exist or was deleted, mark license as cancelled
+        // Check if subscription doesn't exist or was deleted
         if (stripeError.type === 'StripeInvalidRequestError' && stripeError.code === 'resource_missing') {
-          await pool.query(
-            `UPDATE licenses SET status = 'cancelled' WHERE id = $1`,
-            [license.id]
-          );
-          
-          await pool.query(
-            `INSERT INTO validation_logs (license_key, hardware_fingerprint, ip_address, user_agent, validation_result)
-             VALUES ($1, $2, $3, $4, $5)`,
-            [licenseKey, null, req.ip, req.get('User-Agent'), 'invalid']
-          );
-          
-          return res.status(403).json({ error: 'Subscription not found. Please contact support.' });
+          // Check if this is a test/live mode mismatch
+          const errorMessage = stripeError.message || '';
+          if (errorMessage.includes('test mode') || errorMessage.includes('live mode')) {
+            // This is a mode mismatch - subscription exists but in wrong mode
+            // For now, allow validation to proceed but log the issue
+            // In production, you should ensure your Stripe keys match your subscription mode
+            console.warn(`Stripe mode mismatch for subscription ${license.stripe_subscription_id}: ${errorMessage}`);
+            console.warn('Validation proceeding - ensure STRIPE_SECRET_KEY matches subscription mode (test vs live)');
+            // Continue with validation - the subscription exists, just in different mode
+          } else {
+            // Subscription truly doesn't exist - mark as cancelled
+            await pool.query(
+              `UPDATE licenses SET status = 'cancelled' WHERE id = $1`,
+              [license.id]
+            );
+            
+            await pool.query(
+              `INSERT INTO validation_logs (license_key, hardware_fingerprint, ip_address, user_agent, validation_result)
+               VALUES ($1, $2, $3, $4, $5)`,
+              [licenseKey, null, req.ip, req.get('User-Agent'), 'invalid']
+            );
+            
+            return res.status(403).json({ error: 'Subscription not found. Please contact support.' });
+          }
+        } else {
+          // For other Stripe errors, log but don't block validation (fail open for network issues)
+          // This prevents network problems from blocking valid users
+          console.error('Stripe API error during validation (allowing validation to proceed):', stripeError.message);
         }
-        
-        // For other Stripe errors, log but don't block validation (fail open for network issues)
-        // This prevents network problems from blocking valid users
-        console.error('Stripe API error during validation (allowing validation to proceed):', stripeError.message);
       }
     } else {
       // No Stripe subscription ID stored - this shouldn't happen for subscriptions
