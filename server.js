@@ -11,8 +11,8 @@ const PORT = process.env.PORT || 3000;
 
 // Configure nodemailer transporter (only if credentials are available)
 let transporter = null;
-const smtpUser = process.env.SMTP_USER ? process.env.SMTP_USER.trim() : '';
-const smtpPass = process.env.SMTP_PASS ? process.env.SMTP_PASS.trim() : '';
+const smtpUser = (process.env.EMAIL_USER || process.env.SMTP_USER) ? (process.env.EMAIL_USER || process.env.SMTP_USER).trim() : '';
+const smtpPass = (process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASS) ? (process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASS).trim() : '';
 
 if (smtpUser && smtpPass) {
   try {
@@ -41,8 +41,8 @@ if (smtpUser && smtpPass) {
   }
 } else {
   console.warn('SMTP credentials not configured. Email functionality will be disabled.');
-  console.warn('SMTP_USER:', smtpUser ? `SET (${smtpUser.length} chars)` : 'NOT SET');
-  console.warn('SMTP_PASS:', smtpPass ? `SET (${smtpPass.length} chars)` : 'NOT SET');
+  console.warn('EMAIL_USER:', smtpUser ? `SET (${smtpUser.length} chars)` : 'NOT SET');
+  console.warn('GMAIL_APP_PASSWORD:', smtpPass ? `SET (${smtpPass.length} chars)` : 'NOT SET');
 }
 
 // Middleware
@@ -729,7 +729,7 @@ app.post('/contact-support', async (req, res) => {
       });
     }
     
-    const smtpUser = process.env.SMTP_USER ? process.env.SMTP_USER.trim() : '';
+    const smtpUser = (process.env.EMAIL_USER || process.env.SMTP_USER) ? (process.env.EMAIL_USER || process.env.SMTP_USER).trim() : '';
     const mailOptions = {
       from: smtpUser || email,
       to: 'saas.factory.fl@gmail.com',
