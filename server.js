@@ -9,16 +9,38 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Configure nodemailer transporter
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: false, // true for 465, false for other ports
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
+// Configure nodemailer transporter (only if credentials are available)
+let transporter = null;
+if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+  try {
+    transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: parseInt(process.env.SMTP_PORT || '587'),
+      secure: false, // true for 465, false for other ports
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS
+      },
+      tls: {
+        rejectUnauthorized: false // Allow self-signed certificates
+      }
+    });
+    // Verify transporter configuration
+    transporter.verify(function(error, success) {
+      if (error) {
+        console.error('SMTP transporter verification failed:', error);
+      } else {
+        console.log('SMTP transporter is ready to send emails');
+      }
+    });
+  } catch (error) {
+    console.error('Error creating SMTP transporter:', error);
   }
-});
+} else {
+  console.warn('SMTP credentials not configured. Email functionality will be disabled.');
+  console.warn('SMTP_USER:', process.env.SMTP_USER ? 'SET' : 'NOT SET');
+  console.warn('SMTP_PASS:', process.env.SMTP_PASS ? 'SET' : 'NOT SET');
+}
 
 // Middleware
 app.use(cors());
@@ -687,7 +709,23 @@ app.post('/contact-support', async (req, res) => {
       });
     }
     
-    // Send email
+    // Send email if transporter is configured
+    if (!transporter) {
+      console.error('SMTP not configured. Contact form submission:', { name, email, subject, message });
+      // Log to console as fallback
+      console.log('=== Contact Form Submission (Email Not Configured) ===');
+      console.log('Name:', name);
+      console.log('Email:', email);
+      console.log('Subject:', subject);
+      console.log('Message:', message);
+      console.log('===================================================');
+      
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Email service is not configured. Please contact support directly.' 
+      });
+    }
+    
     const mailOptions = {
       from: process.env.SMTP_USER || email,
       to: 'saas.factory.fl@gmail.com',
@@ -708,9 +746,17 @@ app.post('/contact-support', async (req, res) => {
     
   } catch (error) {
     console.error('Error sending contact form email:', error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      response: error.response,
+      responseCode: error.responseCode,
+      stack: error.stack
+    });
     res.status(500).json({ 
       success: false, 
-      error: 'Failed to process contact form submission' 
+      error: 'Failed to process contact form submission',
+      details: error.message || 'Unknown error'
     });
   }
 });
