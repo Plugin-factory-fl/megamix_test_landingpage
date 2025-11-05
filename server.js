@@ -14,7 +14,7 @@ app.use(cors());
 // Serve static files from the assets directory
 app.use('/assets', express.static('assets'));
 
-// Serve download files
+// Serve plugin downloads
 app.use('/downloads', express.static('downloads'));
 
 // Webhook endpoint for Stripe events (must be before express.json() middleware)
