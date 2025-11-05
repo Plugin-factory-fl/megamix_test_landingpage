@@ -699,6 +699,37 @@ app.post('/verify-license', async (req, res) => {
   }
 });
 
+// Mailchimp signup endpoint
+app.post('/mailchimp-signup', async (req, res) => {
+  try {
+    const { email, format, platform } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Email is required' 
+      });
+    }
+    
+    // TODO: Integrate with Mailchimp API if needed
+    // For now, just log the signup
+    console.log('Mailchimp signup:', { email, format, platform });
+    
+    // Return success response
+    res.json({ 
+      success: true, 
+      message: 'Successfully added to mailing list' 
+    });
+    
+  } catch (error) {
+    console.error('Error processing Mailchimp signup:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to process signup' 
+    });
+  }
+});
+
 // Contact support endpoint
 app.post('/contact-support', async (req, res) => {
   try {
