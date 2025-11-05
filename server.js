@@ -2,11 +2,23 @@ const express = require('express');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
 const { pool, initializeDatabase } = require('./database/connection');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Configure nodemailer transporter
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  port: parseInt(process.env.SMTP_PORT || '587'),
+  secure: false, // true for 465, false for other ports
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS
+  }
+});
 
 // Middleware
 app.use(cors());
@@ -675,15 +687,18 @@ app.post('/contact-support', async (req, res) => {
       });
     }
     
-    // TODO: Store in database or send email
-    // For now, just log the contact form submission
-    console.log('=== Contact Form Submission ===');
-    console.log('Name:', name);
-    console.log('Email:', email);
-    console.log('Subject:', subject);
-    console.log('Message:', message);
-    console.log('Timestamp:', new Date().toISOString());
-    console.log('================================');
+    // Send email
+    const mailOptions = {
+      from: process.env.SMTP_USER || email,
+      to: 'saas.factory.fl@gmail.com',
+      subject: `Contact Form: ${subject}`,
+      text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
+      replyTo: email
+    };
+    
+    await transporter.sendMail(mailOptions);
+    
+    console.log(`Contact form submission sent from ${email} to saas.factory.fl@gmail.com`);
     
     // Return success response
     res.json({ 
@@ -692,7 +707,7 @@ app.post('/contact-support', async (req, res) => {
     });
     
   } catch (error) {
-    console.error('Error processing contact form:', error);
+    console.error('Error sending contact form email:', error);
     res.status(500).json({ 
       success: false, 
       error: 'Failed to process contact form submission' 
