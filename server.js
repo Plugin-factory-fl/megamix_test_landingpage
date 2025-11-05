@@ -11,15 +11,18 @@ const PORT = process.env.PORT || 3000;
 
 // Configure nodemailer transporter (only if credentials are available)
 let transporter = null;
-if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+const smtpUser = process.env.SMTP_USER ? process.env.SMTP_USER.trim() : '';
+const smtpPass = process.env.SMTP_PASS ? process.env.SMTP_PASS.trim() : '';
+
+if (smtpUser && smtpPass) {
   try {
     transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || 'smtp.gmail.com',
       port: parseInt(process.env.SMTP_PORT || '587'),
       secure: false, // true for 465, false for other ports
       auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
+        user: smtpUser,
+        pass: smtpPass
       },
       tls: {
         rejectUnauthorized: false // Allow self-signed certificates
@@ -38,8 +41,8 @@ if (process.env.SMTP_USER && process.env.SMTP_PASS) {
   }
 } else {
   console.warn('SMTP credentials not configured. Email functionality will be disabled.');
-  console.warn('SMTP_USER:', process.env.SMTP_USER ? 'SET' : 'NOT SET');
-  console.warn('SMTP_PASS:', process.env.SMTP_PASS ? 'SET' : 'NOT SET');
+  console.warn('SMTP_USER:', smtpUser ? `SET (${smtpUser.length} chars)` : 'NOT SET');
+  console.warn('SMTP_PASS:', smtpPass ? `SET (${smtpPass.length} chars)` : 'NOT SET');
 }
 
 // Middleware
@@ -726,8 +729,9 @@ app.post('/contact-support', async (req, res) => {
       });
     }
     
+    const smtpUser = process.env.SMTP_USER ? process.env.SMTP_USER.trim() : '';
     const mailOptions = {
-      from: process.env.SMTP_USER || email,
+      from: smtpUser || email,
       to: 'saas.factory.fl@gmail.com',
       subject: `Contact Form: ${subject}`,
       text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
