@@ -662,6 +662,44 @@ app.post('/verify-license', async (req, res) => {
   }
 });
 
+// Contact support endpoint
+app.post('/contact-support', async (req, res) => {
+  try {
+    const { name, email, subject, message } = req.body;
+    
+    // Validate required fields
+    if (!name || !email || !subject || !message) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'All fields are required' 
+      });
+    }
+    
+    // TODO: Store in database or send email
+    // For now, just log the contact form submission
+    console.log('=== Contact Form Submission ===');
+    console.log('Name:', name);
+    console.log('Email:', email);
+    console.log('Subject:', subject);
+    console.log('Message:', message);
+    console.log('Timestamp:', new Date().toISOString());
+    console.log('================================');
+    
+    // Return success response
+    res.json({ 
+      success: true, 
+      message: 'Thank you for contacting us! We\'ll get back to you soon.' 
+    });
+    
+  } catch (error) {
+    console.error('Error processing contact form:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to process contact form submission' 
+    });
+  }
+});
+
 // Version check endpoint for plugin
 app.get('/api/version', (req, res) => {
   res.json({ version: '1.0.1' });
