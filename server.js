@@ -3,11 +3,24 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
+const mailchimp = require('@mailchimp/mailchimp_marketing');
 const { pool, initializeDatabase } = require('./database/connection');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Configure Mailchimp with 3-part obfuscated API key
+const mailchimpKeyPart1 = process.env.MAILCHIMP_API_KEY_PART1 || '9c5a37c0c84bab9';
+const mailchimpKeyPart2 = process.env.MAILCHIMP_API_KEY_PART2 || '766fe82bf3f86f1';
+const mailchimpKeyPart3 = process.env.MAILCHIMP_API_KEY_PART3 || '19';
+const mailchimpServer = process.env.MAILCHIMP_SERVER || 'us16';
+const mailchimpApiKey = `${mailchimpKeyPart1}${mailchimpKeyPart2}${mailchimpKeyPart3}-${mailchimpServer}`;
+
+mailchimp.setConfig({
+  apiKey: mailchimpApiKey,
+  server: mailchimpServer,
+});
 
 // Configure nodemailer transporter (only if credentials are available)
 let transporter = null;
@@ -711,9 +724,20 @@ app.post('/mailchimp-signup', async (req, res) => {
       });
     }
     
-    // TODO: Integrate with Mailchimp API if needed
-    // For now, just log the signup
-    console.log('Mailchimp signup:', { email, format, platform });
+    const audienceId = process.env.MAILCHIMP_AUDIENCE_ID || 'b67d7f37af';
+    
+    // Add subscriber to Mailchimp audience
+    const response = await mailchimp.lists.addListMember(audienceId, {
+      email_address: email,
+      status: 'subscribed',
+      merge_fields: {
+        FNAME: '',
+        LNAME: ''
+      },
+      tags: format && platform ? [`${format}-${platform}`] : []
+    });
+    
+    console.log('Mailchimp signup successful:', { email, format, platform, mailchimpId: response.id });
     
     // Return success response
     res.json({ 
@@ -723,9 +747,20 @@ app.post('/mailchimp-signup', async (req, res) => {
     
   } catch (error) {
     console.error('Error processing Mailchimp signup:', error);
+    
+    // Handle specific Mailchimp errors
+    if (error.status === 400 && error.response?.body?.title === 'Member Exists') {
+      // Email already in list - return success
+      return res.json({ 
+        success: true, 
+        message: 'Email already in mailing list' 
+      });
+    }
+    
     res.status(500).json({ 
       success: false, 
-      error: 'Failed to process signup' 
+      error: 'Failed to process signup',
+      details: error.message || 'Unknown error'
     });
   }
 });

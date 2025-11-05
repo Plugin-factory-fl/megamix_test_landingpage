@@ -14,7 +14,8 @@
     "dotenv": "^16.3.1",
     "pg": "^8.11.3",
     "jsonwebtoken": "^9.0.2",
-    "nodemailer": "^6.9.7"
+    "nodemailer": "^6.9.7",
+    "@mailchimp/mailchimp_marketing": "^3.0.80"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
