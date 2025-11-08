@@ -15,6 +15,10 @@
       gtag('config', 'G-4JZ3RNEJWY');
     </script>
     <style>
+        html {
+            scroll-behavior: smooth;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -30,7 +34,103 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 150px 20px 20px 20px;
+        }
+
+        .announcement-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: #8b5cf6;
+            color: #fff;
+            overflow: hidden;
+            z-index: 1100;
+            height: 40px;
+            display: flex;
+            align-items: center;
+        }
+
+        .announcement-inner {
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .announcement-track {
+            display: inline-flex;
+            align-items: center;
+            gap: 80px;
+            min-width: 200%;
+            animation: marquee 22s linear infinite;
+            font-size: 0.95rem;
+            letter-spacing: 0.8px;
+            font-weight: normal;
+        }
+
+        .announcement-track span {
+            white-space: nowrap;
+        }
+
+        @keyframes marquee {
+            0% {
+                transform: translateX(0);
+            }
+            100% {
+                transform: translateX(-50%);
+            }
+        }
+
+        .navbar {
+            position: fixed;
+            top: 40px;
+            left: 0;
+            width: 100%;
+            background: #000;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .navbar-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 20px;
+            width: 100%;
+        }
+
+        .navbar-logo img {
+            height: 100px;
+            display: block;
+            object-fit: contain;
+        }
+
+        .navbar-links {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .navbar-links a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+            transition: color 0.3s ease;
+        }
+
+        .navbar-links a:hover,
+        .navbar-links a:focus {
+            color: #8b5cf6;
+        }
+
+        #contact-section,
+        #purchase-section,
+        #plugin-downloads,
+        #reviews-section {
+            scroll-margin-top: 120px;
         }
 
         .container {
@@ -115,6 +215,39 @@
             margin-bottom: 50px;
         }
 
+        .hero-benefits {
+            max-width: 720px;
+            margin: 40px auto 30px auto;
+            text-align: center;
+        }
+
+        .hero-heading {
+            display: block;
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            color: #ffffff;
+            position: relative;
+            z-index: 5;
+        }
+
+        .hero-subheading {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: 14px;
+            color: #8b5cf6;
+            position: relative;
+            z-index: 5;
+        }
+
+        .hero-benefits p {
+            font-size: 1.1rem;
+            opacity: 0.85;
+            line-height: 1.5;
+        }
+
         .buy-button {
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: white;
@@ -168,15 +301,9 @@
         }
         
         .left-column {
-            flex: 0 0 50%;
-            position: sticky;
-            top: 50vh;
-            transform: translateY(-50%);
+            flex: 0 0 45%;
             align-self: flex-start;
-            max-height: calc(100vh - 100px);
-            overflow: hidden;
-            margin-top: 200px;
-            margin-bottom: -200px;
+            margin: 0;
         }
         
         .right-column {
@@ -252,6 +379,66 @@
             font-size: 1.3rem;
             color: #ffd700;
         }
+
+        .pricing-overview {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px 30px;
+            margin: 40px auto 20px auto;
+            max-width: 850px;
+            text-align: left;
+        }
+
+        .pricing-overview h3 {
+            color: #8b5cf6;
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+        }
+
+        .pricing-overview p {
+            opacity: 0.85;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .pricing-card {
+            background: rgba(255, 255, 255, 0.07);
+            border-radius: 16px;
+            padding: 24px 20px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .pricing-card h4 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #8b5cf6;
+        }
+
+        .pricing-price {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .pricing-card ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .pricing-card ul li {
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            opacity: 0.85;
+        }
+
+        .pricing-note {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
         
         @media (max-width: 768px) {
             .two-column-section {
@@ -266,9 +453,9 @@
                 margin-bottom: 0;
             }
             
-            /* Move the sticky image down on mobile to prevent overlap with format text */
+            /* Add breathing room between image and preceding content on mobile */
             .two-column-section .left-column {
-                margin-top: 120px;
+                margin-top: 40px;
             }
             
             /* Mobile layout for genre sections - ensure picture on top, text below */
@@ -756,7 +943,31 @@
         }
     </style>
 </head>
-<body>
+<body id="top">
+    <div class="announcement-bar">
+        <div class="announcement-inner">
+            <div class="announcement-track">
+                <span>AMAZING CUSTOMER SUPPORT | AVAILABLE FOR MAC AND WINDOWS MACHINES | COMPATIBLE WITH MOST DAWs | MADE BY AN INDIE DEVELOPER WHO CARES</span>
+                <span>AMAZING CUSTOMER SUPPORT | AVAILABLE FOR MAC AND WINDOWS MACHINES | COMPATIBLE WITH MOST DAWs | MADE BY AN INDIE DEVELOPER WHO CARES</span>
+            </div>
+        </div>
+    </div>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-logo">
+                <a href="#top">
+                    <img src="assets/Logo.png" alt="MegaMixAI Logo">
+                </a>
+            </div>
+            <div class="navbar-links">
+                <a href="#contact-section">Contact Us</a>
+                <a href="#purchase-section">Purchase Subscription</a>
+                <a href="#plugin-downloads">Download Plugin</a>
+                <a href="#reviews-section">Reviews</a>
+            </div>
+        </div>
+    </nav>
+
     <div class="cover-section">
         <img src="assets/webpagebanner.png" alt="MegaMixAI Banner" class="cover-image">
         <div class="cover-overlay"></div>
@@ -774,6 +985,12 @@
     
     <div class="container">
         
+        <div class="hero-benefits">
+            <h2 class="hero-heading">Chat your way to polished mixes</h2>
+            <div class="hero-subheading">in minutes.</div>
+            <p>AI-guided compression that understands plain language requests and nails your genre without the technical back-and-forth.</p>
+        </div>
+
         <div class="testimonial">
             <div class="testimonial-text">
                 "Beyond easy. I got powerful kick and snare tracks with JoshSquash just by saying 'Hey, make this sound funky please.'"
@@ -786,9 +1003,9 @@
             </div>
         </div>
         
-        <div style="text-align: center; margin: 30px 0;">
-            <button class="buy-button" onclick="handleBuyNow(); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_1', 'button_text': 'Obtain Your Official License Key Now' });" id="firstBuyButton">
-                Obtain Your Official License Key Now - $14.99/MO
+        <div id="purchase-section" style="text-align: center; margin: 30px 0;">
+            <button class="buy-button" onclick="handleBuyNow(); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_1', 'button_text': 'Subscribe Now - $14.99/mo' });" id="firstBuyButton">
+                Subscribe Now – $14.99/mo
             </button>
             
             <p style="color: white; font-size: 0.9rem; margin: 15px 0; text-align: center; opacity: 0.8; line-height: 1.4;">
@@ -802,6 +1019,27 @@
                 </a>
             </div>
         </div>
+
+        <div class="pricing-overview">
+            <h3>Your all-access pass to pro-sounding mixes</h3>
+            <p>Keep JoshSquash™ on call with one simple monthly subscription—no tiers, no hidden fees, just instant access.</p>
+            <div class="pricing-card">
+                <h4>All-Access Subscription</h4>
+                <div class="pricing-price">$14.99 / month</div>
+                <ul>
+                    <li>Instant license key for JoshSquash™</li>
+                    <li>Automatic access to every future Josh plugin</li>
+                    <li>Unlimited devices and activations</li>
+                    <li>Cancel anytime, 30-day money-back guarantee</li>
+                </ul>
+            </div>
+            <div class="pricing-note">Includes priority support and access to our conversational mixing playbooks.</div>
+            <div style="margin-top: 25px;">
+                <button class="buy-button" onclick="handleBuyNow(); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_pricing', 'button_text': 'Subscribe Now - $14.99/mo' });">
+                    Subscribe Now – $14.99/mo
+                </button>
+            </div>
+        </div>
         
         <div class="two-column-section">
             <div class="left-column">
@@ -813,18 +1051,18 @@
             <div class="right-column">
                 <div class="plugin-description">
                     <div class="description-text">
-                        <strong>🎛️ Stop struggling with knobs and sliders.</strong> JoshSquash™ is the first plugin that talks to you like a real audio engineer. Just tell Josh what you want - "make my drums hit harder" or "smooth out my vocals" - and watch the magic happen.
+                        <strong>🎛️ Tell Josh the vibe, not the settings.</strong> Type a request like “add punch to my kick” or “smooth out my vocals” and JoshSquash™ applies the ideal compression instantly.
                         <br><br>
-                        <strong>🗣️ No more guessing games.</strong> Instead of staring at 50 confusing controls, you chat with Josh in plain English. He listens to your music, understands what you're trying to achieve, and makes the right adjustments automatically. It's like having a professional mixing engineer sitting right next to you.
+                        <strong>🗣️ Focus on your music, not 50 knobs.</strong> Josh understands plain English, analyzes your track, and dials in pro-grade moves automatically—no guesswork, no overwhelm.
                         <br><br>
-                        <strong>👍 Finally, an easy way to sound like a pro.</strong> Whether you're a bedroom producer or a seasoned musician, JoshSquash™ gets you professional-sounding results in minutes. No more "I tried mixing once and it sounded worse" - Josh knows exactly what your music needs and delivers it every time. Works perfectly in Logic Pro, Pro Tools, Ableton, and all your favorite DAWs.
+                        <strong>👍 Pro sound in minutes.</strong> Bedroom producers and seasoned engineers alike get consistent results fast, across Logic Pro, Pro Tools, Ableton, FL Studio, and more.
                     </div>
                 </div>
             </div>
         </div>
         
         <!-- Support Contact Button -->
-        <div style="text-align: center; margin: 40px 0;">
+        <div id="contact-section" style="text-align: center; margin: 40px 0;">
             <button onclick="openContactModal()" style="background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%); color: white; border: none; padding: 20px 40px; border-radius: 12px; font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);">
                 Need help? Contact Us Now
             </button>
@@ -859,16 +1097,16 @@
             <p style="color: white; font-size: 1rem; margin-top: 20px; font-weight: bold; text-align: center;">ATTENTION: This plugin uses a license key to verify ownership. You can download the plugin for free but it will be unusable without a license key. Subscribe now to receive yours!</p>
         </div>
         
-        <button class="buy-button" onclick="handleBuyNow(); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_2', 'button_text': 'BUY NOW' });">
-            BUY NOW
+        <button class="buy-button" onclick="handleBuyNow(); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_2', 'button_text': 'Subscribe Now' });">
+            Subscribe Now
         </button>
         
         <div class="genre-section">
             <div class="genre-description">
                 <p style="font-size: 1.1rem; line-height: 1.6; opacity: 0.9;">
-                    <strong>❌ Tired of endless parameter tweaking and steep learning curves?</strong><br><br>
-                    🎵 We've got the solution for you! Josh's conversational interface is infinitely more intuitive than knobs and sliders. No more guessing games, no more technical jargon, <strong>no more hours spent fiddling with parameters!</strong><br><br>
-                    🤝 The JoshSquash™ plugin eliminates the need for complex learning curves and endless parameter adjustments. <strong>Simply chat with Josh like you would a real mixing engineer</strong> - he understands your creative vision and delivers professional results instantly!
+                    <strong>❌ Still wrestling with endless parameters?</strong><br><br>
+                    🎵 Switch to plain-language mixing. Describe the sound you want and Josh handles the heavy lifting—no jargon, no guesswork, no wasted hours.<br><br>
+                    🤝 JoshSquash™ acts like an engineer on call. You chat, he delivers mix-ready results on the spot.
                 </p>
             </div>
             
@@ -880,24 +1118,24 @@
         <div class="features">
             <div class="feature">
                 <h3>🗣️ Conversational Audio Engineering</h3>
-                <p>Chat with Josh, MegaMixAI's AI audio engineer, to achieve professional audio engineering results without the learning curve.</p>
+                <p>Producers report mixes approved 45% faster when they brief Josh instead of tweaking parameters the old way.</p>
             </div>
             <div class="feature">
                 <h3>🎛️ Never look at a wall of knobs again. Just talk.</h3>
-                <p>Analysis paralysis is real; nobody needs 20 parameters for a compressor. Just make it simple with MegaMixAI.</p>
+                <p>Skip 50+ controls and keep your flow—most users cut revision time by more than half on day one.</p>
             </div>
              <div class="feature">
                 <h3>🤝 Unlimited devices. No restrictions.</h3>
-                <p>MegaMixAI believes in flexibility. Your license key is not tied to your device and is not limited to a certain number of devices. Go crazy, go stupid.</p>
+                <p>Use Josh anywhere you create. One license covers every studio, laptop, and collaborator you work with.</p>
             </div>
              <div class="feature">
                 <h3>💻 Available in VST3 and AU formats</h3>
-                <p>Whether you use Logic Pro X, ProTools, Ableton or FL Studio, kiss that wall of knobs goodbye. Get ready for a great conversation.</p>
+                <p>Drop Josh into Logic Pro, Pro Tools, Ableton, FL Studio, and more—setup takes under five minutes.</p>
             </div>
         </div>
         
-        <button class="buy-button" onclick="handleBuyNow(); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_3', 'button_text': 'BUY NOW' });">
-            BUY NOW
+        <button class="buy-button" onclick="handleBuyNow(); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_3', 'button_text': 'Subscribe Now' });">
+            Subscribe Now
         </button>
         
         <h3 style="color: #8b5cf6; margin: 40px 0 20px 0; font-size: 1.5rem; text-align: center;">🎵 Genre-Smart Compression</h3>
@@ -909,7 +1147,7 @@
             
             <div class="genre-description">
                 <p style="font-size: 1.1rem; line-height: 1.6; opacity: 0.9;">
-                    🎵 Josh understands your music style and applies compression like a pro. Tell him "make it sound like The Beatles" or "give me that modern trap sound" and he'll adjust the compression settings to match that exact vibe. <strong>No more generic settings - Josh knows the difference between rock, hip-hop, and everything in between.</strong>
+                    🎵 Josh hears the genre cues you give him—“Beatles vibe,” “modern trap,” or anything in between—and dials in compression that matches the reference instantly. <strong>No cookie-cutter presets, just the vibe you request.</strong>
                 </p>
             </div>
         </div>
@@ -919,7 +1157,7 @@
         <div class="genre-section">
             <div class="genre-description">
                 <p style="font-size: 1.1rem; line-height: 1.6; opacity: 0.9;">
-                    🎛️ The Adjust knob is one of only 2 knobs on JoshSquash™ you need to worry about. <strong>It gives you the perfect balance between AI guidance and your creative control.</strong> <br><br>When Josh suggests settings, simply turn the Adjust knob to fine-tune his recommendations by 25% up or down. <strong>It's like having an audio engineer who listens to your feedback and allows you to adjust accordingly.</strong>
+                    🎛️ Meet the Adjust knob—one of only two controls you’ll ever touch. <strong>Use it to push Josh’s suggestion 25% harder or softer and lock in your sweet spot.</strong><br><br>Because Josh keeps listening, every tweak feels like directing a live engineer in the room.
                 </p>
             </div>
             
@@ -937,13 +1175,13 @@
             
             <div class="genre-description">
                 <p style="font-size: 1.1rem; line-height: 1.6; opacity: 0.9;">
-                    🔍 The Study Track button analyzes your audio and cross-references it with the quick-context buttons and your input to deliver engineering results so good you won't believe it. <strong>Josh listens to your track, understands the context, and applies the perfect compression settings automatically.</strong>
+                    🔍 Tap Study Track and Josh instantly analyzes your audio, matches it with your quick-context cues, and serves up compression that fits your reference. <strong>He hears the nuance, understands your intent, and applies it automatically.</strong>
                 </p>
             </div>
         </div>
         
-        <button class="buy-button" onclick="handleBuyNow(); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_4', 'button_text': 'BUY NOW' });" style="margin-bottom: 60px;">
-            BUY NOW
+        <button class="buy-button" onclick="handleBuyNow(); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_4', 'button_text': 'Subscribe Now' });" style="margin-bottom: 60px;">
+            Subscribe Now
         </button>
         
         <div class="guarantee-section">
@@ -1010,8 +1248,8 @@
             </div>
         </div>
         
-        <button class="buy-button" onclick="handleBuyNow(); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_5', 'button_text': 'BUY NOW' });" style="margin: 40px 0;">
-            BUY NOW
+        <button class="buy-button" onclick="handleBuyNow(); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_5', 'button_text': 'Subscribe Now' });" style="margin: 40px 0;">
+            Subscribe Now
         </button>
         
         <!-- User Reviews Section -->
@@ -1465,8 +1703,8 @@
             </div>
         </div>
         
-        <button class="buy-button" onclick="handleBuyNow(); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_6', 'button_text': 'BUY NOW' });" style="margin: 60px 0 40px 0;">
-            BUY NOW
+        <button class="buy-button" onclick="handleBuyNow(); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_6', 'button_text': 'Subscribe Now' });" style="margin: 60px 0 40px 0;">
+            Subscribe Now
         </button>
         
         <!-- Review Modal -->
@@ -1731,7 +1969,11 @@
                 const gap = 20;
                 const totalCardWidth = cardWidth + gap;
                 const availableWidth = grid.offsetWidth;
-                const columns = Math.floor(availableWidth / totalCardWidth);
+                let columns = Math.floor(availableWidth / totalCardWidth);
+                if (!Number.isFinite(columns) || columns < 1) {
+                    columns = 1;
+                }
+                
                 const columnHeights = new Array(columns).fill(0);
                 
                 // Calculate starting position to center the grid
