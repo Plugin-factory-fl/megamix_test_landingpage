@@ -1060,6 +1060,13 @@
             <p>AI-guided compression that understands plain language requests and nails your genre without the technical back-and-forth.</p>
         </div>
 
+        <div style="background: #ff0000; color: white; padding: 20px; text-align: center; font-size: 24px; border-radius: 12px; margin: 40px 0;">
+            FIRST 500 USERS ONLY: $7.49/mo FOREVER (50% off!) <br>
+            <span style="font-size: 28px; font-weight: 800;">Coupon Code: FIRST500</span> <br>
+            <span id="spots"><strong style="color:#8b5cf6; background: #ffffff; padding: 0 6px; border-radius: 6px;">500</strong> left – updating live!</span><br>
+            <span style="display:block; margin-top: 12px; font-size: 18px; font-weight: 700;">APPLY CODE AT CHECKOUT!</span>
+        </div>
+
         <div class="testimonial">
             <div class="testimonial-text">
                 "Beyond easy. I got powerful kick and snare tracks with JoshSquash just by saying 'Hey, make this sound funky please.'"
@@ -1907,6 +1914,7 @@
 
         <script>
             let currentRating = 0;
+            let promoSpots = 500;
             
             function openReviewModal() {
                 document.getElementById('reviewModal').style.display = 'block';
@@ -2135,6 +2143,16 @@
                     }
                 });
             }
+            
+            setInterval(() => {
+                if (promoSpots > 0) {
+                    promoSpots -= 1;
+                }
+                const spotsEl = document.getElementById('spots');
+                if (spotsEl) {
+                    spotsEl.innerHTML = `<strong style="color:#8b5cf6; background: #ffffff; padding: 0 6px; border-radius: 6px;">${promoSpots}</strong> left – updating live!`;
+                }
+            }, 360000);
             
             // Reviews pagination functionality
             let currentPage = 1;
