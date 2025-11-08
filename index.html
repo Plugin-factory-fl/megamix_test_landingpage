@@ -98,6 +98,7 @@
             justify-content: space-between;
             padding: 6px 20px;
             width: 100%;
+            position: relative;
         }
 
         .navbar-logo img {
@@ -106,10 +107,40 @@
             object-fit: contain;
         }
 
+        .navbar-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: background 0.2s ease;
+        }
+
+        .navbar-toggle:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .navbar-toggle:focus-visible {
+            outline: 2px solid #8b5cf6;
+            outline-offset: 2px;
+        }
+
+        .navbar-toggle span {
+            display: block;
+            width: 24px;
+            height: 2px;
+            background: #fff;
+            margin: 5px 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
         .navbar-links {
             display: flex;
             gap: 30px;
             align-items: center;
+            transition: max-height 0.3s ease;
         }
 
         .navbar-links a {
@@ -940,6 +971,39 @@
                 padding: 15px 30px;
                 font-size: 1.1rem;
             }
+
+            .navbar-logo img {
+                height: 60px;
+            }
+
+            .navbar-toggle {
+                display: block;
+            }
+
+            .navbar-links {
+                position: absolute;
+                top: calc(100% + 12px);
+                right: 20px;
+                left: 20px;
+                background: rgba(0, 0, 0, 0.95);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                padding: 16px 20px;
+                flex-direction: column;
+                gap: 18px;
+                display: none;
+                box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+                z-index: 1200;
+            }
+
+            .navbar-links.open {
+                display: flex;
+            }
+
+            .navbar-links a {
+                font-size: 1rem;
+                font-weight: 600;
+            }
         }
     </style>
 </head>
@@ -959,7 +1023,12 @@
                     <img src="assets/Logo.png" alt="MegaMixAI Logo">
                 </a>
             </div>
-            <div class="navbar-links">
+            <button class="navbar-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="navbar-links" id="navbarLinks">
                 <a href="#contact-section">Contact Us</a>
                 <a href="#purchase-section">Purchase Subscription</a>
                 <a href="#plugin-downloads">Download Plugin</a>
@@ -2116,6 +2185,25 @@
             
             // Initialize star rating functionality
             document.addEventListener('DOMContentLoaded', function() {
+                const navToggle = document.getElementById('navToggle');
+                const navLinks = document.getElementById('navbarLinks');
+
+                if (navToggle && navLinks) {
+                    navToggle.addEventListener('click', function() {
+                        const isOpen = navLinks.classList.toggle('open');
+                        navToggle.setAttribute('aria-expanded', isOpen);
+                    });
+
+                    navLinks.querySelectorAll('a').forEach(link => {
+                        link.addEventListener('click', () => {
+                            if (navLinks.classList.contains('open')) {
+                                navLinks.classList.remove('open');
+                                navToggle.setAttribute('aria-expanded', 'false');
+                            }
+                        });
+                    });
+                }
+
                 // Initialize mobile zoom functionality
                 initMobileZoom();
                 
