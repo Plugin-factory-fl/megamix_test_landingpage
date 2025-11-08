@@ -1914,7 +1914,50 @@
 
         <script>
             let currentRating = 0;
-            let promoSpots = 500;
+            const promoCodeId = 'promo_1SRGXLIKMp3hwEiG23L3tfc2';
+            const promoFallbackTotal = 500;
+            let promoSpots = promoFallbackTotal;
+            let promoRefreshTimer = null;
+
+            function renderPromoSpots(remaining) {
+                const spotsEl = document.getElementById('spots');
+                if (!spotsEl) return;
+
+                const valueToDisplay = (typeof remaining === 'number' && !Number.isNaN(remaining))
+                    ? remaining
+                    : promoFallbackTotal;
+
+                spotsEl.innerHTML = `<strong style="color:#8b5cf6; background: #ffffff; padding: 0 6px; border-radius: 6px;">${valueToDisplay}</strong> left – updating live!`;
+            }
+
+            async function refreshPromoSpots() {
+                try {
+                    const queryParam = promoCodeId ? `?id=${encodeURIComponent(promoCodeId)}` : '?code=FIRST500';
+                    const response = await fetch(`/api/coupon-usage${queryParam}`, {
+                        headers: { 'Accept': 'application/json' },
+                        cache: 'no-store'
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Request failed with status ${response.status}`);
+                    }
+
+                    const data = await response.json();
+
+                    if (data.success && typeof data.remaining === 'number') {
+                        promoSpots = data.remaining;
+                    } else if (data.success && typeof data.maxRedemptions === 'number' && typeof data.timesRedeemed === 'number') {
+                        promoSpots = Math.max(data.maxRedemptions - data.timesRedeemed, 0);
+                    } else {
+                        promoSpots = null;
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch promotion usage:', error);
+                    promoSpots = null;
+                } finally {
+                    renderPromoSpots(promoSpots);
+                }
+            }
             
             function openReviewModal() {
                 document.getElementById('reviewModal').style.display = 'block';
@@ -2144,15 +2187,7 @@
                 });
             }
             
-            setInterval(() => {
-                if (promoSpots > 0) {
-                    promoSpots -= 1;
-                }
-                const spotsEl = document.getElementById('spots');
-                if (spotsEl) {
-                    spotsEl.innerHTML = `<strong style="color:#8b5cf6; background: #ffffff; padding: 0 6px; border-radius: 6px;">${promoSpots}</strong> left – updating live!`;
-                }
-            }, 360000);
+            renderPromoSpots(promoSpots);
             
             // Reviews pagination functionality
             let currentPage = 1;
@@ -2205,6 +2240,10 @@
             document.addEventListener('DOMContentLoaded', function() {
                 const navToggle = document.getElementById('navToggle');
                 const navLinks = document.getElementById('navbarLinks');
+
+                // Fetch live promotion usage and continue refreshing while the page is open
+                refreshPromoSpots();
+                promoRefreshTimer = setInterval(refreshPromoSpots, 60000);
 
                 if (navToggle && navLinks) {
                     navToggle.addEventListener('click', function() {

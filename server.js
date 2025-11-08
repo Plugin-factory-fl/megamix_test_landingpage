@@ -841,6 +841,89 @@ app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+// Coupon usage endpoint
+const DEFAULT_PROMOTION_CODE_ID = process.env.STRIPE_PROMOTION_CODE_ID ||
+  process.env.STRIPE_PROMO_CODE_ID ||
+  process.env.STRIPE_FIRST500_PROMO_ID;
+
+app.get('/api/coupon-usage', async (req, res) => {
+  try {
+    const code = (req.query.code || '').trim();
+    const promotionCodeId = (req.query.id || req.query.promotionCodeId || '').trim();
+
+    if (!code && !promotionCodeId && !DEFAULT_PROMOTION_CODE_ID) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required promotion code identifier'
+      });
+    }
+
+    let promotionCode;
+    const effectivePromotionCodeId = promotionCodeId || DEFAULT_PROMOTION_CODE_ID || null;
+
+    if (effectivePromotionCodeId) {
+      try {
+        promotionCode = await stripe.promotionCodes.retrieve(effectivePromotionCodeId, {
+          expand: ['coupon']
+        });
+      } catch (retrieveError) {
+        console.warn(`Failed to retrieve promotion code by id ${effectivePromotionCodeId}:`, retrieveError.message);
+        if (!code) {
+          throw retrieveError;
+        }
+      }
+    }
+
+    if (!promotionCode && code) {
+      const promotionCodes = await stripe.promotionCodes.list({
+        code,
+        limit: 1,
+        expand: ['data.coupon']
+      });
+
+      if (promotionCodes.data.length) {
+        promotionCode = promotionCodes.data[0];
+      }
+    }
+
+    if (!promotionCode) {
+      return res.status(404).json({
+        success: false,
+        error: 'Promotion code not found',
+        code,
+        id: effectivePromotionCodeId
+      });
+    }
+
+    const timesRedeemed = promotionCode.times_redeemed ?? 0;
+
+    // Prefer promotion code max redemptions; fall back to coupon-level max redemptions if needed
+    const maxRedemptions =
+      promotionCode.max_redemptions ??
+      (promotionCode.coupon ? promotionCode.coupon.max_redemptions : null);
+
+    const remaining =
+      typeof maxRedemptions === 'number'
+        ? Math.max(maxRedemptions - timesRedeemed, 0)
+        : null;
+
+    res.json({
+      success: true,
+      code: promotionCode.code,
+      id: promotionCode.id,
+      maxRedemptions,
+      timesRedeemed,
+      remaining
+    });
+  } catch (error) {
+    console.error('Error retrieving promotion code usage:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve promotion code usage'
+    });
+  }
+});
+
 // Serve the main page
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
