@@ -352,19 +352,70 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
         }
         
+        .slideshow-container {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        .slideshow-wrapper {
+            display: flex;
+            transition: transform 0.5s ease;
+        }
+        
+        .slide {
+            min-width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
         .plugin-image {
             width: 100%;
             height: auto;
             object-fit: contain;
-            cursor: zoom-in;
-            transition: transform 0.3s ease;
             display: block;
         }
         
-        .plugin-image:hover {
-            transform: scale(1.5);
-            z-index: 100;
-            position: relative;
+        .slideshow-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(139, 92, 246, 0.8);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 10;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .slideshow-arrow.right {
+            right: 20px;
+        }
+        
+        .slideshow-arrow.left {
+            left: 20px;
+        }
+        
+        .slideshow-arrow:hover {
+            background: rgba(139, 92, 246, 1);
+            transform: translateY(-50%) scale(1.1);
+        }
+        
+        .slideshow-arrow:active {
+            transform: translateY(-50%) scale(0.95);
+        }
+        
+        .slideshow-arrow.hidden {
+            display: none;
         }
         
         .plugin-description {
@@ -1042,12 +1093,11 @@
         <div class="cover-overlay"></div>
         <div class="cover-content">
             <div class="header">
-                <div class="presents-text">MegaMixAI presents</div>
-                <h1>JoshSquash™</h1>
+                <h1>MegaMixAI™</h1>
             </div>
             
             <div class="subheader">
-                The world's first chat-based compressor audio plugin.
+                The world's first chat-based audio plugin.
             </div>
         </div>
     </div>
@@ -1057,11 +1107,11 @@
         <div class="hero-benefits">
             <h2 class="hero-heading">Chat your way to polished mixes</h2>
             <div class="hero-subheading">in minutes.</div>
-            <p>AI-guided compression that understands plain language requests and nails your genre without the technical back-and-forth.</p>
+            <p>An AI-guided audio engineering tool that understands plain language requests and nails your genre without the technical back-and-forth.</p>
         </div>
 
         <div style="background: #ff0000; color: white; padding: 20px; text-align: center; font-size: 24px; border-radius: 12px; margin: 40px 0;">
-            FIRST 500 USERS ONLY: $7.49/mo FOREVER (50% off!) <br>
+            BLACK FRIDAY/CYBER MONDAY SALE: $7.49/mo FOREVER (50% off!) <br>
             <span style="font-size: 28px; font-weight: 800;">Coupon Code: FIRST500</span> <br>
             <span id="spots"><strong style="color:#8b5cf6; background: #ffffff; padding: 0 6px; border-radius: 6px;">500</strong> left – updating live!</span><br>
             <span style="display:block; margin-top: 12px; font-size: 18px; font-weight: 700;">APPLY CODE AT CHECKOUT!</span>
@@ -1085,8 +1135,8 @@
             </button>
             
             <p style="color: white; font-size: 0.9rem; margin: 15px 0; text-align: center; opacity: 0.8; line-height: 1.4;">
-                This license key is not just for JoshSquash™. Purchasing this license key and keeping your subscription active will guarantee access to all future MegaMixAI's Chat Suite plugins.<br><br>
-                <strong>COMING SOON: JoshEQ and JoshVerb</strong>
+                This license key is for MegaMixAI™, which includes multiple effects plugins like JoshSquash and JoshEQ. Purchasing this license key and keeping your subscription active will guarantee access to all future MegaMixAI's Chat Suite plugins. New updates every month.<br><br>
+                <strong>COMING SOON: JoshVerb and JoshRetro.</strong>
             </p>
             
             <div style="margin-top: 20px;">
@@ -1098,18 +1148,18 @@
 
         <div class="pricing-overview">
             <h3>Your all-access pass to pro-sounding mixes</h3>
-            <p>Keep JoshSquash™ on call with one simple monthly subscription—no tiers, no hidden fees, just instant access.</p>
+            <p>Keep Josh on call with one simple monthly subscription—no tiers, no hidden fees, just instant access. Monthly updates at no extra charge.</p>
             <div class="pricing-card">
                 <h4>All-Access Subscription</h4>
                 <div class="pricing-price">$14.99 / month</div>
                 <ul>
-                    <li>Instant license key for JoshSquash™</li>
-                    <li>Automatic access to every future Josh plugin</li>
+                    <li>Instant license key for MegaMixAI™</li>
+                    <li>Automatic access to every future Josh-based plugin</li>
                     <li>Unlimited devices and activations</li>
                     <li>Cancel anytime, 30-day money-back guarantee</li>
                 </ul>
             </div>
-            <div class="pricing-note">Includes priority support and access to our conversational mixing playbooks.</div>
+            <div class="pricing-note">Includes priority support and access to ALL future updates. Simply update your plugin when a new version is available.</div>
             <div style="margin-top: 25px;">
                 <button class="buy-button" onclick="handleBuyNow(); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_pricing', 'button_text': 'Subscribe Now - $14.99/mo' });">
                     Subscribe Now – $14.99/mo
@@ -1120,7 +1170,18 @@
         <div class="two-column-section">
             <div class="left-column">
                 <div class="image-container">
-                    <img src="assets/JoshSquash Interface.png" alt="JoshSquash Plugin Interface" class="plugin-image">
+                    <div class="slideshow-container">
+                        <div class="slideshow-wrapper" id="slideshowWrapper">
+                            <div class="slide">
+                                <img src="assets/JoshSquash Interface.png" alt="JoshSquash Plugin Interface" class="plugin-image">
+                            </div>
+                            <div class="slide">
+                                <img src="assets/JoshEQ Interface.png" alt="JoshEQ Plugin Interface" class="plugin-image">
+                            </div>
+                        </div>
+                        <button class="slideshow-arrow right" id="nextSlideBtn" onclick="nextSlide()">→</button>
+                        <button class="slideshow-arrow left hidden" id="prevSlideBtn" onclick="prevSlide()">←</button>
+                    </div>
                 </div>
             </div>
             
@@ -1145,8 +1206,8 @@
         </div>
         
         <div id="plugin-downloads" class="plugin-downloads" style="text-align: center; margin: 40px 0; padding: 30px; background: rgba(255, 255, 255, 0.05); border-radius: 15px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);">
-            <h3 style="color: #8b5cf6; margin-bottom: 10px; font-size: 1.5rem;">Download JoshSquash™ Plugin</h3>
-            <p style="color: #8b5cf6; margin-bottom: 20px; font-size: 1.1rem;">Current Version: V1.0.1</p>
+            <h3 style="color: #8b5cf6; margin-bottom: 10px; font-size: 1.5rem;">Download MegaMixAI™ Plugin</h3>
+            <p style="color: #8b5cf6; margin-bottom: 20px; font-size: 1.1rem;">Current Version: V1.0.3</p>
             <p style="color: #ccc; margin-bottom: 30px; font-size: 1.1rem;">Choose your format and platform:</p>
             
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; max-width: 600px; margin: 0 auto;">
@@ -1182,7 +1243,7 @@
                 <p style="font-size: 1.1rem; line-height: 1.6; opacity: 0.9;">
                     <strong>❌ Still wrestling with endless parameters?</strong><br><br>
                     🎵 Switch to plain-language mixing. Describe the sound you want and Josh handles the heavy lifting—no jargon, no guesswork, no wasted hours.<br><br>
-                    🤝 JoshSquash™ acts like an engineer on call. You chat, he delivers mix-ready results on the spot.
+                    🤝 MegaMixAI™'s AI personality, Josh, acts like an engineer on call. You chat, Josh delivers mix-ready results on the spot.
                 </p>
             </div>
             
@@ -1268,10 +1329,10 @@
             
             <div style="margin: 40px 0;">
                 <h4 style="color: #8b5cf6; margin-bottom: 10px; font-size: 1.3rem;">Customer Support:</h4>
-                <p style="font-size: 1.1rem; opacity: 0.9;">Email: support@megamixai.com</p>
+                <p style="font-size: 1.1rem; opacity: 0.9;">Email: megamix.ai.plugins@gmail.com</p>
             </div>
             
-            <h3 style="color: #8b5cf6; margin: 50px 0 30px 0; font-size: 1.8rem;">What are people saying about JoshSquash™</h3>
+            <h3 style="color: #8b5cf6; margin: 50px 0 30px 0; font-size: 1.8rem;">What are people saying about MegaMixAI™</h3>
             
             <div class="testimonial-grid">
                 <div class="testimonial-card">
@@ -2159,32 +2220,49 @@
                     `${starsDisplay} <span style="color: #8b5cf6; font-weight: bold;">${average}/5</span> <span style="color: #999;">(${totalReviews} reviews)</span>`;
             }
             
-            // Mobile tap-to-zoom functionality
-            function initMobileZoom() {
-                const pluginImage = document.querySelector('.plugin-image');
-                if (!pluginImage) return;
+            // Slideshow functionality
+            let currentSlide = 0;
+            const totalSlides = 2; // JoshSquash and JoshEQ
+            
+            function nextSlide() {
+                currentSlide = (currentSlide + 1) % totalSlides;
+                updateSlideshow();
+            }
+            
+            function prevSlide() {
+                currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+                updateSlideshow();
+            }
+            
+            function updateSlideshow() {
+                const wrapper = document.getElementById('slideshowWrapper');
+                const nextBtn = document.getElementById('nextSlideBtn');
+                const prevBtn = document.getElementById('prevSlideBtn');
                 
-                let isZoomed = false;
+                if (wrapper) {
+                    wrapper.style.transform = `translateX(-${currentSlide * 100}%)`;
+                }
                 
-                pluginImage.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    
-                    if (isZoomed) {
-                        // Zoom out
-                        pluginImage.style.transform = 'scale(1)';
-                        pluginImage.style.zIndex = '1';
-                        pluginImage.style.position = 'relative';
-                        pluginImage.style.cursor = 'zoom-in';
-                        isZoomed = false;
+                // Show/hide arrows based on current slide
+                if (nextBtn) {
+                    if (currentSlide === totalSlides - 1) {
+                        // Last slide - hide right arrow
+                        nextBtn.classList.add('hidden');
                     } else {
-                        // Zoom in
-                        pluginImage.style.transform = 'scale(2)';
-                        pluginImage.style.zIndex = '1000';
-                        pluginImage.style.position = 'relative';
-                        pluginImage.style.cursor = 'zoom-out';
-                        isZoomed = true;
+                        // Not last slide - show right arrow
+                        nextBtn.classList.remove('hidden');
                     }
-                });
+                }
+                
+                if (prevBtn) {
+                    if (currentSlide === 0) {
+                        // First slide - hide left arrow
+                        prevBtn.classList.add('hidden');
+                    } else {
+                        // Not first slide - show left arrow
+                        prevBtn.classList.remove('hidden');
+                    }
+                }
             }
             
             renderPromoSpots(promoSpots);
@@ -2261,8 +2339,8 @@
                     });
                 }
 
-                // Initialize mobile zoom functionality
-                initMobileZoom();
+                // Initialize slideshow
+                updateSlideshow();
                 
                 // Initialize reviews pagination
                 initializeReviewsPagination();
@@ -2494,8 +2572,8 @@
             function downloadPlugin(format, platform) {
                 // Map format/platform to real files in ./downloads
                 const map = {
-                    'au:mac': './downloads/JoshSquash_AU_mac/MegaMixAI_AU_mac.pkg',
-                    'vst3:mac': './downloads/JoshSquash_VST3_mac/MegaMixAI_VST3_mac.pkg',
+                    'au:mac': './downloads/MegaMixAI_AU_mac/MegaMixAI_AU_mac.pkg',
+                    'vst3:mac': './downloads/MegaMixAI_VST3_mac/MegaMixAI_VST3_mac.pkg',
                     'vst3:windows': './downloads/JoshSquash_VST3_windows/MegaMixAI_VST3_win.exe',
                 };
                 const key = `${format}:${platform}`;
