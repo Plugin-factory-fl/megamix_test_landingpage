@@ -223,20 +223,119 @@ app.get('/success', async (req, res) => {
   try {
     const sessionId = req.query.session_id;
     
-    // Get license key from database using session ID
+    if (!sessionId) {
+      return res.status(400).send('Missing session ID');
+    }
+    
     // Get the Stripe session to find the customer
     const session = await stripe.checkout.sessions.retrieve(sessionId);
     const customerId = session.customer;
     
-    // Find the license for this customer
-    const result = await pool.query(
-      `SELECT license_key FROM licenses WHERE stripe_customer_id = $1 ORDER BY created_at DESC LIMIT 1`,
-      [customerId]
-    );
+    if (!customerId) {
+      console.error('No customer ID found in session:', sessionId);
+      return res.status(400).send('Invalid session: no customer found');
+    }
     
-    let licenseKey = 'XXXX-XXXX-XXXX-XXXX'; // Default if not found
-    if (result.rows.length > 0) {
-      licenseKey = result.rows[0].license_key;
+    // Retry logic: poll database up to 5 times, 2 seconds apart
+    // This waits for the webhook to fire and create the license key
+    let licenseKey = null;
+    let attempts = 0;
+    const maxAttempts = 5;
+    const retryDelay = 2000; // 2 seconds
+    
+    console.log(`Looking for license key for customer ${customerId} (session: ${sessionId})`);
+    
+    while (!licenseKey && attempts < maxAttempts) {
+      // Query database for license
+      const result = await pool.query(
+        `SELECT license_key FROM licenses WHERE stripe_customer_id = $1 ORDER BY created_at DESC LIMIT 1`,
+        [customerId]
+      );
+      
+      if (result.rows.length > 0) {
+        licenseKey = result.rows[0].license_key;
+        console.log(`License key found for customer ${customerId} on attempt ${attempts + 1}`);
+        break; // Found it, exit loop
+      }
+      
+      attempts++;
+      if (attempts < maxAttempts) {
+        console.log(`License key not found for customer ${customerId}, retrying in ${retryDelay}ms (attempt ${attempts}/${maxAttempts})`);
+        // Wait before next retry
+        await new Promise(resolve => setTimeout(resolve, retryDelay));
+      }
+    }
+    
+    // If license key still not found after all retries, show error page
+    if (!licenseKey) {
+      console.error(`License key not found for customer ${customerId} after ${maxAttempts} attempts. Webhook may have failed. Session ID: ${sessionId}`);
+      
+      return res.send(`
+        <html>
+          <head>
+            <title>Processing License Key - MegaMixAI</title>
+            <style>
+              body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+                color: white;
+                text-align: center;
+                padding: 50px;
+                margin: 0;
+              }
+              .container {
+                max-width: 600px;
+                margin: 0 auto;
+                background: rgba(255, 255, 255, 0.05);
+                padding: 40px;
+                border-radius: 20px;
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+              }
+              h1 {
+                color: #f59e0b;
+                font-size: 2.5rem;
+                margin-bottom: 20px;
+              }
+              .info {
+                margin: 20px 0;
+                line-height: 1.8;
+                opacity: 0.9;
+                font-size: 1.1rem;
+              }
+              .contact-info {
+                background: rgba(139, 92, 246, 0.1);
+                border: 1px solid rgba(139, 92, 246, 0.3);
+                border-radius: 10px;
+                padding: 20px;
+                margin: 30px 0;
+              }
+              .session-id {
+                font-family: 'Courier New', monospace;
+                font-size: 0.9rem;
+                color: #8b5cf6;
+                margin-top: 20px;
+                opacity: 0.7;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h1>⏳ Processing Your License Key</h1>
+              <div class="info">
+                <p><strong>Your payment was successful!</strong></p>
+                <p>We're still processing your license key. This usually takes just a few seconds.</p>
+                <p>Please check your email for your license key, or contact support if you don't receive it within a few minutes.</p>
+              </div>
+              <div class="contact-info">
+                <h3 style="color: #8b5cf6; margin-bottom: 10px;">Need Help?</h3>
+                <p>Email: <a href="mailto:megamix.ai.plugins@gmail.com" style="color: #8b5cf6;">megamix.ai.plugins@gmail.com</a></p>
+                <p class="session-id">Session ID: ${sessionId}</p>
+              </div>
+            </div>
+          </body>
+        </html>
+      `);
     }
     
     res.send(`
