@@ -425,13 +425,13 @@ app.get('/success', async (req, res) => {
             </div>
             
             <div class="info">
-              <p>This license provides you access to the JoshSquash™ Chat Compressor and all upcoming plugins that will soon be available in the MegaMixAI Chat Suite.</p>
+              <p>This license provides you access to MegaMixAI™ and all upcoming plugins that will soon be available in the MegaMixAI Chat Suite.</p>
               
               <p>Your license key document will automatically download now. If it doesn't start automatically, <a href="/download-license/${licenseKey}" class="download-btn" style="color: white; text-decoration: none;">click HERE</a>.</p>
             </div>
             
             <div class="download-redirect" style="text-align: center; margin: 40px 0; padding: 30px; background: rgba(139, 92, 246, 0.1); border-radius: 15px; border: 2px solid rgba(139, 92, 246, 0.3);">
-              <h3 style="color: #8b5cf6; margin: 0 0 20px 0; font-size: 1.8rem; font-weight: bold;">Download JoshSquash™ on the home page.</h3>
+              <h3 style="color: #8b5cf6; margin: 0 0 20px 0; font-size: 1.8rem; font-weight: bold;">Download MegaMixAI™ on the home page.</h3>
               <button class="redirect-btn" onclick="goToHomePage()" style="background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%); color: white; border: none; padding: 15px 30px; border-radius: 10px; font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 5px 15px rgba(139, 92, 246, 0.3);">
                 Take me there
               </button>
@@ -490,7 +490,7 @@ app.get('/download-license/:licenseKey', (req, res) => {
 Your License Key: ${licenseKey}
 
 This license provides you access to:
-- JoshSquash Chat Compressor
+- MegaMixAI™
 - All upcoming plugins in the MegaMixAI Chat Suite
 
 IMPORTANT: Keep this license key safe and don't share it with others.
