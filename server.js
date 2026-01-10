@@ -170,27 +170,50 @@ app.post('/webhooks/stripe', express.raw({type: 'application/json'}), async (req
 app.use(express.json());
 app.use(express.static('public')); // Serve static files (like your HTML)
 
-// Stripe Price ID - from environment variable (required in production)
-const PRICE_ID = process.env.STRIPE_PRICE_ID;
+// Stripe Price IDs - from environment variables
+const PRICE_ID = process.env.STRIPE_PRICE_ID; // 3-month subscription
+const PRICE_ID_1MO = process.env.STRIPE_PRICE_ID_1MO; // 1-month subscription
+const PRICE_ID_1YR = process.env.STRIPE_PRICE_ID_1YR; // 1-year subscription
 
 // Debug logging
 console.log('=== STRIPE_PRICE_ID DEBUG ===');
-console.log('PRICE_ID value:', PRICE_ID);
-console.log('Type:', typeof PRICE_ID);
+console.log('PRICE_ID (3-month) value:', PRICE_ID);
+console.log('PRICE_ID_1MO (1-month) value:', PRICE_ID_1MO);
+console.log('PRICE_ID_1YR (1-year) value:', PRICE_ID_1YR);
 
 if (!PRICE_ID) {
     console.error('ERROR: STRIPE_PRICE_ID environment variable is not set!');
     console.error('Please set this in your Render dashboard under Environment Variables.');
 }
+if (!PRICE_ID_1MO) {
+    console.warn('WARNING: STRIPE_PRICE_ID_1MO environment variable is not set!');
+}
+if (!PRICE_ID_1YR) {
+    console.warn('WARNING: STRIPE_PRICE_ID_1YR environment variable is not set!');
+}
 
 // Create checkout session endpoint
 app.post('/create-checkout-session', async (req, res) => {
   try {
-    const { priceId = PRICE_ID } = req.body;
+    let { priceId } = req.body;
+    
+    // If no priceId provided, default to 3-month (PRICE_ID)
+    if (!priceId) {
+      priceId = PRICE_ID;
+    }
+    
+    // Map price type strings to actual price IDs if needed
+    if (priceId === '1mo' || priceId === 'monthly') {
+      priceId = PRICE_ID_1MO;
+    } else if (priceId === '3mo' || priceId === '3month') {
+      priceId = PRICE_ID;
+    } else if (priceId === '1yr' || priceId === 'yearly' || priceId === '1year') {
+      priceId = PRICE_ID_1YR;
+    }
 
     // Validate that we have a price ID
     if (!priceId) {
-      console.error('ERROR: No Price ID available! Check STRIPE_PRICE_ID environment variable.');
+      console.error('ERROR: No Price ID available! Check STRIPE_PRICE_ID environment variables.');
       return res.status(500).json({ error: 'Server configuration error: No Price ID set' });
     }
 
