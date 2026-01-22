@@ -1248,7 +1248,7 @@
         
         <div id="plugin-downloads" class="plugin-downloads" style="text-align: center; margin: 40px 0; padding: 30px; background: rgba(255, 255, 255, 0.05); border-radius: 15px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);">
             <h3 style="color: #8b5cf6; margin-bottom: 10px; font-size: 1.5rem;">Download MegaMixAI™ Plugin</h3>
-            <p style="color: #8b5cf6; margin-bottom: 20px; font-size: 1.1rem;">Current Version: V1.0.3</p>
+            <p style="color: #8b5cf6; margin-bottom: 20px; font-size: 1.1rem;">Current Version: V1.0.4</p>
             <p style="color: #ccc; margin-bottom: 30px; font-size: 1.1rem;">Choose your format and platform:</p>
             
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; max-width: 600px; margin: 0 auto;">
@@ -1257,9 +1257,6 @@
                     <h4 style="color: #8b5cf6; margin-bottom: 15px;">VST3 Format</h4>
                     <button class="download-btn green" onclick="openEmailModal('vst3', 'windows'); gtag('event', 'download_button_click', { 'button_id': 'VST_windows_download_button', 'format': 'VST3', 'platform': 'Windows' });" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; width: 100%; transition: all 0.3s ease;">
                         Windows VST3
-                    </button>
-                    <button class="download-btn green" onclick="openEmailModal('vst3', 'mac'); gtag('event', 'download_button_click', { 'button_id': 'VST_mac_download_button', 'format': 'VST3', 'platform': 'Mac' });" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; width: 100%; transition: all 0.3s ease;">
-                        Mac VST3
                     </button>
                 </div>
                 
@@ -1316,16 +1313,16 @@
             Subscribe Now
         </button>
         
-        <h3 style="color: #8b5cf6; margin: 40px 0 20px 0; font-size: 1.5rem; text-align: center;">🎵 Genre-Smart Compression</h3>
+        <h3 style="color: #8b5cf6; margin: 40px 0 20px 0; font-size: 1.5rem; text-align: center;">⚡ Quickly Mix with Quick Prompts</h3>
         
         <div class="genre-section">
-            <div class="genre-image">
-                <img src="assets/Feature1.png" alt="Josh Genre-Smart Compression" class="genre-feature-image">
+            <div class="genre-image feature3">
+                <img src="assets/feature3.png" alt="Josh Quick Prompts" class="genre-feature-image">
             </div>
             
             <div class="genre-description">
                 <p style="font-size: 1.1rem; line-height: 1.6; opacity: 0.9;">
-                    🎵 Josh hears the genre cues you give him—“Beatles vibe,” “modern trap,” or anything in between—and dials in compression that matches the reference instantly. <strong>No cookie-cutter presets, just the vibe you request.</strong>
+                    ⚡ When you need speed or aren't sure what you're looking for, quick prompts get you there fast. <strong>Just tell Josh what you want in plain language—no technical knowledge needed—and get professional results instantly.</strong>
                 </p>
             </div>
         </div>
@@ -1335,7 +1332,7 @@
         <div class="genre-section">
             <div class="genre-description">
                 <p style="font-size: 1.1rem; line-height: 1.6; opacity: 0.9;">
-                    🎛️ Meet the Adjust knob—one of only two controls you’ll ever touch. <strong>Use it to push Josh’s suggestion 25% harder or softer and lock in your sweet spot.</strong><br><br>Because Josh keeps listening, every tweak feels like directing a live engineer in the room.
+                    🎛️ Meet the Adjust knob—one of only two controls you'll ever touch. <strong>Use it to push Josh's suggestion 25% harder or softer and lock in your sweet spot.</strong><br><br>Because Josh keeps listening, every tweak feels like directing a live engineer in the room.
                 </p>
             </div>
             
@@ -1344,16 +1341,16 @@
             </div>
         </div>
         
-        <h3 style="color: #8b5cf6; margin: 40px 0 20px 0; font-size: 1.5rem; text-align: center;">🔍 Study Track Intelligence</h3>
+        <h3 style="color: #8b5cf6; margin: 40px 0 20px 0; font-size: 1.5rem; text-align: center;">🎵 Genre Smart</h3>
         
         <div class="genre-section">
-            <div class="genre-image feature3">
-                <img src="assets/feature3.png" alt="Josh Study Track Button" class="genre-feature-image">
+            <div class="genre-image">
+                <img src="assets/Feature1.png" alt="Josh Genre-Smart Compression" class="genre-feature-image">
             </div>
             
             <div class="genre-description">
                 <p style="font-size: 1.1rem; line-height: 1.6; opacity: 0.9;">
-                    🔍 Tap Study Track and Josh instantly analyzes your audio, matches it with your quick-context cues, and serves up compression that fits your reference. <strong>He hears the nuance, understands your intent, and applies it automatically.</strong>
+                    🎵 Josh hears the genre cues you give him—“Beatles vibe,” “modern trap,” or anything in between—and dials in compression that matches the reference instantly. <strong>No cookie-cutter presets, just the vibe you request.</strong>
                 </p>
             </div>
         </div>
@@ -2618,7 +2615,6 @@
                 // Map format/platform to real files in ./downloads
                 const map = {
                     'au:mac': './downloads/MegaMixAI_AU_mac/MegaMixAI_AU_mac.pkg',
-                    'vst3:mac': './downloads/MegaMixAI_VST3_mac/MegaMixAI_VST3_mac.pkg',
                     'vst3:windows': './downloads/MegaMixAI_VST3_windows/MegaMixAI_VST3_win.exe',
                 };
                 const key = `${format}:${platform}`;
