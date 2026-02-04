@@ -170,50 +170,27 @@ app.post('/webhooks/stripe', express.raw({type: 'application/json'}), async (req
 app.use(express.json());
 app.use(express.static('public')); // Serve static files (like your HTML)
 
-// Stripe Price IDs - from environment variables
-const PRICE_ID = process.env.STRIPE_PRICE_ID; // 3-month subscription
-const PRICE_ID_1MO = process.env.STRIPE_PRICE_ID_1MO; // 1-month subscription
-const PRICE_ID_1YR = process.env.STRIPE_PRICE_ID_1YR; // 1-year subscription
+// Stripe Price ID - from environment variable (required in production)
+const PRICE_ID = process.env.STRIPE_PRICE_ID;
 
 // Debug logging
 console.log('=== STRIPE_PRICE_ID DEBUG ===');
-console.log('PRICE_ID (3-month) value:', PRICE_ID);
-console.log('PRICE_ID_1MO (1-month) value:', PRICE_ID_1MO);
-console.log('PRICE_ID_1YR (1-year) value:', PRICE_ID_1YR);
+console.log('PRICE_ID value:', PRICE_ID);
+console.log('Type:', typeof PRICE_ID);
 
 if (!PRICE_ID) {
     console.error('ERROR: STRIPE_PRICE_ID environment variable is not set!');
     console.error('Please set this in your Render dashboard under Environment Variables.');
 }
-if (!PRICE_ID_1MO) {
-    console.warn('WARNING: STRIPE_PRICE_ID_1MO environment variable is not set!');
-}
-if (!PRICE_ID_1YR) {
-    console.warn('WARNING: STRIPE_PRICE_ID_1YR environment variable is not set!');
-}
 
 // Create checkout session endpoint
 app.post('/create-checkout-session', async (req, res) => {
   try {
-    let { priceId } = req.body;
-    
-    // If no priceId provided, default to 3-month (PRICE_ID)
-    if (!priceId) {
-      priceId = PRICE_ID;
-    }
-    
-    // Map price type strings to actual price IDs if needed
-    if (priceId === '1mo' || priceId === 'monthly') {
-      priceId = PRICE_ID_1MO;
-    } else if (priceId === '3mo' || priceId === '3month') {
-      priceId = PRICE_ID;
-    } else if (priceId === '1yr' || priceId === 'yearly' || priceId === '1year') {
-      priceId = PRICE_ID_1YR;
-    }
+    const { priceId = PRICE_ID } = req.body;
 
     // Validate that we have a price ID
     if (!priceId) {
-      console.error('ERROR: No Price ID available! Check STRIPE_PRICE_ID environment variables.');
+      console.error('ERROR: No Price ID available! Check STRIPE_PRICE_ID environment variable.');
       return res.status(500).json({ error: 'Server configuration error: No Price ID set' });
     }
 
@@ -251,42 +228,15 @@ app.get('/success', async (req, res) => {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
     const customerId = session.customer;
     
-    // Check if license already exists in database
-    let result = await pool.query(
+    // Find the license for this customer
+    const result = await pool.query(
       `SELECT license_key FROM licenses WHERE stripe_customer_id = $1 ORDER BY created_at DESC LIMIT 1`,
       [customerId]
     );
     
-    let licenseKey;
-    
-    // If license doesn't exist, generate it now (webhook may not have fired yet)
-    if (result.rows.length === 0) {
-      console.log(`License key not found for customer ${customerId}, generating now...`);
-      // Generate license key directly using the same logic as webhook handler
-      licenseKey = generateLicenseKey();
-      
-      // Get customer email from session
-      const customer = await stripe.customers.retrieve(customerId);
-      const email = customer.email;
-      
-      // Store license in database
-      await pool.query(
-        `INSERT INTO licenses (license_key, customer_email, stripe_customer_id, stripe_subscription_id, status, expires_at)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        [
-          licenseKey,
-          email,
-          customerId,
-          session.subscription,
-          'active',
-          new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
-        ]
-      );
-      
-      console.log(`Generated and stored license key ${licenseKey} for customer ${email}`);
-    } else {
+    let licenseKey = 'XXXX-XXXX-XXXX-XXXX'; // Default if not found
+    if (result.rows.length > 0) {
       licenseKey = result.rows[0].license_key;
-      console.log(`Found existing license key ${licenseKey} for customer ${customerId}`);
     }
     
     res.send(`
@@ -425,13 +375,13 @@ app.get('/success', async (req, res) => {
             </div>
             
             <div class="info">
-              <p>This license provides you access to MegaMixAI™ and all upcoming plugins that will soon be available in the MegaMixAI Chat Suite.</p>
+              <p>This license provides you access to the JoshSquash™ Chat Compressor and all upcoming plugins that will soon be available in the MegaMixAI Chat Suite.</p>
               
               <p>Your license key document will automatically download now. If it doesn't start automatically, <a href="/download-license/${licenseKey}" class="download-btn" style="color: white; text-decoration: none;">click HERE</a>.</p>
             </div>
             
             <div class="download-redirect" style="text-align: center; margin: 40px 0; padding: 30px; background: rgba(139, 92, 246, 0.1); border-radius: 15px; border: 2px solid rgba(139, 92, 246, 0.3);">
-              <h3 style="color: #8b5cf6; margin: 0 0 20px 0; font-size: 1.8rem; font-weight: bold;">Download MegaMixAI™ on the home page.</h3>
+              <h3 style="color: #8b5cf6; margin: 0 0 20px 0; font-size: 1.8rem; font-weight: bold;">Download JoshSquash™ on the home page.</h3>
               <button class="redirect-btn" onclick="goToHomePage()" style="background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%); color: white; border: none; padding: 15px 30px; border-radius: 10px; font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 5px 15px rgba(139, 92, 246, 0.3);">
                 Take me there
               </button>
@@ -490,7 +440,7 @@ app.get('/download-license/:licenseKey', (req, res) => {
 Your License Key: ${licenseKey}
 
 This license provides you access to:
-- MegaMixAI™
+- JoshSquash Chat Compressor
 - All upcoming plugins in the MegaMixAI Chat Suite
 
 IMPORTANT: Keep this license key safe and don't share it with others.
@@ -528,78 +478,45 @@ app.get('/cancel', (req, res) => {
 // Function to handle successful payment
 async function handleSuccessfulPayment(session) {
   try {
-    const customerId = session.customer;
+    // Generate a license key
+    const licenseKey = generateLicenseKey();
     
-    // Check if license already exists for this customer
-    const existingLicense = await pool.query(
-      `SELECT id, license_key FROM licenses WHERE stripe_customer_id = $1 ORDER BY created_at DESC LIMIT 1`,
-      [customerId]
+    // Get customer email from session
+    const customer = await stripe.customers.retrieve(session.customer);
+    const email = customer.email;
+    
+    // Store license in database
+    const result = await pool.query(
+      `INSERT INTO licenses (license_key, customer_email, stripe_customer_id, stripe_subscription_id, status, expires_at)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING id`,
+      [
+        licenseKey,
+        email,
+        session.customer,
+        session.subscription,
+        'active',
+        new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
+      ]
     );
     
-    let licenseKey;
-    let licenseId;
+    const licenseId = result.rows[0].id;
     
-    if (existingLicense.rows.length > 0) {
-      // License already exists, use it
-      licenseKey = existingLicense.rows[0].license_key;
-      licenseId = existingLicense.rows[0].id;
-      console.log(`License key already exists for customer ${customerId}: ${licenseKey}`);
-      
-      // Update subscription ID if it changed
-      await pool.query(
-        `UPDATE licenses SET stripe_subscription_id = $1 WHERE id = $2`,
-        [session.subscription, licenseId]
-      );
-    } else {
-      // Generate a new license key
-      licenseKey = generateLicenseKey();
-      
-      // Get customer email from session
-      const customer = await stripe.customers.retrieve(customerId);
-      const email = customer.email;
-      
-      // Store license in database
-      const result = await pool.query(
-        `INSERT INTO licenses (license_key, customer_email, stripe_customer_id, stripe_subscription_id, status, expires_at)
-         VALUES ($1, $2, $3, $4, $5, $6)
-         RETURNING id`,
-        [
-          licenseKey,
-          email,
-          customerId,
-          session.subscription,
-          'active',
-          new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
-        ]
-      );
-      
-      licenseId = result.rows[0].id;
-      console.log(`Generated license key ${licenseKey} for customer ${email}`);
-      console.log(`License stored in database with ID: ${licenseId}`);
-    }
+    // Store payment record
+    await pool.query(
+      `INSERT INTO payments (license_id, stripe_payment_intent_id, amount, currency, status)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [
+        licenseId,
+        session.payment_intent,
+        1499, // $14.99 in cents
+        'usd',
+        'succeeded'
+      ]
+    );
     
-    // Store payment record (only if we have payment_intent)
-    if (session.payment_intent) {
-      // Check if payment record already exists
-      const existingPayment = await pool.query(
-        `SELECT id FROM payments WHERE stripe_payment_intent_id = $1`,
-        [session.payment_intent]
-      );
-      
-      if (existingPayment.rows.length === 0) {
-        await pool.query(
-          `INSERT INTO payments (license_id, stripe_payment_intent_id, amount, currency, status)
-           VALUES ($1, $2, $3, $4, $5)`,
-          [
-            licenseId,
-            session.payment_intent,
-            1499, // $14.99 in cents
-            'usd',
-            'succeeded'
-          ]
-        );
-      }
-    }
+    console.log(`Generated license key ${licenseKey} for customer ${email}`);
+    console.log(`License stored in database with ID: ${licenseId}`);
     
     // TODO: Send email with license key
     
@@ -618,7 +535,8 @@ function generateLicenseKey() {
   return result.match(/.{1,4}/g).join('-'); // Format: XXXX-XXXX-XXXX-XXXX
 }
 
-// License validation endpoint (for the plugin to call)
+// License validation endpoint (for the plugin to call).
+// The plugin uses the returned token and license.expires_at for offline validation; keep this response shape for compatibility.
 app.post('/verify-license', async (req, res) => {
   try {
     const { licenseKey } = req.body;
@@ -916,8 +834,10 @@ app.post('/contact-support', async (req, res) => {
 });
 
 // Version check endpoint for plugin
+// NOTE: When updating plugin version in MegaMixAI.jucer, run: npm run sync-version
+// This automatically syncs the version from .jucer to this endpoint
 app.get('/api/version', (req, res) => {
-  res.json({ version: '1.0.1' });
+  res.json({ version: '1.0.5' });
 });
 
 // Health check endpoint
