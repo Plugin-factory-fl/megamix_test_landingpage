@@ -170,18 +170,16 @@ app.post('/webhooks/stripe', express.raw({type: 'application/json'}), async (req
 app.use(express.json());
 app.use(express.static('public')); // Serve static files (like your HTML)
 
-// Stripe Price IDs - monthly ($5.99/mo) is the default for checkout with 7-day trial
-const PRICE_ID = process.env.STRIPE_PRICE_ID;
-const PRICE_ID_MONTHLY = process.env.STRIPE_PRICE_ID_MONTHLY || PRICE_ID;
+// Stripe Price IDs: 1mo = monthly, STRIPE_PRICE_ID = 3-month, 1yr = yearly
+const PRICE_ID_1MO = process.env.STRIPE_PRICE_ID_1MO;
+const PRICE_ID = process.env.STRIPE_PRICE_ID;   // 3-month plan only
+const PRICE_ID_1YR = process.env.STRIPE_PRICE_ID_1YR;
 
 // Debug logging
 console.log('=== STRIPE PRICE ID DEBUG ===');
-console.log('PRICE_ID (fallback):', PRICE_ID);
-console.log('PRICE_ID_MONTHLY (default for checkout):', PRICE_ID_MONTHLY);
-
-if (!PRICE_ID_MONTHLY && !PRICE_ID) {
-    console.error('ERROR: Set STRIPE_PRICE_ID or STRIPE_PRICE_ID_MONTHLY in your Render Environment Variables.');
-}
+console.log('STRIPE_PRICE_ID_1MO:', PRICE_ID_1MO ? '(set)' : '(not set)');
+console.log('STRIPE_PRICE_ID (3mo):', PRICE_ID ? '(set)' : '(not set)');
+console.log('STRIPE_PRICE_ID_1YR:', PRICE_ID_1YR ? '(set)' : '(not set)');
 
 // Create checkout session endpoint
 app.post('/create-checkout-session', async (req, res) => {
@@ -190,19 +188,20 @@ app.post('/create-checkout-session', async (req, res) => {
     let priceId;
     if (typeof reqPriceId === 'string' && reqPriceId.startsWith('price_')) {
       priceId = reqPriceId;
-    } else if (reqPriceId === '3mo' && process.env.STRIPE_PRICE_ID_3MO) {
-      priceId = process.env.STRIPE_PRICE_ID_3MO;
-    } else if (reqPriceId === '1yr' && process.env.STRIPE_PRICE_ID_YEARLY) {
-      priceId = process.env.STRIPE_PRICE_ID_YEARLY;
+    } else if (reqPriceId === '3mo') {
+      priceId = PRICE_ID;   // STRIPE_PRICE_ID = 3-month plan
+    } else if (reqPriceId === '1yr') {
+      priceId = PRICE_ID_1YR;
     } else {
-      // Default: $5.99/month (1mo or any other click)
-      priceId = PRICE_ID_MONTHLY || PRICE_ID;
+      // Default (GET FREE TRIAL, 1mo): use STRIPE_PRICE_ID_1MO (monthly)
+      priceId = PRICE_ID_1MO;
     }
 
     // Validate that we have a price ID
     if (!priceId) {
-      console.error('ERROR: No Price ID available! Check STRIPE_PRICE_ID environment variable.');
-      return res.status(500).json({ error: 'Server configuration error: No Price ID set' });
+      const msg = reqPriceId === '3mo' ? 'Set STRIPE_PRICE_ID in Render (3-month plan).' : reqPriceId === '1yr' ? 'Set STRIPE_PRICE_ID_1YR in Render (yearly plan).' : 'Set STRIPE_PRICE_ID_1MO in Render for the $5.99/month plan (GET FREE TRIAL).';
+      console.error('ERROR:', msg);
+      return res.status(500).json({ error: msg });
     }
 
     const session = await stripe.checkout.sessions.create({
