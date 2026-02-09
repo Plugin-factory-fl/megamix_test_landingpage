@@ -170,27 +170,34 @@ app.post('/webhooks/stripe', express.raw({type: 'application/json'}), async (req
 app.use(express.json());
 app.use(express.static('public')); // Serve static files (like your HTML)
 
-// Stripe Price ID - from environment variable (required in production)
+// Stripe Price IDs - monthly ($5.99/mo) is the default for checkout with 7-day trial
 const PRICE_ID = process.env.STRIPE_PRICE_ID;
+const PRICE_ID_MONTHLY = process.env.STRIPE_PRICE_ID_MONTHLY || PRICE_ID;
 
 // Debug logging
-console.log('=== STRIPE_PRICE_ID DEBUG ===');
-console.log('PRICE_ID value:', PRICE_ID);
-console.log('Type:', typeof PRICE_ID);
+console.log('=== STRIPE PRICE ID DEBUG ===');
+console.log('PRICE_ID (fallback):', PRICE_ID);
+console.log('PRICE_ID_MONTHLY (default for checkout):', PRICE_ID_MONTHLY);
 
-if (!PRICE_ID) {
-    console.error('ERROR: STRIPE_PRICE_ID environment variable is not set!');
-    console.error('Please set this in your Render dashboard under Environment Variables.');
+if (!PRICE_ID_MONTHLY && !PRICE_ID) {
+    console.error('ERROR: Set STRIPE_PRICE_ID or STRIPE_PRICE_ID_MONTHLY in your Render Environment Variables.');
 }
 
 // Create checkout session endpoint
 app.post('/create-checkout-session', async (req, res) => {
   try {
     const { priceId: reqPriceId } = req.body || {};
-    // Use request priceId only if it's a real Stripe price ID (price_xxx); otherwise use env PRICE_ID
-    const priceId = (typeof reqPriceId === 'string' && reqPriceId.startsWith('price_'))
-      ? reqPriceId
-      : PRICE_ID;
+    let priceId;
+    if (typeof reqPriceId === 'string' && reqPriceId.startsWith('price_')) {
+      priceId = reqPriceId;
+    } else if (reqPriceId === '3mo' && process.env.STRIPE_PRICE_ID_3MO) {
+      priceId = process.env.STRIPE_PRICE_ID_3MO;
+    } else if (reqPriceId === '1yr' && process.env.STRIPE_PRICE_ID_YEARLY) {
+      priceId = process.env.STRIPE_PRICE_ID_YEARLY;
+    } else {
+      // Default: $5.99/month (1mo or any other click)
+      priceId = PRICE_ID_MONTHLY || PRICE_ID;
+    }
 
     // Validate that we have a price ID
     if (!priceId) {
