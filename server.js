@@ -186,7 +186,11 @@ if (!PRICE_ID) {
 // Create checkout session endpoint
 app.post('/create-checkout-session', async (req, res) => {
   try {
-    const { priceId = PRICE_ID } = req.body;
+    const { priceId: reqPriceId } = req.body || {};
+    // Use request priceId only if it's a real Stripe price ID (price_xxx); otherwise use env PRICE_ID
+    const priceId = (typeof reqPriceId === 'string' && reqPriceId.startsWith('price_'))
+      ? reqPriceId
+      : PRICE_ID;
 
     // Validate that we have a price ID
     if (!priceId) {
