@@ -204,6 +204,9 @@ app.post('/create-checkout-session', async (req, res) => {
           quantity: 1,
         },
       ],
+      subscription_data: {
+        trial_period_days: 7,
+      },
       success_url: `${process.env.BASE_URL || 'https://megamixai-mvp-backend.onrender.com'}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.BASE_URL || 'https://megamixai-mvp-backend.onrender.com'}/cancel`,
       metadata: {
@@ -485,6 +488,17 @@ async function handleSuccessfulPayment(session) {
     const customer = await stripe.customers.retrieve(session.customer);
     const email = customer.email;
     
+    // Use subscription current_period_end for expires_at (correct for trial end and paid periods)
+    let expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // fallback: 30 days
+    if (session.subscription) {
+      try {
+        const subscription = await stripe.subscriptions.retrieve(session.subscription);
+        expiresAt = new Date(subscription.current_period_end * 1000);
+      } catch (err) {
+        console.warn('Could not fetch subscription for expires_at, using fallback:', err.message);
+      }
+    }
+    
     // Store license in database
     const result = await pool.query(
       `INSERT INTO licenses (license_key, customer_email, stripe_customer_id, stripe_subscription_id, status, expires_at)
@@ -496,24 +510,26 @@ async function handleSuccessfulPayment(session) {
         session.customer,
         session.subscription,
         'active',
-        new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
+        expiresAt
       ]
     );
     
     const licenseId = result.rows[0].id;
     
-    // Store payment record
-    await pool.query(
-      `INSERT INTO payments (license_id, stripe_payment_intent_id, amount, currency, status)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [
-        licenseId,
-        session.payment_intent,
-        1499, // $14.99 in cents
-        'usd',
-        'succeeded'
-      ]
-    );
+    // Store payment record only when there was an immediate charge (no trial, or trial skipped)
+    if (session.payment_intent) {
+      await pool.query(
+        `INSERT INTO payments (license_id, stripe_payment_intent_id, amount, currency, status)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [
+          licenseId,
+          session.payment_intent,
+          1499, // $14.99 in cents
+          'usd',
+          'succeeded'
+        ]
+      );
+    }
     
     console.log(`Generated license key ${licenseKey} for customer ${email}`);
     console.log(`License stored in database with ID: ${licenseId}`);
@@ -837,7 +853,7 @@ app.post('/contact-support', async (req, res) => {
 // NOTE: When updating plugin version in MegaMixAI.jucer, run: npm run sync-version
 // This automatically syncs the version from .jucer to this endpoint
 app.get('/api/version', (req, res) => {
-  res.json({ version: '1.0.5' });
+  res.json({ version: '1.0.6' });
 });
 
 // Health check endpoint
