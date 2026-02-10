@@ -235,23 +235,17 @@ app.post('/create-checkout-session', async (req, res) => {
 app.get('/success', async (req, res) => {
   try {
     const sessionId = req.query.session_id;
-    
-    // Get license key from database using session ID
-    // Get the Stripe session to find the customer
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
-    const customerId = session.customer;
-    
-    // Find the license for this customer
-    const result = await pool.query(
-      `SELECT license_key FROM licenses WHERE stripe_customer_id = $1 ORDER BY created_at DESC LIMIT 1`,
-      [customerId]
-    );
-    
-    let licenseKey = 'XXXX-XXXX-XXXX-XXXX'; // Default if not found
-    if (result.rows.length > 0) {
-      licenseKey = result.rows[0].license_key;
+    if (!sessionId) {
+      return res.status(400).send('Missing session_id');
     }
-    
+
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    const { licenseKey } = await ensureLicenseForCheckoutSession(session);
+    if (!licenseKey) {
+      console.error('Failed to obtain or create license for session', sessionId);
+      return res.status(500).send('Unable to retrieve your license key. Please contact support with your receipt.');
+    }
+
     res.send(`
       <html>
         <head>
@@ -488,64 +482,60 @@ app.get('/cancel', (req, res) => {
 });
 
 
-// Function to handle successful payment
+// Ensures a license exists for this checkout session (used by success page and webhook).
+// Returns existing license if one was already created (e.g. by success page or previous webhook), otherwise creates one.
+async function ensureLicenseForCheckoutSession(session) {
+  const customerId = session.customer;
+  const existing = await pool.query(
+    `SELECT license_key FROM licenses WHERE stripe_customer_id = $1 ORDER BY created_at DESC LIMIT 1`,
+    [customerId]
+  );
+  if (existing.rows.length > 0) {
+    return { licenseKey: existing.rows[0].license_key };
+  }
+
+  const licenseKey = generateLicenseKey();
+  const customer = await stripe.customers.retrieve(session.customer);
+  const email = customer.email || '';
+
+  let expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  if (session.subscription) {
+    try {
+      const subscription = await stripe.subscriptions.retrieve(session.subscription);
+      expiresAt = new Date(subscription.current_period_end * 1000);
+    } catch (err) {
+      console.warn('Could not fetch subscription for expires_at, using fallback:', err.message);
+    }
+  }
+
+  const result = await pool.query(
+    `INSERT INTO licenses (license_key, customer_email, stripe_customer_id, stripe_subscription_id, status, expires_at)
+     VALUES ($1, $2, $3, $4, $5, $6)
+     RETURNING id`,
+    [licenseKey, email, session.customer, session.subscription || null, 'active', expiresAt]
+  );
+  const licenseId = result.rows[0].id;
+
+  if (session.payment_intent) {
+    await pool.query(
+      `INSERT INTO payments (license_id, stripe_payment_intent_id, amount, currency, status)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [licenseId, session.payment_intent, 1499, 'usd', 'succeeded']
+    );
+  }
+
+  console.log(`Generated license key ${licenseKey} for customer ${email} (license id: ${licenseId})`);
+  return { licenseKey };
+}
+
+// Function to handle successful payment (webhook). Idempotent: if license already exists for this customer, skip.
 async function handleSuccessfulPayment(session) {
   try {
-    // Generate a license key
-    const licenseKey = generateLicenseKey();
-    
-    // Get customer email from session
-    const customer = await stripe.customers.retrieve(session.customer);
-    const email = customer.email;
-    
-    // Use subscription current_period_end for expires_at (correct for trial end and paid periods)
-    let expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // fallback: 30 days
-    if (session.subscription) {
-      try {
-        const subscription = await stripe.subscriptions.retrieve(session.subscription);
-        expiresAt = new Date(subscription.current_period_end * 1000);
-      } catch (err) {
-        console.warn('Could not fetch subscription for expires_at, using fallback:', err.message);
-      }
+    const { licenseKey } = await ensureLicenseForCheckoutSession(session);
+    if (licenseKey) {
+      console.log(`License ready for session ${session.id}: ${licenseKey}`);
     }
-    
-    // Store license in database
-    const result = await pool.query(
-      `INSERT INTO licenses (license_key, customer_email, stripe_customer_id, stripe_subscription_id, status, expires_at)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING id`,
-      [
-        licenseKey,
-        email,
-        session.customer,
-        session.subscription,
-        'active',
-        expiresAt
-      ]
-    );
-    
-    const licenseId = result.rows[0].id;
-    
-    // Store payment record only when there was an immediate charge (no trial, or trial skipped)
-    if (session.payment_intent) {
-      await pool.query(
-        `INSERT INTO payments (license_id, stripe_payment_intent_id, amount, currency, status)
-         VALUES ($1, $2, $3, $4, $5)`,
-        [
-          licenseId,
-          session.payment_intent,
-          1499, // $14.99 in cents
-          'usd',
-          'succeeded'
-        ]
-      );
-    }
-    
-    console.log(`Generated license key ${licenseKey} for customer ${email}`);
-    console.log(`License stored in database with ID: ${licenseId}`);
-    
     // TODO: Send email with license key
-    
   } catch (error) {
     console.error('Error handling successful payment:', error);
   }
@@ -566,32 +556,34 @@ function generateLicenseKey() {
 app.post('/verify-license', async (req, res) => {
   try {
     const { licenseKey } = req.body;
-    
+    const keyForLog = typeof licenseKey === 'string' ? `${licenseKey.substring(0, 4)}****-****-****-${licenseKey.slice(-4)}` : '(missing)';
+
     if (!licenseKey) {
+      console.log('[verify-license] Rejected: no license key in request body');
       return res.status(400).json({ error: 'License key is required' });
     }
-    
+
     // Query database for license
     const result = await pool.query(
       `SELECT * FROM licenses WHERE license_key = $1`,
       [licenseKey]
     );
-    
+
     if (result.rows.length === 0) {
-      // Log invalid validation attempt
+      console.log(`[verify-license] Key not in database: ${keyForLog}`);
       await pool.query(
         `INSERT INTO validation_logs (license_key, hardware_fingerprint, ip_address, user_agent, validation_result)
          VALUES ($1, $2, $3, $4, $5)`,
         [licenseKey, null, req.ip, req.get('User-Agent'), 'invalid']
       );
-      
       return res.status(404).json({ error: 'Invalid license key. Check the .txt file you were given upon downloading to verify.' });
     }
-    
+
     const license = result.rows[0];
-    
+
     // Check if license is expired
     if (new Date() > new Date(license.expires_at)) {
+      console.log(`[verify-license] Key found but expired: ${keyForLog}, expires_at=${license.expires_at}`);
       await pool.query(
         `INSERT INTO validation_logs (license_key, hardware_fingerprint, ip_address, user_agent, validation_result)
          VALUES ($1, $2, $3, $4, $5)`,
@@ -603,6 +595,7 @@ app.post('/verify-license', async (req, res) => {
     
     // Check if license is active in database
     if (license.status !== 'active') {
+      console.log(`[verify-license] Key found but status not active: ${keyForLog}, status=${license.status}`);
       return res.status(403).json({ error: 'License is not active' });
     }
     
@@ -641,9 +634,10 @@ app.post('/verify-license', async (req, res) => {
             errorMessage = 'Your subscription payment failed. Please update your payment method to continue using the plugin.';
           }
           
+          console.log(`[verify-license] Key valid in DB but Stripe subscription not active: ${keyForLog}, stripe_status=${subscription.status}`);
           return res.status(403).json({ error: errorMessage });
         }
-        
+
         // Subscription is active in Stripe - update expires_at to match Stripe's current_period_end
         // This keeps database in sync with actual billing cycle
         const stripeExpiresAt = new Date(subscription.current_period_end * 1000);
@@ -682,6 +676,7 @@ app.post('/verify-license', async (req, res) => {
               [licenseKey, null, req.ip, req.get('User-Agent'), 'invalid']
             );
             
+            console.log(`[verify-license] Key valid in DB but Stripe subscription missing (resource_missing): ${keyForLog}, sub_id=${license.stripe_subscription_id}`);
             return res.status(403).json({ error: 'Subscription not found. Please contact support.' });
           }
         } else {
@@ -705,13 +700,13 @@ app.post('/verify-license', async (req, res) => {
       [license.id]
     );
     
-    // Log successful validation
+    console.log(`[verify-license] Valid: ${keyForLog}`);
     await pool.query(
       `INSERT INTO validation_logs (license_key, hardware_fingerprint, ip_address, user_agent, validation_result)
        VALUES ($1, $2, $3, $4, $5)`,
       [licenseKey, null, req.ip, req.get('User-Agent'), 'valid']
     );
-    
+
     // Generate JWT token for offline validation (30 days)
     const token = jwt.sign(
       { 
@@ -735,7 +730,7 @@ app.post('/verify-license', async (req, res) => {
     });
     
   } catch (error) {
-    console.error('Error verifying license:', error);
+    console.error('[verify-license] Error:', error.message || error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
