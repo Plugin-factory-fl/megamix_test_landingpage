@@ -295,6 +295,9 @@
             transition: all 0.3s ease;
             box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
             text-transform: uppercase;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .buy-button:hover {
@@ -305,6 +308,13 @@
 
         .buy-button:active {
             transform: translateY(-1px);
+        }
+        
+        .buy-button-center {
+            text-align: center;
+        }
+        .buy-button-center .buy-button {
+            display: inline-block;
         }
         
         #reviewSummary {
@@ -474,15 +484,12 @@
         }
         .before-after-section {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr;
             gap: 24px;
             margin: 40px 0 50px 0;
-            max-width: 900px;
+            max-width: 520px;
             margin-left: auto;
             margin-right: auto;
-        }
-        @media (max-width: 700px) {
-            .before-after-section { grid-template-columns: 1fr; }
         }
         .before-after-card {
             background: rgba(255, 255, 255, 0.05);
@@ -571,6 +578,92 @@
         }
         .before-after-play-btn.playing {
             background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        }
+        .before-after-tagline {
+            color: #8b5cf6;
+            font-size: 0.85rem;
+            margin-top: 8px;
+            margin-bottom: 6px;
+            text-align: center;
+        }
+        .before-after-instruction {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.65);
+            text-align: center;
+            margin-bottom: 8px;
+            line-height: 1.35;
+        }
+        .before-after-listen-label {
+            font-size: 0.78rem;
+            color: rgba(255, 255, 255, 0.7);
+            text-align: center;
+            margin-bottom: 4px;
+        }
+        .before-after-listen-list {
+            font-size: 0.78rem;
+            color: rgba(255, 255, 255, 0.6);
+            text-align: left;
+            margin: 0 auto 14px auto;
+            padding-left: 1.25rem;
+            max-width: 320px;
+            line-height: 1.5;
+        }
+        .before-after-listen-list li {
+            margin-bottom: 2px;
+        }
+        .before-after-progress-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 14px;
+            width: 100%;
+        }
+        .before-after-time,
+        .before-after-duration {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.8);
+            min-width: 36px;
+        }
+        .before-after-duration {
+            text-align: right;
+        }
+        .before-after-progress {
+            flex: 1;
+            height: 8px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            outline: none;
+        }
+        .before-after-progress::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #8b5cf6;
+            cursor: pointer;
+            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.3);
+        }
+        .before-after-progress::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #8b5cf6;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.3);
+        }
+        .before-after-progress::-webkit-slider-runnable-track {
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .before-after-progress::-moz-range-track {
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.2);
         }
 
         .pricing-overview {
@@ -1228,7 +1321,6 @@
             <div class="hero-subheading">in minutes.</div>
             <p>Chat controls your mix—tell Josh what you want and AI mixing nails your genre without the technical back-and-forth.</p>
         </div>
-
         <div class="testimonial">
             <div class="testimonial-text">
                 "Beyond easy. I got pro-sounding mixes with MegaMixAI—I just told Josh what I wanted and he controlled the mix."
@@ -1240,7 +1332,72 @@
                 ⭐⭐⭐⭐⭐
             </div>
         </div>
-        
+        <div class="two-column-section">
+            <div class="left-column">
+                <div class="image-container">
+                    <div class="slideshow-container">
+                        <div class="slideshow-wrapper" id="slideshowWrapper">
+                            <div class="slide">
+                                <img src="assets/MasterModeInterface.png" alt="Master Mode Interface" class="plugin-image">
+                            </div>
+                            <div class="slide">
+                                <img src="assets/JoshSquash Interface.png" alt="JoshSquash Plugin Interface" class="plugin-image">
+                            </div>
+                            <div class="slide">
+                                <img src="assets/JoshEQ Interface.png" alt="JoshEQ Plugin Interface" class="plugin-image">
+                            </div>
+                        </div>
+                        <button class="slideshow-arrow right" id="nextSlideBtn" onclick="nextSlide()">→</button>
+                        <button class="slideshow-arrow left hidden" id="prevSlideBtn" onclick="prevSlide()">←</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="right-column">
+                <div class="plugin-description">
+                    <div class="description-text">
+                        <strong>🎛️ Chat controls the mix—tell Josh the vibe, not the settings.</strong> Type a request like “add punch to my kick” or “smooth out my vocals” and Josh applies the ideal mix moves instantly.
+                        <br><br>
+                        <strong>🗣️ Focus on your music, not 50 knobs.</strong> AI mixing that understands plain English: Josh analyzes your track and dials in pro-grade moves automatically—no guesswork, no overwhelm.
+                        <br><br>
+                        <strong>👍 Pro sound in minutes.</strong> Bedroom producers and seasoned engineers alike get consistent results fast, across Logic Pro, Pro Tools, Ableton, FL Studio, and more.
+                    </div>
+                </div>
+            </div>
+        </div>
+        <h2 class="before-after-heading">Hear MegaMix AI in Action</h2>
+        <section class="before-after-section" aria-label="Before / After hearing demos">
+            <div class="before-after-card" data-card="1">
+                <div class="before-after-card-header">
+                    <h3 class="before-after-card-title">Tom Sawyer</h3>
+                    <div class="before-after-tabs" role="tablist">
+                        <button type="button" role="tab" aria-selected="false" class="before-after-tab" data-mode="before">Before</button>
+                        <button type="button" role="tab" aria-selected="true" class="before-after-tab active" data-mode="after">After</button>
+                    </div>
+                </div>
+                <span class="before-after-genre">ROCK</span>
+                <p class="before-after-tagline">This song was MegaMix'd in less than 3 minutes</p>
+                <p class="before-after-instruction">Press Play, then switch between before/after to hear the improvement in the song.</p>
+                <p class="before-after-listen-label">Things to listen for:</p>
+                <ul class="before-after-listen-list">
+                    <li>More powerful, punchy drums</li>
+                    <li>Cleaned up the muddy sound</li>
+                    <li>Prominent guitar solo and main vocals</li>
+                </ul>
+                <div class="before-after-play-wrap">
+                    <button type="button" class="before-after-play-btn" aria-label="Play audio" data-card="1" title="Play">
+                        &#9658;
+                    </button>
+                </div>
+                <div class="before-after-progress-wrap">
+                    <span class="before-after-time" aria-live="polite">0:00</span>
+                    <input type="range" class="before-after-progress" min="0" max="100" value="0" step="0.1" aria-label="Seek">
+                    <span class="before-after-duration">0:00</span>
+                </div>
+                <audio class="before-after-audio" data-card="1" data-mode="before" preload="metadata" src="assets/audio/TomSawyer_BEFORE.mp3"></audio>
+                <audio class="before-after-audio" data-card="1" data-mode="after" preload="metadata" src="assets/audio/TomSawyer_AFTER.mp3"></audio>
+            </div>
+        </section>
         <div id="purchase-section" style="text-align: center; margin: 30px 0;">
             <button class="buy-button" onclick="handleBuyNow('1mo'); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_1', 'button_text': 'GET FREE TRIAL' });" id="firstBuyButton">
                 GET FREE TRIAL
@@ -1257,7 +1414,122 @@
                 </a>
             </div>
         </div>
-
+        <div id="plugin-downloads" class="plugin-downloads" style="text-align: center; margin: 40px 0; padding: 30px; background: rgba(255, 255, 255, 0.05); border-radius: 15px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);">
+            <h3 style="color: #8b5cf6; margin-bottom: 10px; font-size: 1.5rem;">Download MegaMixAI™ Plugin</h3>
+            <p style="color: #8b5cf6; margin-bottom: 20px; font-size: 1.1rem;">Current Version: V1.0.6</p>
+            <p style="color: #ccc; margin-bottom: 30px; font-size: 1.1rem;">Choose your format and platform:</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; max-width: 600px; margin: 0 auto;">
+                <!-- VST3 Downloads -->
+                <div class="download-option" style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                    <h4 style="color: #8b5cf6; margin-bottom: 15px;">VST3 Format</h4>
+                    <button class="download-btn green" onclick="openEmailModal('vst3', 'windows'); gtag('event', 'download_button_click', { 'button_id': 'VST_windows_download_button', 'format': 'VST3', 'platform': 'Windows' });" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; width: 100%; transition: all 0.3s ease;">
+                        Windows VST3
+                    </button>
+                </div>
+                
+                <!-- AU Downloads -->
+                <div class="download-option" style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                    <h4 style="color: #8b5cf6; margin-bottom: 15px;">AU Format</h4>
+                    <button class="download-btn green" onclick="openEmailModal('au', 'mac'); gtag('event', 'download_button_click', { 'button_id': 'AU_mac_download_button', 'format': 'AU', 'platform': 'Mac' });" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; width: 100%; transition: all 0.3s ease;">
+                        Mac AU
+                    </button>
+                </div>
+            </div>
+            
+            <p style="color: white; font-size: 1rem; margin-top: 20px; font-weight: bold; text-align: center;">ATTENTION: This plugin uses a license key to verify ownership. You can download the plugin for free but it will be unusable without a license key. Subscribe now to receive yours!</p>
+        </div>
+        
+        <button class="buy-button" onclick="handleBuyNow('1mo'); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_2', 'button_text': 'GET FREE TRIAL' });">
+            GET FREE TRIAL
+        </button>
+        
+        <div id="contact-section" style="text-align: center; margin: 40px 0;">
+            <button onclick="openContactModal()" style="background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%); color: white; border: none; padding: 20px 40px; border-radius: 12px; font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);">
+                Need help? Contact Us Now
+            </button>
+        </div>
+        
+        <div class="genre-section">
+            <div class="genre-description">
+                <p style="font-size: 1.1rem; line-height: 1.6; opacity: 0.9;">
+                    <strong>❌ Still wrestling with endless parameters?</strong><br><br>
+                    🎵 Switch to AI mixing. Describe the sound you want and Josh controls the mix—no jargon, no guesswork, no wasted hours.<br><br>
+                    🤝 MegaMixAI™'s AI personality, Josh, acts like an engineer on call. You tell Josh what you want; he controls the mix and delivers mix-ready results on the spot.
+                </p>
+            </div>
+            
+            <div class="genre-image">
+                <img src="assets/problemimage.png" alt="Mixing Problems" class="genre-feature-image">
+            </div>
+        </div>
+        
+        <div class="features">
+            <div class="feature">
+                <h3>🗣️ AI Mixing—Chat Controls Your Mix</h3>
+                <p>Producers report mixes approved 45% faster when AI mixing controls the mix—brief Josh instead of tweaking parameters the old way.</p>
+            </div>
+            <div class="feature">
+                <h3>🎛️ Never look at a wall of knobs again. Chat controls your mix.</h3>
+                <p>Skip 50+ controls and keep your flow—most users cut revision time by more than half on day one with AI mixing.</p>
+            </div>
+             <div class="feature">
+                <h3>🤝 Unlimited devices. No restrictions.</h3>
+                <p>Use Josh anywhere you create. One license covers every studio, laptop, and collaborator you work with.</p>
+            </div>
+             <div class="feature">
+                <h3>💻 Available in VST3 and AU formats</h3>
+                <p>Drop Josh into Logic Pro, Pro Tools, Ableton, FL Studio, and more—setup takes under five minutes.</p>
+            </div>
+        </div>
+        
+        <button class="buy-button" onclick="handleBuyNow('1mo'); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_3', 'button_text': 'GET FREE TRIAL' });">
+            GET FREE TRIAL
+        </button>
+        <h3 style="color: #8b5cf6; margin: 40px 0 20px 0; font-size: 1.5rem; text-align: center;">Step 1: Set up your hierarchy.</h3>
+        
+        <div class="genre-section">
+            <div class="genre-image feature3">
+                <img src="assets/feature3.png" alt="Josh Quick Prompts" class="genre-feature-image">
+            </div>
+            
+            <div class="genre-description">
+                <p style="font-size: 1.1rem; line-height: 1.6; opacity: 0.9;">
+                    Place your master instance of MegaMixAI on the Master fader or the main Stereo Out track in your DAW. Then, put a &quot;slave&quot; instance of MegaMixAI on every track you'd like to control.
+                </p>
+            </div>
+        </div>
+        
+        <h3 style="color: #8b5cf6; margin: 40px 0 20px 0; font-size: 1.5rem; text-align: center;">Step 2: Mega Mix.</h3>
+        
+        <div class="genre-section">
+            <div class="genre-description">
+                <p style="font-size: 1.1rem; line-height: 1.6; opacity: 0.9;">
+                    Let Josh take a listen to your song in full, then allow him to work his magic.
+                </p>
+            </div>
+            
+            <div class="genre-image feature2">
+                <img src="assets/Feature2.png" alt="Josh Adjust Knob" class="genre-feature-image">
+            </div>
+        </div>
+        
+        <h3 style="color: #8b5cf6; margin: 40px 0 20px 0; font-size: 1.5rem; text-align: center;">Step 3: Fine tune by chatting</h3>
+        
+        <div class="genre-section">
+            <div class="genre-image">
+                <img src="assets/Feature1.png" alt="Josh Genre-Smart Compression" class="genre-feature-image">
+            </div>
+            
+            <div class="genre-description">
+                <p style="font-size: 1.1rem; line-height: 1.6; opacity: 0.9;">
+                    After Josh's first mix, you can tell him &quot;make the snare louder&quot; or &quot;the bass is too quiet and not punchy.&quot; Josh will make changes based on your suggestions until your perfect mix is achieved.
+                </p>
+            </div>
+        </div>
+        <button class="buy-button" onclick="handleBuyNow('1mo'); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_4', 'button_text': 'GET FREE TRIAL' });" style="margin-bottom: 60px;">
+            GET FREE TRIAL
+        </button>
         <div class="pricing-overview">
             <h3>Your all-access pass to pro-sounding mixes</h3>
             <p>Chat controls your mix—flexible subscription options so you can choose what works best for you. Monthly updates at no extra charge.</p>
@@ -1315,197 +1587,6 @@
             </div>
             <div class="pricing-note">Includes priority support and access to ALL future updates. Simply update your plugin when a new version is available.</div>
         </div>
-
-        <h2 class="before-after-heading">Hear MegaMix AI in Action</h2>
-        <section class="before-after-section" aria-label="Before / After hearing demos">
-            <div class="before-after-card" data-card="1">
-                <div class="before-after-card-header">
-                    <h3 class="before-after-card-title">Kick My Feet Up</h3>
-                    <div class="before-after-tabs" role="tablist">
-                        <button type="button" role="tab" aria-selected="false" class="before-after-tab" data-mode="before">Before</button>
-                        <button type="button" role="tab" aria-selected="true" class="before-after-tab active" data-mode="after">After</button>
-                    </div>
-                </div>
-                <span class="before-after-genre">HIP HOP</span>
-                <p class="before-after-desc">A smooth oldschool hip-hop vibe.</p>
-                <div class="before-after-play-wrap">
-                    <button type="button" class="before-after-play-btn" aria-label="Play audio" data-card="1" title="Play">
-                        ▶
-                    </button>
-                </div>
-                <audio class="before-after-audio" data-card="1" data-mode="before" preload="metadata" src="assets/demo1-before.mp3"></audio>
-                <audio class="before-after-audio" data-card="1" data-mode="after" preload="metadata" src="assets/demo1-after.mp3"></audio>
-            </div>
-            <div class="before-after-card" data-card="2">
-                <div class="before-after-card-header">
-                    <h3 class="before-after-card-title">Second Demo</h3>
-                    <div class="before-after-tabs" role="tablist">
-                        <button type="button" role="tab" aria-selected="false" class="before-after-tab" data-mode="before">Before</button>
-                        <button type="button" role="tab" aria-selected="true" class="before-after-tab active" data-mode="after">After</button>
-                    </div>
-                </div>
-                <span class="before-after-genre">GENRE</span>
-                <p class="before-after-desc">Hear the difference with MegaMixAI.</p>
-                <div class="before-after-play-wrap">
-                    <button type="button" class="before-after-play-btn" aria-label="Play audio" data-card="2" title="Play">
-                        ▶
-                    </button>
-                </div>
-                <audio class="before-after-audio" data-card="2" data-mode="before" preload="metadata" src="assets/demo2-before.mp3"></audio>
-                <audio class="before-after-audio" data-card="2" data-mode="after" preload="metadata" src="assets/demo2-after.mp3"></audio>
-            </div>
-        </section>
-        
-        <div class="two-column-section">
-            <div class="left-column">
-                <div class="image-container">
-                    <div class="slideshow-container">
-                        <div class="slideshow-wrapper" id="slideshowWrapper">
-                            <div class="slide">
-                                <img src="assets/JoshSquash Interface.png" alt="JoshSquash Plugin Interface" class="plugin-image">
-                            </div>
-                            <div class="slide">
-                                <img src="assets/JoshEQ Interface.png" alt="JoshEQ Plugin Interface" class="plugin-image">
-                            </div>
-                        </div>
-                        <button class="slideshow-arrow right" id="nextSlideBtn" onclick="nextSlide()">→</button>
-                        <button class="slideshow-arrow left hidden" id="prevSlideBtn" onclick="prevSlide()">←</button>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="right-column">
-                <div class="plugin-description">
-                    <div class="description-text">
-                        <strong>🎛️ Chat controls the mix—tell Josh the vibe, not the settings.</strong> Type a request like “add punch to my kick” or “smooth out my vocals” and Josh applies the ideal mix moves instantly.
-                        <br><br>
-                        <strong>🗣️ Focus on your music, not 50 knobs.</strong> AI mixing that understands plain English: Josh analyzes your track and dials in pro-grade moves automatically—no guesswork, no overwhelm.
-                        <br><br>
-                        <strong>👍 Pro sound in minutes.</strong> Bedroom producers and seasoned engineers alike get consistent results fast, across Logic Pro, Pro Tools, Ableton, FL Studio, and more.
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Support Contact Button -->
-        <div id="contact-section" style="text-align: center; margin: 40px 0;">
-            <button onclick="openContactModal()" style="background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%); color: white; border: none; padding: 20px 40px; border-radius: 12px; font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);">
-                Need help? Contact Us Now
-            </button>
-        </div>
-        
-        <div id="plugin-downloads" class="plugin-downloads" style="text-align: center; margin: 40px 0; padding: 30px; background: rgba(255, 255, 255, 0.05); border-radius: 15px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);">
-            <h3 style="color: #8b5cf6; margin-bottom: 10px; font-size: 1.5rem;">Download MegaMixAI™ Plugin</h3>
-            <p style="color: #8b5cf6; margin-bottom: 20px; font-size: 1.1rem;">Current Version: V1.0.6</p>
-            <p style="color: #ccc; margin-bottom: 30px; font-size: 1.1rem;">Choose your format and platform:</p>
-            
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; max-width: 600px; margin: 0 auto;">
-                <!-- VST3 Downloads -->
-                <div class="download-option" style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.1);">
-                    <h4 style="color: #8b5cf6; margin-bottom: 15px;">VST3 Format</h4>
-                    <button class="download-btn green" onclick="openEmailModal('vst3', 'windows'); gtag('event', 'download_button_click', { 'button_id': 'VST_windows_download_button', 'format': 'VST3', 'platform': 'Windows' });" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; width: 100%; transition: all 0.3s ease;">
-                        Windows VST3
-                    </button>
-                </div>
-                
-                <!-- AU Downloads -->
-                <div class="download-option" style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.1);">
-                    <h4 style="color: #8b5cf6; margin-bottom: 15px;">AU Format</h4>
-                    <button class="download-btn green" onclick="openEmailModal('au', 'mac'); gtag('event', 'download_button_click', { 'button_id': 'AU_mac_download_button', 'format': 'AU', 'platform': 'Mac' });" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; width: 100%; transition: all 0.3s ease;">
-                        Mac AU
-                    </button>
-                </div>
-            </div>
-            
-            <p style="color: white; font-size: 1rem; margin-top: 20px; font-weight: bold; text-align: center;">ATTENTION: This plugin uses a license key to verify ownership. You can download the plugin for free but it will be unusable without a license key. Subscribe now to receive yours!</p>
-        </div>
-        
-        <button class="buy-button" onclick="handleBuyNow('1mo'); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_2', 'button_text': 'GET FREE TRIAL' });">
-            GET FREE TRIAL
-        </button>
-        
-        <div class="genre-section">
-            <div class="genre-description">
-                <p style="font-size: 1.1rem; line-height: 1.6; opacity: 0.9;">
-                    <strong>❌ Still wrestling with endless parameters?</strong><br><br>
-                    🎵 Switch to AI mixing. Describe the sound you want and Josh controls the mix—no jargon, no guesswork, no wasted hours.<br><br>
-                    🤝 MegaMixAI™'s AI personality, Josh, acts like an engineer on call. You tell Josh what you want; he controls the mix and delivers mix-ready results on the spot.
-                </p>
-            </div>
-            
-            <div class="genre-image">
-                <img src="assets/problemimage.png" alt="Mixing Problems" class="genre-feature-image">
-            </div>
-        </div>
-        
-        <div class="features">
-            <div class="feature">
-                <h3>🗣️ AI Mixing—Chat Controls Your Mix</h3>
-                <p>Producers report mixes approved 45% faster when AI mixing controls the mix—brief Josh instead of tweaking parameters the old way.</p>
-            </div>
-            <div class="feature">
-                <h3>🎛️ Never look at a wall of knobs again. Chat controls your mix.</h3>
-                <p>Skip 50+ controls and keep your flow—most users cut revision time by more than half on day one with AI mixing.</p>
-            </div>
-             <div class="feature">
-                <h3>🤝 Unlimited devices. No restrictions.</h3>
-                <p>Use Josh anywhere you create. One license covers every studio, laptop, and collaborator you work with.</p>
-            </div>
-             <div class="feature">
-                <h3>💻 Available in VST3 and AU formats</h3>
-                <p>Drop Josh into Logic Pro, Pro Tools, Ableton, FL Studio, and more—setup takes under five minutes.</p>
-            </div>
-        </div>
-        
-        <button class="buy-button" onclick="handleBuyNow('1mo'); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_3', 'button_text': 'GET FREE TRIAL' });">
-            GET FREE TRIAL
-        </button>
-        
-        <h3 style="color: #8b5cf6; margin: 40px 0 20px 0; font-size: 1.5rem; text-align: center;">⚡ Quickly Mix with Quick Prompts</h3>
-        
-        <div class="genre-section">
-            <div class="genre-image feature3">
-                <img src="assets/feature3.png" alt="Josh Quick Prompts" class="genre-feature-image">
-            </div>
-            
-            <div class="genre-description">
-                <p style="font-size: 1.1rem; line-height: 1.6; opacity: 0.9;">
-                    ⚡ When you need speed or aren't sure what you're looking for, quick prompts get you there fast. <strong>Chat controls the mix—tell Josh what you want in plain language, no technical knowledge needed, and get professional results instantly.</strong>
-                </p>
-            </div>
-        </div>
-        
-        <h3 style="color: #8b5cf6; margin: 40px 0 20px 0; font-size: 1.5rem; text-align: center;">🎛️ Fine-Tune with Adjust</h3>
-        
-        <div class="genre-section">
-            <div class="genre-description">
-                <p style="font-size: 1.1rem; line-height: 1.6; opacity: 0.9;">
-                    🎛️ Meet the Adjust knob—one of only two controls you'll ever touch. <strong>Use it to push Josh's suggestion 25% harder or softer and lock in your sweet spot.</strong><br><br>Because Josh keeps listening, every tweak feels like directing a live engineer in the room.
-                </p>
-            </div>
-            
-            <div class="genre-image feature2">
-                <img src="assets/Feature2.png" alt="Josh Adjust Knob" class="genre-feature-image">
-            </div>
-        </div>
-        
-        <h3 style="color: #8b5cf6; margin: 40px 0 20px 0; font-size: 1.5rem; text-align: center;">🎵 Genre Smart</h3>
-        
-        <div class="genre-section">
-            <div class="genre-image">
-                <img src="assets/Feature1.png" alt="Josh Genre-Smart Compression" class="genre-feature-image">
-            </div>
-            
-            <div class="genre-description">
-                <p style="font-size: 1.1rem; line-height: 1.6; opacity: 0.9;">
-                    🎵 Josh hears the genre cues you give him—“Beatles vibe,” “modern trap,” or anything in between—and AI mixing dials in the right sound to match the reference instantly. <strong>No cookie-cutter presets, just the vibe you request.</strong>
-                </p>
-            </div>
-        </div>
-        
-        <button class="buy-button" onclick="handleBuyNow('1mo'); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_4', 'button_text': 'GET FREE TRIAL' });" style="margin-bottom: 60px;">
-            GET FREE TRIAL
-        </button>
         
         <div class="guarantee-section">
             <h1 style="color: #8b5cf6; margin-bottom: 20px; font-size: 3rem; font-weight: 700;">A MegaMixAI Guarantee</h1>
@@ -1570,11 +1651,11 @@
                 </div>
             </div>
         </div>
-        
-        <button class="buy-button" onclick="handleBuyNow('1mo'); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_5', 'button_text': 'GET FREE TRIAL' });" style="margin: 40px 0;">
-            GET FREE TRIAL
-        </button>
-        
+        <div class="buy-button-center" style="margin: 40px 0;">
+            <button class="buy-button" onclick="handleBuyNow('1mo'); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_5', 'button_text': 'GET FREE TRIAL' });">
+                GET FREE TRIAL
+            </button>
+        </div>
         <!-- User Reviews Section -->
         <div class="reviews-section" id="reviews-section">
             <div class="reviews-header">
@@ -2025,10 +2106,11 @@
                 </button>
             </div>
         </div>
-        
-        <button class="buy-button" onclick="handleBuyNow('1mo'); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_6', 'button_text': 'GET FREE TRIAL' });" style="margin: 60px 0 40px 0;">
-            GET FREE TRIAL
-        </button>
+        <div class="buy-button-center" style="margin: 60px 0 40px 0;">
+            <button class="buy-button" onclick="handleBuyNow('1mo'); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_6', 'button_text': 'GET FREE TRIAL' });">
+                GET FREE TRIAL
+            </button>
+        </div>
         
         <!-- Review Modal -->
         <div id="reviewModal" class="review-modal">
@@ -2409,7 +2491,7 @@
             
             // Slideshow functionality
             let currentSlide = 0;
-            const totalSlides = 2; // JoshSquash and JoshEQ
+            const totalSlides = 3; // Master Mode, JoshSquash, JoshEQ
             
             function nextSlide() {
                 currentSlide = (currentSlide + 1) % totalSlides;
@@ -2637,58 +2719,108 @@
                 });
             });
 
-            // Before/After hearing cards: tab switch and play/pause
+            // Before/After hearing cards: A/B playback (both play, switch audible), progress bar, tab = mute/unmute
             (function initBeforeAfterCards() {
+                function formatTime(seconds) {
+                    if (!isFinite(seconds) || seconds < 0) return '0:00';
+                    var m = Math.floor(seconds / 60);
+                    var s = Math.floor(seconds % 60);
+                    return m + ':' + (s < 10 ? '0' : '') + s;
+                }
                 var section = document.querySelector('.before-after-section');
                 if (!section) return;
-                section.addEventListener('click', function (e) {
-                    var tab = e.target.closest('.before-after-tab');
-                    if (tab) {
-                        var tablist = tab.closest('.before-after-tabs');
-                        tablist.querySelectorAll('.before-after-tab').forEach(function (t) {
-                            t.classList.remove('active');
-                            t.setAttribute('aria-selected', 'false');
-                        });
-                        tab.classList.add('active');
-                        tab.setAttribute('aria-selected', 'true');
-                        return;
+                section.querySelectorAll('.before-after-card').forEach(function (card) {
+                    var audioBefore = card.querySelector('.before-after-audio[data-mode="before"]');
+                    var audioAfter = card.querySelector('.before-after-audio[data-mode="after"]');
+                    var playBtn = card.querySelector('.before-after-play-btn');
+                    var progress = card.querySelector('.before-after-progress');
+                    var timeEl = card.querySelector('.before-after-time');
+                    var durationEl = card.querySelector('.before-after-duration');
+                    var tabs = card.querySelectorAll('.before-after-tab');
+                    if (!audioBefore || !audioAfter || !playBtn || !progress) return;
+                    function getActiveMode() {
+                        var active = card.querySelector('.before-after-tab.active');
+                        return active ? active.getAttribute('data-mode') : 'after';
                     }
-                    var playBtn = e.target.closest('.before-after-play-btn');
-                    if (playBtn) {
-                        var card = playBtn.closest('.before-after-card');
-                        var cardId = card.getAttribute('data-card');
-                        var activeTab = card.querySelector('.before-after-tab.active');
-                        var mode = activeTab ? activeTab.getAttribute('data-mode') : 'after';
-                        var audio = card.querySelector('.before-after-audio[data-mode="' + mode + '"]');
-                        if (!audio) return;
-                        var allInSection = section.querySelectorAll('audio.before-after-audio');
-                        if (audio.paused) {
-                            allInSection.forEach(function (a) { a.pause(); a.currentTime = 0; });
-                            section.querySelectorAll('.before-after-play-btn').forEach(function (b) {
-                                b.classList.remove('playing');
-                                b.textContent = '\u25B6';
+                    function setMutedFromTab() {
+                        var mode = getActiveMode();
+                        audioBefore.muted = (mode !== 'before');
+                        audioAfter.muted = (mode !== 'after');
+                    }
+                    function updateProgress() {
+                        var t = audioBefore.currentTime;
+                        var d = audioBefore.duration;
+                        if (d && isFinite(d)) {
+                            progress.value = d > 0 ? (t / d) * 100 : 0;
+                            durationEl.textContent = formatTime(d);
+                        }
+                        timeEl.textContent = formatTime(t);
+                    }
+                    function syncCurrentTime(source) {
+                        var t = source.currentTime;
+                        if (audioBefore !== source) audioBefore.currentTime = t;
+                        if (audioAfter !== source) audioAfter.currentTime = t;
+                    }
+                    function stopBoth() {
+                        audioBefore.pause();
+                        audioAfter.pause();
+                        playBtn.classList.remove('playing');
+                        playBtn.textContent = '\u25B6';
+                        updateProgress();
+                    }
+                    tabs.forEach(function (tab) {
+                        tab.addEventListener('click', function () {
+                            tabs.forEach(function (t) {
+                                t.classList.remove('active');
+                                t.setAttribute('aria-selected', 'false');
                             });
-                            audio.play();
-                            playBtn.classList.add('playing');
-                            playBtn.textContent = '\u23F8';
-                        } else {
-                            audio.pause();
+                            tab.classList.add('active');
+                            tab.setAttribute('aria-selected', 'true');
+                            setMutedFromTab();
+                        });
+                    });
+                    playBtn.addEventListener('click', function () {
+                        var playing = !audioBefore.paused || !audioAfter.paused;
+                        if (playing) {
+                            audioBefore.pause();
+                            audioAfter.pause();
                             playBtn.classList.remove('playing');
                             playBtn.textContent = '\u25B6';
-                        }
-                    }
-                });
-                section.querySelectorAll('audio.before-after-audio').forEach(function (audio) {
-                    audio.addEventListener('ended', function () {
-                        var card = audio.closest('.before-after-card');
-                        if (card) {
-                            var btn = card.querySelector('.before-after-play-btn');
-                            if (btn) {
-                                btn.classList.remove('playing');
-                                btn.textContent = '\u25B6';
-                            }
+                        } else {
+                            var pos = audioBefore.currentTime || 0;
+                            audioBefore.currentTime = pos;
+                            audioAfter.currentTime = pos;
+                            setMutedFromTab();
+                            audioBefore.play();
+                            audioAfter.play();
+                            playBtn.classList.add('playing');
+                            playBtn.textContent = '\u23F8';
                         }
                     });
+                    progress.addEventListener('input', function () {
+                        var d = audioBefore.duration;
+                        if (d && isFinite(d)) {
+                            var t = (progress.value / 100) * d;
+                            audioBefore.currentTime = t;
+                            audioAfter.currentTime = t;
+                            timeEl.textContent = formatTime(t);
+                        }
+                    });
+                    audioBefore.addEventListener('loadedmetadata', function () {
+                        durationEl.textContent = formatTime(audioBefore.duration);
+                    });
+                    audioBefore.addEventListener('timeupdate', function () {
+                        updateProgress();
+                        if (Math.abs(audioBefore.currentTime - audioAfter.currentTime) > 0.15)
+                            audioAfter.currentTime = audioBefore.currentTime;
+                    });
+                    audioAfter.addEventListener('timeupdate', function () {
+                        if (Math.abs(audioBefore.currentTime - audioAfter.currentTime) > 0.15)
+                            audioBefore.currentTime = audioAfter.currentTime;
+                    });
+                    audioBefore.addEventListener('ended', stopBoth);
+                    audioAfter.addEventListener('ended', stopBoth);
+                    setMutedFromTab();
                 });
             })();
             
