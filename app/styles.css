@@ -11,8 +11,8 @@ body {
 }
 
 .hidden { display: none !important; }
-@keyframes viewFadeIn { from { opacity: 0; } to { opacity: 1; } }
-.view.view-visible { animation: viewFadeIn 0.3s ease forwards; }
+@keyframes viewFadeIn { to { opacity: 1; } }
+.view.view-visible { opacity: 0; animation: viewFadeIn 0.3s ease forwards; }
 
 /* Navbar */
 .navbar {

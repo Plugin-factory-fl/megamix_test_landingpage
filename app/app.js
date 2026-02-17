@@ -60,7 +60,10 @@
             views[k].classList.toggle('view-visible', isTarget);
         });
         const active = views[name];
-        if (active) setTimeout(() => active.classList.remove('view-visible'), 350);
+        if (active) {
+            void active.offsetHeight; // force reflow so fade-in animation runs
+            setTimeout(() => active.classList.remove('view-visible'), 350);
+        }
         if (name === 'mastering') initMasteringPageWhenShown();
     }
     document.querySelectorAll('[data-view]').forEach(el => {
