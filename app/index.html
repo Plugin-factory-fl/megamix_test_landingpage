@@ -125,6 +125,14 @@
                     <div class="loading-spinner" aria-hidden="true"></div>
                     <span class="mix-it-loading-text">Mixing…</span>
                 </div>
+                <div class="mixer-collapsible collapsed" id="mixer-collapsible">
+                    <button type="button" class="mixer-collapsible-header" id="mixer-collapsible-toggle" aria-expanded="false" aria-controls="mixer-collapsible-body">Mixer</button>
+                    <div class="mixer-collapsible-body" id="mixer-collapsible-body">
+                        <p class="mixer-hint">Per-track level, pan, and FX. Reverb available; Retro coming soon.</p>
+                        <p class="mixer-hint mixer-hint-live">Changes in the mixer are reflected live in the transport player.</p>
+                        <div class="mixer-strips" id="mixer-strips"></div>
+                    </div>
+                </div>
                 <div class="before-after-card" id="before-after-card">
                     <div class="before-after-card-header">
                         <h4 class="before-after-card-title">Before / After</h4>
@@ -152,21 +160,15 @@
                     <audio id="audio-before" preload="metadata"></audio>
                     <audio id="audio-after" preload="metadata"></audio>
                 </div>
-                <div class="mixer-collapsible collapsed" id="mixer-collapsible">
-                    <button type="button" class="mixer-collapsible-header" id="mixer-collapsible-toggle" aria-expanded="false" aria-controls="mixer-collapsible-body">Mixer</button>
-                    <div class="mixer-collapsible-body" id="mixer-collapsible-body">
-                        <p class="mixer-hint">Per-track level, pan, and FX. Reverb available; Retro coming soon.</p>
-                        <p class="mixer-hint mixer-hint-live">Changes in the mixer are reflected live in the transport player.</p>
-                        <div class="mixer-strips" id="mixer-strips"></div>
-                    </div>
-                </div>
-                <div class="undo-redo undo-redo-above-chat">
-                    <button type="button" class="btn btn-ghost btn-small" id="btn-undo">Undo</button>
-                    <button type="button" class="btn btn-ghost btn-small" id="btn-redo">Redo</button>
-                </div>
                 <div class="chat-wrap chat-card">
-                    <h4>Refine your sound with Josh</h4>
-                    <p class="chat-purpose">Use this chat to iterate on your mix. Changes appear in the Mixer above and in the After playback.</p>
+                    <div class="chat-header-right">
+                        <h4>Refine your sound with Josh</h4>
+                        <p class="chat-purpose">Use this chat to iterate on your mix. Changes appear in the Mixer above and in the After playback.</p>
+                    </div>
+                    <div class="undo-redo undo-redo-above-chat">
+                        <button type="button" class="btn btn-ghost btn-small" id="btn-undo">Undo</button>
+                        <button type="button" class="btn btn-ghost btn-small" id="btn-redo">Redo</button>
+                    </div>
                     <div class="chat-messages" id="chat-messages"></div>
                     <div class="quick-prompts" id="quick-prompts">
                         <button type="button" class="btn btn-ghost btn-small quick-prompt" data-prompt="Make the kick and snare more prominent">Kick & snare up</button>

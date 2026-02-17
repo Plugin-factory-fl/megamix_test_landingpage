@@ -53,7 +53,14 @@
     let masterGain = null;
 
     function showView(name) {
-        Object.keys(views).forEach(k => { if (views[k]) views[k].classList.toggle('hidden', k !== name); });
+        Object.keys(views).forEach(k => {
+            if (!views[k]) return;
+            const isTarget = k === name;
+            views[k].classList.toggle('hidden', !isTarget);
+            views[k].classList.toggle('view-visible', isTarget);
+        });
+        const active = views[name];
+        if (active) setTimeout(() => active.classList.remove('view-visible'), 350);
         if (name === 'mastering') initMasteringPageWhenShown();
     }
     document.querySelectorAll('[data-view]').forEach(el => {
@@ -783,12 +790,38 @@
     }
     btnMixIt.addEventListener('click', runMixIt);
 
-    function addChatMessage(who, text) {
+    function appendBotMessageAnimated(containerEl, label, text) {
         const div = document.createElement('div');
-        div.className = 'msg ' + who;
-        div.textContent = (who === 'user' ? 'You: ' : 'Josh: ') + text;
-        chatMessages.appendChild(div);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        div.className = 'msg bot';
+        containerEl.appendChild(div);
+        const fullText = label + text;
+        const words = text.split(/(\s+)/);
+        const msPerWord = 40;
+        const maxMs = 2000;
+        const stepMs = Math.min(msPerWord, Math.floor(maxMs / Math.max(1, words.length)));
+        let index = 0;
+        div.textContent = label;
+        function scrollToBottom() { containerEl.scrollTop = containerEl.scrollHeight; }
+        function addNext() {
+            if (index >= words.length) { scrollToBottom(); return; }
+            div.textContent = label + words.slice(0, index + 1).join('');
+            index += 1;
+            scrollToBottom();
+            if (index < words.length) setTimeout(addNext, stepMs);
+        }
+        if (words.length <= 1) { div.textContent = fullText; scrollToBottom(); }
+        else setTimeout(addNext, stepMs);
+    }
+    function addChatMessage(who, text) {
+        if (who === 'user') {
+            const div = document.createElement('div');
+            div.className = 'msg user';
+            div.textContent = 'You: ' + text;
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        } else {
+            appendBotMessageAnimated(chatMessages, 'Josh: ', text);
+        }
     }
     chatSend.addEventListener('click', sendChat);
     chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChat(); });
@@ -875,6 +908,11 @@
     function pushUndo() {
         state.undoStack.push(JSON.stringify(window.MegaMix.snapshotMixerState()));
         state.redoStack = [];
+        updateUndoRedoButtons();
+    }
+    function updateUndoRedoButtons() {
+        if (btnUndo) btnUndo.disabled = state.undoStack.length === 0;
+        if (btnRedo) btnRedo.disabled = state.redoStack.length === 0;
     }
     function restoreTracks(s) {
         try {
@@ -891,14 +929,17 @@
         if (state.undoStack.length === 0) return;
         state.redoStack.push(JSON.stringify(window.MegaMix.snapshotMixerState()));
         restoreTracks(state.undoStack.pop());
+        updateUndoRedoButtons();
         addChatMessage('bot', 'Undo applied.');
     });
     btnRedo.addEventListener('click', () => {
         if (state.redoStack.length === 0) return;
         state.undoStack.push(JSON.stringify(window.MegaMix.snapshotMixerState()));
         restoreTracks(state.redoStack.pop());
+        updateUndoRedoButtons();
         addChatMessage('bot', 'Redo applied.');
     });
+    updateUndoRedoButtons();
 
     function openEmailModal(type) {
         pendingDownload = { type };
@@ -1207,11 +1248,15 @@
             updateMasteringParam('mastering-output', 'mastering-output-value', function (v) { return 0.5 + (v / 100) * 1.5; }, null);
             function addMasteringChatMessage(who, text) {
                 if (!chatMessagesMastering) return;
-                const div = document.createElement('div');
-                div.className = 'msg ' + who;
-                div.textContent = (who === 'user' ? 'You: ' : 'Josh: ') + text;
-                chatMessagesMastering.appendChild(div);
-                chatMessagesMastering.scrollTop = chatMessagesMastering.scrollHeight;
+                if (who === 'user') {
+                    const div = document.createElement('div');
+                    div.className = 'msg user';
+                    div.textContent = 'You: ' + text;
+                    chatMessagesMastering.appendChild(div);
+                    chatMessagesMastering.scrollTop = chatMessagesMastering.scrollHeight;
+                } else {
+                    appendBotMessageAnimated(chatMessagesMastering, 'Josh: ', text);
+                }
             }
             function interpretMasteringMessage(text) {
                 const t = text.toLowerCase();
