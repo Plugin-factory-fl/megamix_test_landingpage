@@ -1499,7 +1499,18 @@
 
     initPlaybackCard();
     updatePlaybackInstruction();
-    if (chatMessages && chatMessages.children.length === 0) {
+    if (chatMessages && typeof IntersectionObserver !== 'undefined') {
+        const chatArea = chatMessages.closest('.chat-wrap') || chatMessages;
+        const observer = new IntersectionObserver((entries) => {
+            const entry = entries[0];
+            if (!entry || !entry.isIntersecting) return;
+            if (chatMessages.children.length === 0) {
+                addChatMessage('bot', "Hi! I'm Josh, your AI mixing assistant. Just tell me what you want to achieve (like 'add punch' or 'smooth vocals') and I'll adjust the settings for you. I use your stems and your feedback to get the balance you want.");
+            }
+            observer.disconnect();
+        }, { root: null, rootMargin: '0px', threshold: 0.1 });
+        observer.observe(chatArea);
+    } else if (chatMessages && chatMessages.children.length === 0) {
         addChatMessage('bot', "Hi! I'm Josh, your AI mixing assistant. Just tell me what you want to achieve (like 'add punch' or 'smooth vocals') and I'll adjust the settings for you. I use your stems and your feedback to get the balance you want.");
     }
 })();
