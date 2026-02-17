@@ -303,6 +303,9 @@
     async function runMasteringChain(mix, options) {
         if (!mix || !mix.left || !mix.right) return null;
         const opts = options || {};
+        const punch = Math.max(0, Math.min(2, Number(opts.punch) || 0));
+        const loudness = Math.max(0, Math.min(2, Number(opts.loudness) || 0));
+        const compression = Math.max(0, Math.min(2, Number(opts.compression) !== undefined ? opts.compression : 1));
         const len = mix.left.length;
         const sr = mix.sampleRate;
         const ctx = new OfflineAudioContext({ length: len, numberOfChannels: 2, sampleRate: sr });
@@ -312,60 +315,28 @@
         const src = ctx.createBufferSource();
         src.buffer = buffer;
         const comp = ctx.createDynamicsCompressor();
-        const useExplicit = opts.threshold !== undefined || opts.ratio !== undefined || opts.attack !== undefined || opts.release !== undefined || opts.outputGain !== undefined;
-        if (useExplicit) {
-            comp.threshold.value = typeof opts.threshold === 'number' ? opts.threshold : -18;
-            comp.ratio.value = typeof opts.ratio === 'number' ? Math.max(1, Math.min(20, opts.ratio)) : 2.5;
-            comp.attack.value = typeof opts.attack === 'number' ? opts.attack : 0.01;
-            comp.release.value = typeof opts.release === 'number' ? opts.release : 0.2;
-            comp.knee.value = typeof opts.knee === 'number' ? opts.knee : 6;
-            const gainNode = ctx.createGain();
-            gainNode.gain.value = typeof opts.outputGain === 'number' ? Math.max(0.01, Math.min(4, opts.outputGain)) : 1;
-            src.connect(comp);
-            comp.connect(gainNode);
-            gainNode.connect(ctx.destination);
-        } else {
-            const punch = Math.max(0, Math.min(2, Number(opts.punch) || 0));
-            const loudness = Math.max(0, Math.min(2, Number(opts.loudness) || 0));
-            const compression = Math.max(0, Math.min(2, Number(opts.compression) !== undefined ? opts.compression : 1));
-            const thr = compression === 0 ? -12 : compression === 2 ? -24 : -18;
-            const ratio = compression === 0 ? 1.5 : compression === 2 ? 4 : 2.5;
-            comp.threshold.value = thr;
-            comp.knee.value = 6;
-            comp.ratio.value = ratio;
-            comp.attack.value = punch === 0 ? 0.01 : punch === 1 ? 0.005 : 0.003;
-            comp.release.value = punch === 0 ? 0.2 : punch === 1 ? 0.15 : 0.1;
-            src.connect(comp);
-            comp.connect(ctx.destination);
-        }
+        const thr = compression === 0 ? -12 : compression === 2 ? -24 : -18;
+        const ratio = compression === 0 ? 1.5 : compression === 2 ? 4 : 2.5;
+        comp.threshold.value = thr;
+        comp.knee.value = 6;
+        comp.ratio.value = ratio;
+        comp.attack.value = punch === 0 ? 0.01 : punch === 1 ? 0.005 : 0.003;
+        comp.release.value = punch === 0 ? 0.2 : punch === 1 ? 0.15 : 0.1;
+        src.connect(comp);
+        comp.connect(ctx.destination);
         src.start(0);
         const rendered = await ctx.startRendering();
         const left = rendered.getChannelData(0);
         const right = rendered.getChannelData(1);
-        if (!useExplicit) {
-            let peak = 0;
-            for (let i = 0; i < len; i++) {
-                peak = Math.max(peak, Math.abs(left[i]), Math.abs(right[i]));
-            }
-            const loudness = Math.max(0, Math.min(2, Number(opts.loudness) || 0));
-            const targetPeak = loudness === 0 ? 0.99 : 1;
-            const scale = peak > 0 ? targetPeak / peak : 1;
-            for (let i = 0; i < len; i++) {
-                left[i] = Math.max(-1, Math.min(1, left[i] * scale));
-                right[i] = Math.max(-1, Math.min(1, right[i] * scale));
-            }
-        } else {
-            let peak = 0;
-            for (let i = 0; i < len; i++) {
-                peak = Math.max(peak, Math.abs(left[i]), Math.abs(right[i]));
-            }
-            if (peak > 0.99) {
-                const scale = 0.99 / peak;
-                for (let i = 0; i < len; i++) {
-                    left[i] *= scale;
-                    right[i] *= scale;
-                }
-            }
+        let peak = 0;
+        for (let i = 0; i < len; i++) {
+            peak = Math.max(peak, Math.abs(left[i]), Math.abs(right[i]));
+        }
+        const targetPeak = loudness === 0 ? 0.99 : loudness === 1 ? 1 : 1;
+        const scale = peak > 0 ? targetPeak / peak : 1;
+        for (let i = 0; i < len; i++) {
+            left[i] = Math.max(-1, Math.min(1, left[i] * scale));
+            right[i] = Math.max(-1, Math.min(1, right[i] * scale));
         }
         return { left, right, sampleRate: sr, length: len };
     }

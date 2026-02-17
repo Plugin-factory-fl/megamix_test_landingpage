@@ -48,43 +48,6 @@
     const playbackSection = document.getElementById('playback-section');
     const masteringStatusEl = document.getElementById('mastering-status');
 
-    const AI_MIX_API_TIMEOUT_MS = 45000;
-
-    async function fetchAiMixChanges(message) {
-        const token = window.MegaMixAuth && typeof window.MegaMixAuth.getToken === 'function' ? window.MegaMixAuth.getToken() : null;
-        const url = (typeof window !== 'undefined' && window.location && window.location.origin ? window.location.origin : '') + '/api/ai/mix';
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), AI_MIX_API_TIMEOUT_MS);
-        try {
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': token ? 'Bearer ' + token : ''
-                },
-                body: JSON.stringify({
-                    message: message,
-                    tracks: state.tracks,
-                    trackAnalyses: state.trackAnalyses || []
-                }),
-                signal: controller.signal
-            });
-            clearTimeout(timeoutId);
-            const data = await res.json().catch(() => ({}));
-            if (res.status === 401) {
-                if (window.MegaMixAuth && typeof window.MegaMixAuth.showLoginRequired === 'function') {
-                    window.MegaMixAuth.showLoginRequired();
-                }
-                return null;
-            }
-            if (res.ok && Array.isArray(data.changes) && data.changes.length > 0) return data.changes;
-            return null;
-        } catch (e) {
-            clearTimeout(timeoutId);
-            return null;
-        }
-    }
-
     let masteringGraphInited = false;
     let masterCompressor = null;
     let masterGain = null;
@@ -766,10 +729,7 @@
             }
             if (guidanceForJosh && guidanceForJosh.value.trim()) {
                 const guidance = guidanceForJosh.value.trim();
-                let changes = await fetchAiMixChanges(guidance);
-                if (!changes || changes.length === 0) {
-                    changes = window.MegaMix.interpretChatMessage(guidance, state.tracks, state.trackAnalyses);
-                }
+                const changes = window.MegaMix.interpretChatMessage(guidance, state.tracks, state.trackAnalyses);
                 if (changes && changes.length > 0) {
                     pushUndo();
                     window.MegaMix.applyJoshResponse(state.tracks, changes);
@@ -841,7 +801,7 @@
             }
         });
     });
-    async function sendChat() {
+    function sendChat() {
         const text = chatInput.value.trim();
         if (!text) return;
         addChatMessage('user', text);
@@ -850,13 +810,7 @@
             setTimeout(() => addChatMessage('bot', 'Create your mix first: click Mix it, then I can help you refine it.'), 400);
             return;
         }
-        if (chatSend) chatSend.disabled = true;
-        addChatMessage('bot', 'Josh is thinking…');
-        let changes = await fetchAiMixChanges(text);
-        if (!changes || changes.length === 0) {
-            changes = window.MegaMix.interpretChatMessage(text, state.tracks, state.trackAnalyses);
-        }
-        if (chatSend) chatSend.disabled = false;
+        const changes = window.MegaMix.interpretChatMessage(text, state.tracks, state.trackAnalyses);
         if (changes && changes.length > 0) {
             pushUndo();
             window.MegaMix.applyJoshResponse(state.tracks, changes);
@@ -867,7 +821,7 @@
             }).catch(() => {});
             setTimeout(() => addChatMessage('bot', "I've applied those changes. Check the After tab and have a listen."), 400);
         } else {
-            setTimeout(() => addChatMessage('bot', "I didn't catch which tracks to change. Try something like \"make the kick and snare more prominent\" or \"bring up the vocals\"."), 400);
+            setTimeout(() => addChatMessage('bot', "I didn't catch which state.tracks to change. Try something like \"make the kick and snare more prominent\" or \"bring up the vocals\"."), 400);
         }
     }
 
@@ -957,22 +911,6 @@
         pendingDownload = null;
         document.body.style.overflow = '';
     }
-    const previewMixDownloadModal = document.getElementById('previewMixDownloadModal');
-    function openPreviewMixDownloadModal() {
-        if (previewMixDownloadModal) {
-            previewMixDownloadModal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-            const emailEl = document.getElementById('previewMixDownloadEmail');
-            if (emailEl) emailEl.value = '';
-        }
-    }
-    function closePreviewMixDownloadModal() {
-        if (previewMixDownloadModal) {
-            previewMixDownloadModal.classList.add('hidden');
-            document.body.style.overflow = '';
-        }
-        pendingDownload = null;
-    }
     function performMixDownload() {
         if (!state.mixReady || state.stemBuffers.length === 0) return;
         try {
@@ -1040,7 +978,7 @@
         if (!state.mixReady || state.stemBuffers.length === 0) return;
         if (isPreviewMode()) {
             pendingDownload = { type: 'mix' };
-            openPreviewMixDownloadModal();
+            if (window.MegaMixAuth && window.MegaMixAuth.showLoginRequired) window.MegaMixAuth.showLoginRequired();
             return;
         }
         openEmailModal('mix');
@@ -1267,53 +1205,6 @@
             updateMasteringParam('mastering-attack', 'mastering-attack-value', function (v) { return 0.001 + (v / 100) * 0.499; }, function (val) { if (masterCompressor) masterCompressor.attack.value = val; });
             updateMasteringParam('mastering-release', 'mastering-release-value', function (v) { return 0.01 + (v / 100) * 1.99; }, function (val) { if (masterCompressor) masterCompressor.release.value = val; });
             updateMasteringParam('mastering-output', 'mastering-output-value', function (v) { return 0.5 + (v / 100) * 1.5; }, null);
-            function getMasteringParamsFromSliders() {
-                const thrEl = document.getElementById('mastering-threshold');
-                const ratioEl = document.getElementById('mastering-ratio');
-                const attackEl = document.getElementById('mastering-attack');
-                const releaseEl = document.getElementById('mastering-release');
-                const outputEl = document.getElementById('mastering-output');
-                const v = (el) => (el && el.value !== undefined) ? Number(el.value) : 50;
-                return {
-                    threshold: -30 + (v(thrEl) / 100) * 30,
-                    ratio: 1 + (v(ratioEl) / 100) * 19,
-                    attack: 0.001 + (v(attackEl) / 100) * 0.499,
-                    release: 0.01 + (v(releaseEl) / 100) * 1.99,
-                    knee: 6,
-                    outputGain: 0.5 + (v(outputEl) / 100) * 1.5
-                };
-            }
-            const btnApplyMasteringToFile = document.getElementById('btn-apply-mastering-to-file');
-            if (btnApplyMasteringToFile) {
-                btnApplyMasteringToFile.addEventListener('click', async function () {
-                    if (!state.mixReady || state.stemBuffers.length === 0) return;
-                    btnApplyMasteringToFile.disabled = true;
-                    try {
-                        const afterMix = await window.MegaMix.buildAfterMixWithFX();
-                        if (!afterMix) {
-                            btnApplyMasteringToFile.disabled = false;
-                            return;
-                        }
-                        const params = getMasteringParamsFromSliders();
-                        const mastered = await window.MegaMix.runMasteringChain(afterMix, params);
-                        if (!mastered) {
-                            btnApplyMasteringToFile.disabled = false;
-                            return;
-                        }
-                        if (state.masteredUrl) URL.revokeObjectURL(state.masteredUrl);
-                        state.masteredUrl = URL.createObjectURL(window.MegaMix.encodeWav(mastered.left, mastered.right, mastered.sampleRate));
-                        audioMastering.src = state.masteredUrl;
-                        audioMastering.onloadedmetadata = function () {
-                            if (audioMastering.duration && isFinite(audioMastering.duration) && durationMastering)
-                                durationMastering.textContent = formatTime(audioMastering.duration);
-                        };
-                        fillWaveformFromUrl(state.masteredUrl);
-                    } catch (e) {
-                        console.error('Apply mastering to file', e);
-                    }
-                    btnApplyMasteringToFile.disabled = false;
-                });
-            }
             function addMasteringChatMessage(who, text) {
                 if (!chatMessagesMastering) return;
                 const div = document.createElement('div');
@@ -1415,7 +1306,7 @@
                     if (!state.masteredUrl) return;
                     if (isPreviewMode()) {
                         pendingDownload = { type: 'mastered' };
-                        if (window.MegaMixAuth && window.MegaMixAuth.showLoginRequired) window.MegaMixAuth.showLoginRequired('mastered');
+                        if (window.MegaMixAuth && window.MegaMixAuth.showLoginRequired) window.MegaMixAuth.showLoginRequired();
                         return;
                     }
                     openEmailModal('mastered');
@@ -1437,47 +1328,6 @@
     if (emailModalApp) {
         emailModalApp.addEventListener('click', function (e) {
             if (e.target === emailModalApp) { closeEmailModal(); pendingDownload = null; }
-        });
-    }
-
-    const previewMixDownloadModalClose = document.getElementById('previewMixDownloadModalClose');
-    const previewMixDownloadEmail = document.getElementById('previewMixDownloadEmail');
-    const previewMixDownloadSignup = document.getElementById('previewMixDownloadSignup');
-    const previewMixDownloadNo = document.getElementById('previewMixDownloadNo');
-    const previewMixDownloadFreeTrial = document.getElementById('previewMixDownloadFreeTrial');
-    if (previewMixDownloadModalClose) previewMixDownloadModalClose.addEventListener('click', closePreviewMixDownloadModal);
-    if (previewMixDownloadModal) {
-        previewMixDownloadModal.addEventListener('click', function (e) {
-            if (e.target === previewMixDownloadModal) closePreviewMixDownloadModal();
-        });
-    }
-    if (previewMixDownloadSignup) {
-        previewMixDownloadSignup.addEventListener('click', async function () {
-            const email = previewMixDownloadEmail ? previewMixDownloadEmail.value.trim() : '';
-            if (email && isValidEmail(email)) {
-                try {
-                    const base = window.location.origin || '';
-                    await fetch(base + '/mailchimp-signup', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email, format: 'web-mix', platform: 'web' })
-                    });
-                } catch (e) { console.warn('Mailchimp signup', e); }
-            }
-            performMixDownload();
-            closePreviewMixDownloadModal();
-        });
-    }
-    if (previewMixDownloadNo) {
-        previewMixDownloadNo.addEventListener('click', function () {
-            performMixDownload();
-            closePreviewMixDownloadModal();
-        });
-    }
-    if (previewMixDownloadFreeTrial) {
-        previewMixDownloadFreeTrial.addEventListener('click', function () {
-            if (window.MegaMixAuth && typeof window.MegaMixAuth.doFreeTrial === 'function') window.MegaMixAuth.doFreeTrial();
-            closePreviewMixDownloadModal();
         });
     }
 
