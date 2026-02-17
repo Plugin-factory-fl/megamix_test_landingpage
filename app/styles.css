@@ -414,8 +414,8 @@ body {
 .loading-block.hidden { display: none !important; }
 .mix-it-loading {
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
+    align-items: stretch;
     gap: 12px;
     margin: 12px 0 20px 0;
     padding: 14px 20px;
@@ -424,15 +424,43 @@ body {
     border: 1px solid rgba(139, 92, 246, 0.3);
 }
 .mix-it-loading.hidden { display: none !important; }
+.mix-it-loading-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
 .mix-it-loading .loading-spinner {
     width: 28px;
     height: 28px;
     border-width: 2px;
+    flex-shrink: 0;
+}
+.mix-it-loading-status {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
 }
 .mix-it-loading-text {
     font-size: 0.95rem;
     font-weight: 600;
     color: #c4b5fd;
+}
+.mix-it-loading-estimate {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.65);
+}
+.mix-it-progress-track {
+    height: 6px;
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 3px;
+    overflow: hidden;
+}
+.mix-it-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #8b5cf6, #a78bfa);
+    border-radius: 3px;
+    transition: width 0.25s ease;
 }
 .loading-block {
     margin: 12px 0;
@@ -508,6 +536,13 @@ body {
 .chat-wrap h4 { font-size: 1.05rem; margin-bottom: 8px; font-weight: 600; }
 .iterate-card .chat-header-right { text-align: right; margin-bottom: 12px; }
 .iterate-card .chat-header-right .chat-purpose { margin-bottom: 0; }
+.step3-chat-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+.step3-chat-header-row h4 { margin: 0; }
 .chat-purpose {
     font-size: 0.85rem;
     color: rgba(255, 255, 255, 0.7);
@@ -683,6 +718,10 @@ body {
     backdrop-filter: blur(10px);
     box-shadow: 0 4px 24px rgba(0,0,0,0.2);
     margin-top: 12px;
+}
+.playback-section .step3-unified-card .before-after-card-header {
+    justify-content: flex-end;
+    margin-bottom: 14px;
 }
 .playback-section .step3-unified-card .before-after-card {
     background: transparent;

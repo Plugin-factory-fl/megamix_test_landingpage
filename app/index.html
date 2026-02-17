@@ -32,8 +32,8 @@
     <div class="app-announcement-bar">
         <div class="app-announcement-inner">
             <div class="app-announcement-track">
-                <span>AMAZING CUSTOMER SUPPORT | AVAILABLE FOR MAC AND WINDOWS MACHINES | COMPATIBLE WITH MOST DAWs | MADE BY AN INDIE DEVELOPER WHO CARES</span>
-                <span>AMAZING CUSTOMER SUPPORT | AVAILABLE FOR MAC AND WINDOWS MACHINES | COMPATIBLE WITH MOST DAWs | MADE BY AN INDIE DEVELOPER WHO CARES</span>
+                <span>AMAZING CUSTOMER SUPPORT | MIX YOUR SONG ON ANY BROWSER | 7-DAY FREE TRIAL | MADE BY AN INDIE DEVELOPER WHO CARES</span>
+                <span>AMAZING CUSTOMER SUPPORT | MIX YOUR SONG ON ANY BROWSER | 7-DAY FREE TRIAL | MADE BY AN INDIE DEVELOPER WHO CARES</span>
             </div>
         </div>
     </div>
@@ -122,8 +122,16 @@
                 <h3 class="josh-section-title">Listen & refine with Josh</h3>
                 <p class="josh-section-position" id="playback-position-label" aria-live="polite">Playback at 0:00</p>
                 <div class="mix-it-loading hidden" id="mix-it-loading" aria-live="polite">
-                    <div class="loading-spinner" aria-hidden="true"></div>
-                    <span class="mix-it-loading-text">Mixing…</span>
+                    <div class="mix-it-loading-row">
+                        <div class="loading-spinner" aria-hidden="true"></div>
+                        <div class="mix-it-loading-status">
+                            <span class="mix-it-loading-text" id="mix-it-loading-text">Mixing…</span>
+                            <span class="mix-it-loading-estimate" id="mix-it-loading-estimate">Usually 20–60 sec depending on track count</span>
+                        </div>
+                    </div>
+                    <div class="mix-it-progress-track" aria-hidden="true">
+                        <div class="mix-it-progress-fill" id="mix-it-progress-fill"></div>
+                    </div>
                 </div>
                 <div class="step3-unified-card iterate-card">
                 <div class="mixer-collapsible collapsed" id="mixer-collapsible">
@@ -136,7 +144,6 @@
                 </div>
                 <div class="before-after-card" id="before-after-card">
                     <div class="before-after-card-header">
-                        <h4 class="before-after-card-title">Before / After</h4>
                         <div class="before-after-tabs" role="tablist">
                             <button type="button" role="tab" aria-selected="false" class="before-after-tab" data-mode="before">Before</button>
                             <button type="button" role="tab" aria-selected="true" class="before-after-tab active" data-mode="after">After</button>
@@ -162,13 +169,12 @@
                     <audio id="audio-after" preload="metadata"></audio>
                 </div>
                 <div class="chat-wrap chat-card">
-                    <div class="chat-header-right">
+                    <div class="step3-chat-header-row">
                         <h4>Refine your sound with Josh</h4>
-                        <p class="chat-purpose">Use this chat to iterate on your mix. Changes appear in the Mixer above and in the After playback.</p>
-                    </div>
-                    <div class="undo-redo undo-redo-above-chat">
-                        <button type="button" class="btn btn-ghost btn-small" id="btn-undo">Undo</button>
-                        <button type="button" class="btn btn-ghost btn-small" id="btn-redo">Redo</button>
+                        <div class="undo-redo undo-redo-above-chat">
+                            <button type="button" class="btn btn-ghost btn-small" id="btn-undo">Undo</button>
+                            <button type="button" class="btn btn-ghost btn-small" id="btn-redo">Redo</button>
+                        </div>
                     </div>
                     <div class="chat-messages" id="chat-messages"></div>
                     <div class="quick-prompts" id="quick-prompts">

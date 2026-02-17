@@ -38,6 +38,8 @@
     const playbackBuilding = document.getElementById('playback-building');
     const mixLoadingBlock = document.getElementById('mix-loading-block');
     const mixItLoading = document.getElementById('mix-it-loading');
+    const mixItLoadingText = document.getElementById('mix-it-loading-text');
+    const mixItProgressFill = document.getElementById('mix-it-progress-fill');
     const masteringLoadingBlock = document.getElementById('mastering-loading-block');
     const btnExport = document.getElementById('btn-export');
     const btnUndo = document.getElementById('btn-undo');
@@ -699,6 +701,12 @@
     function setMixItLoading(show) {
         if (mixItLoading) mixItLoading.classList.toggle('hidden', !show);
         btnMixIt.disabled = show;
+        if (!show && mixItProgressFill) mixItProgressFill.style.width = '0%';
+        if (!show && mixItLoadingText) mixItLoadingText.textContent = 'Mixing…';
+    }
+    function setMixItProgress(pct, statusText) {
+        if (mixItProgressFill) mixItProgressFill.style.width = pct + '%';
+        if (mixItLoadingText && statusText) mixItLoadingText.textContent = statusText;
     }
 
     async function runMixIt() {
@@ -718,12 +726,14 @@
             return;
         }
         setMixItLoading(true);
+        setMixItProgress(0, 'Decoding stems…');
         playbackInstruction.classList.add('hidden');
         if (mixLoadingBlock) mixLoadingBlock.classList.remove('hidden');
         playbackBuilding.classList.remove('hidden');
         playBtn.disabled = true;
         try {
             await window.MegaMix.decodeStemsToBuffers();
+            setMixItProgress(20, 'Applying balance…');
             if (state.stemBuffers.length === 0) {
                 setMixItLoading(false);
                 if (mixLoadingBlock) mixLoadingBlock.classList.add('hidden');
@@ -746,10 +756,13 @@
                     renderMixerStrips();
                 }
             }
+            setMixItProgress(40, 'Building before mix…');
             window.MegaMix.revokeMixUrls();
             window.MegaMix.revokeMasteredUrl();
             const beforeMix = window.MegaMix.buildMixedBuffer(true);
+            setMixItProgress(60, 'Building after mix…');
             const afterMix = await window.MegaMix.buildAfterMixWithFX();
+            setMixItProgress(100, 'Finishing…');
             if (beforeMix) {
                 state.mixedBeforeUrl = URL.createObjectURL(window.MegaMix.encodeWav(beforeMix.left, beforeMix.right, beforeMix.sampleRate));
                 audioBefore.src = state.mixedBeforeUrl;
