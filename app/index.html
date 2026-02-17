@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MegaMix AI – AI Mixing & Mastering</title>
+    <base href="/app/">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .app-announcement-bar {
+            position: fixed; top: 0; left: 0; width: 100%;
+            background: #8b5cf6; color: #fff; overflow: hidden; z-index: 1100;
+            height: 40px; display: flex; align-items: center;
+        }
+        .app-announcement-inner { width: 100%; overflow: hidden; }
+        .app-announcement-track {
+            display: inline-flex; align-items: center; gap: 80px; min-width: 200%;
+            animation: app-marquee 22s linear infinite;
+            font-size: 0.95rem; letter-spacing: 0.8px; font-weight: normal;
+        }
+        .app-announcement-track span { white-space: nowrap; }
+        @keyframes app-marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        body.has-app-announcement { padding-top: 140px; }
+        .navbar.app-nav { top: 40px; }
+        body.has-app-announcement .auth-overlay { top: 140px; }
+    </style>
+</head>
+<body class="has-app-announcement">
+    <div class="app-announcement-bar">
+        <div class="app-announcement-inner">
+            <div class="app-announcement-track">
+                <span>AMAZING CUSTOMER SUPPORT | AVAILABLE FOR MAC AND WINDOWS MACHINES | COMPATIBLE WITH MOST DAWs | MADE BY AN INDIE DEVELOPER WHO CARES</span>
+                <span>AMAZING CUSTOMER SUPPORT | AVAILABLE FOR MAC AND WINDOWS MACHINES | COMPATIBLE WITH MOST DAWs | MADE BY AN INDIE DEVELOPER WHO CARES</span>
+            </div>
+        </div>
+    </div>
+    <!-- Navbar (shared) -->
+    <nav class="navbar app-nav">
+        <div class="navbar-container">
+            <div class="navbar-logo">
+                <a href="/"><img src="/assets/Logo.png" alt="MegaMix AI"></a>
+            </div>
+            <div class="navbar-links">
+                <a href="/">Home</a>
+                <a href="/app">MegaMix AI</a>
+                <a href="/plugin">DAW Plugin</a>
+                <button type="button" class="btn btn-ghost" id="btn-signin">Sign in</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Auth overlay: blurs app until user logs in -->
+    <div id="auth-overlay" class="auth-overlay">
+        <div id="login-modal" class="login-modal">
+            <h2>Welcome to MegaMix AI</h2>
+            <p class="login-welcome">Mix and master your tracks in the browser with AI. No install required—upload stems, chat with Josh to refine, and get a pro sound in minutes.</p>
+            <p class="login-hint">Enter the email and license key from your free trial or subscription.</p>
+            <form id="login-form">
+                <label for="login-email">Email</label>
+                <input type="email" id="login-email" name="email" placeholder="your@email.com" autocomplete="email">
+                <label for="login-license">License key</label>
+                <input type="text" id="login-license" name="licenseKey" placeholder="XXXX-XXXX-XXXX-XXXX" autocomplete="off">
+                <button type="submit" class="btn btn-primary">Log in</button>
+            </form>
+            <p class="login-trial-copy">New user? Get a 7-day free trial to MegaMix!</p>
+            <button type="button" class="buy-button buy-button-trial" id="btn-free-trial">GET FREE TRIAL</button>
+            <div id="login-preview-wrap" class="login-preview-wrap">
+                <button type="button" class="login-preview-link" id="btn-preview-free">Preview MegaMix AI for free</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- App content (blurred when overlay visible) -->
+    <div id="app-content-wrap">
+    <!-- App workspace view (default) -->
+    <main id="view-app" class="view">
+        <div class="workspace">
+            <p class="flow-step">Step 1: Upload your tracks</p>
+            <section class="upload-and-files" id="upload-and-files">
+                <div class="upload-and-files-header">
+                    <h2>Your tracks</h2>
+                    <button type="button" class="btn btn-ghost btn-small" id="toggle-file-list" aria-label="Show or hide file list" title="Show/Hide file list">Hide file list</button>
+                </div>
+                <div class="upload-and-files-body" id="upload-and-files-body">
+                    <div class="upload-zone" id="upload-zone">
+                        <p>Drop your stems or mix here (WAV / MP3)</p>
+                        <p class="upload-hint">or click to browse · up to 32 files</p>
+                    </div>
+                    <input type="file" id="file-input" accept=".wav,.mp3,audio/*" multiple hidden>
+                    <ul class="file-list" id="file-list"></ul>
+                </div>
+            </section>
+
+            <p class="flow-step">Step 2: Choose how to mix</p>
+            <section class="simple-mode panel" id="panel-simple">
+                <label>Genre</label>
+                <select id="preset-select">
+                    <option value="rock">Rock</option>
+                    <option value="metal">Metal</option>
+                    <option value="hiphop">Hip-Hop</option>
+                    <option value="pop">Pop</option>
+                    <option value="edm">EDM</option>
+                    <option value="rnb">R&B</option>
+                    <option value="jazz">Jazz</option>
+                    <option value="funk">Funk</option>
+                    <option value="country">Country</option>
+                    <option value="custom">Custom</option>
+                </select>
+                <label for="guidance-for-josh">Words of guidance for the mix</label>
+                <input type="text" id="guidance-for-josh" placeholder="e.g. punchy drums, vocal forward, warm low end" class="guidance-input">
+                <button type="button" class="btn btn-primary" id="btn-mix-it">Mix it</button>
+                <div class="progress-wrap hidden" id="progress-wrap">
+                    <div class="progress-bar" id="progress-bar"></div>
+                </div>
+            </section>
+
+            <p class="flow-step">Step 3: Adjust and iterate</p>
+            <section class="playback-section shared-playback josh-section" id="playback-section" aria-label="Listen and refine with Josh">
+                <h3 class="josh-section-title">Listen & refine with Josh</h3>
+                <p class="josh-section-position" id="playback-position-label" aria-live="polite">Playback at 0:00</p>
+                <div class="mix-it-loading hidden" id="mix-it-loading" aria-live="polite">
+                    <div class="loading-spinner" aria-hidden="true"></div>
+                    <span class="mix-it-loading-text">Mixing…</span>
+                </div>
+                <div class="before-after-card" id="before-after-card">
+                    <div class="before-after-card-header">
+                        <h4 class="before-after-card-title">Before / After</h4>
+                        <div class="before-after-tabs" role="tablist">
+                            <button type="button" role="tab" aria-selected="false" class="before-after-tab" data-mode="before">Before</button>
+                            <button type="button" role="tab" aria-selected="true" class="before-after-tab active" data-mode="after">After</button>
+                        </div>
+                    </div>
+                    <p class="before-after-instruction" id="playback-instruction">Upload stems, then press Play. Before = flat mix; After = your mix (preset + faders + FX).</p>
+                    <div class="loading-block hidden" id="mix-loading-block">
+                        <p class="before-after-building" id="playback-building">Building mix…</p>
+                        <div class="loading-block-inner">
+                            <div class="loading-spinner" aria-hidden="true"></div>
+                            <div class="loading-bar-indeterminate"></div>
+                        </div>
+                    </div>
+                    <div class="before-after-play-wrap">
+                        <button type="button" class="before-after-play-btn" id="play-btn" aria-label="Play" title="Play">&#9658;</button>
+                    </div>
+                    <div class="before-after-progress-wrap">
+                        <span class="before-after-time" id="playback-time" aria-live="polite">0:00</span>
+                        <input type="range" class="before-after-progress" id="playback-progress" min="0" max="100" value="0" step="0.1" aria-label="Seek">
+                        <span class="before-after-duration" id="playback-duration">0:00</span>
+                    </div>
+                    <audio id="audio-before" preload="metadata"></audio>
+                    <audio id="audio-after" preload="metadata"></audio>
+                </div>
+                <div class="mixer-collapsible collapsed" id="mixer-collapsible">
+                    <button type="button" class="mixer-collapsible-header" id="mixer-collapsible-toggle" aria-expanded="false" aria-controls="mixer-collapsible-body">Mixer</button>
+                    <div class="mixer-collapsible-body" id="mixer-collapsible-body">
+                        <p class="mixer-hint">Per-track level, pan, and FX. Reverb available; Retro coming soon.</p>
+                        <p class="mixer-hint mixer-hint-live">Changes in the mixer are reflected live in the transport player.</p>
+                        <div class="mixer-strips" id="mixer-strips"></div>
+                    </div>
+                </div>
+                <div class="undo-redo undo-redo-above-chat">
+                    <button type="button" class="btn btn-ghost btn-small" id="btn-undo">Undo</button>
+                    <button type="button" class="btn btn-ghost btn-small" id="btn-redo">Redo</button>
+                </div>
+                <div class="chat-wrap chat-card">
+                    <h4>Refine your sound with Josh</h4>
+                    <p class="chat-purpose">Use this chat to iterate on your mix. Changes appear in the Mixer above and in the After playback.</p>
+                    <div class="chat-messages" id="chat-messages"></div>
+                    <div class="quick-prompts" id="quick-prompts">
+                        <button type="button" class="btn btn-ghost btn-small quick-prompt" data-prompt="Make the kick and snare more prominent">Kick & snare up</button>
+                        <button type="button" class="btn btn-ghost btn-small quick-prompt" data-prompt="Bring up the vocals">Vocals up</button>
+                        <button type="button" class="btn btn-ghost btn-small quick-prompt" data-prompt="Add more punch to the drums">More punch</button>
+                        <button type="button" class="btn btn-ghost btn-small quick-prompt" data-prompt="Make it brighter">Brighter</button>
+                        <button type="button" class="btn btn-ghost btn-small quick-prompt" data-prompt="Lower the guitars">Guitars down</button>
+                        <button type="button" class="btn btn-ghost btn-small quick-prompt" data-prompt="Make the bass more present">Bass up</button>
+                    </div>
+                    <div class="chat-input-wrap">
+                        <input type="text" id="chat-input" placeholder="e.g. make the kick and snare more prominent">
+                        <button type="button" class="btn btn-small" id="chat-send">Send</button>
+                    </div>
+                </div>
+            </section>
+
+            <p class="flow-step">Step 4: AI Master</p>
+            <section class="export-section">
+                <button type="button" class="btn btn-secondary" id="btn-export" title="Download current mix without mastering">Download mix (no mastering)</button>
+                <button type="button" class="btn btn-primary btn-ai-mastering-sparkle" id="btn-ai-mastering" title="Run AI mastering on the current mix">AI Mastering</button>
+                <div class="loading-block hidden" id="mastering-loading-block">
+                    <p id="mastering-status" class="mastering-status" aria-live="polite"></p>
+                    <div class="loading-block-inner">
+                        <div class="loading-spinner" aria-hidden="true"></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Mastering view -->
+    <main id="view-mastering" class="view hidden">
+        <div class="workspace mastering-workspace">
+            <section class="mastering-intro">
+                <h2>Mastering</h2>
+                <p class="mastering-sub">Your mix has been mastered. Preview below and download when ready.</p>
+            </section>
+            <section class="mastering-player-section">
+                <div class="before-after-card mastering-card">
+                    <h3 class="before-after-card-title">Mastered preview</h3>
+                    <div class="before-after-play-wrap">
+                        <button type="button" class="before-after-play-btn" id="play-mastering" aria-label="Play" title="Play">&#9658;</button>
+                    </div>
+                    <div class="waveform-wrap-mastering">
+                        <canvas id="waveform-mastering" class="waveform-canvas-mastering" width="600" height="70" aria-hidden="true"></canvas>
+                    </div>
+                    <div class="before-after-progress-wrap">
+                        <span class="before-after-time" id="time-mastering" aria-live="polite">0:00</span>
+                        <input type="range" class="before-after-progress" id="progress-mastering" min="0" max="100" value="0" step="0.1" aria-label="Seek">
+                        <span class="before-after-duration" id="duration-mastering">0:00</span>
+                    </div>
+                    <audio id="audio-mastering" preload="metadata"></audio>
+                </div>
+            </section>
+            <div class="mastering-controls-collapsible collapsed" id="mastering-controls-collapsible">
+                <button type="button" class="mastering-controls-header" id="mastering-controls-toggle" aria-expanded="false" aria-controls="mastering-controls-body">Mastering controls</button>
+                <div class="mastering-controls-body" id="mastering-controls-body">
+                    <p class="mastering-controls-hint">Real-time compression and output. Affects playback only; download uses the rendered master.</p>
+                    <div class="mastering-controls-row">
+                        <label for="mastering-threshold">Threshold (dB)</label>
+                        <input type="range" id="mastering-threshold" min="0" max="100" value="40" step="1" aria-label="Threshold">
+                        <span class="mastering-controls-value" id="mastering-threshold-value">-18</span>
+                    </div>
+                    <div class="mastering-controls-row">
+                        <label for="mastering-ratio">Ratio</label>
+                        <input type="range" id="mastering-ratio" min="0" max="100" value="8" step="1" aria-label="Ratio">
+                        <span class="mastering-controls-value" id="mastering-ratio-value">2.5</span>
+                    </div>
+                    <div class="mastering-controls-row">
+                        <label for="mastering-attack">Attack (s)</label>
+                        <input type="range" id="mastering-attack" min="0" max="100" value="2" step="1" aria-label="Attack">
+                        <span class="mastering-controls-value" id="mastering-attack-value">0.01</span>
+                    </div>
+                    <div class="mastering-controls-row">
+                        <label for="mastering-release">Release (s)</label>
+                        <input type="range" id="mastering-release" min="0" max="100" value="10" step="1" aria-label="Release">
+                        <span class="mastering-controls-value" id="mastering-release-value">0.2</span>
+                    </div>
+                    <div class="mastering-controls-row">
+                        <label for="mastering-output">Output level</label>
+                        <input type="range" id="mastering-output" min="0" max="100" value="33" step="1" aria-label="Output level">
+                        <span class="mastering-controls-value" id="mastering-output-value">1</span>
+                    </div>
+                </div>
+            </div>
+            <section class="chat-section chat-attached">
+                <div class="chat-wrap chat-card">
+                    <h4>Mastering adjustments</h4>
+                    <p class="chat-purpose">Use this chat to iterate on your master—send multiple suggestions over time to refine it.</p>
+                    <div class="chat-messages" id="chat-messages-mastering"></div>
+                    <div class="quick-prompts" id="quick-prompts-mastering">
+                        <button type="button" class="btn btn-ghost btn-small quick-prompt-mastering" data-prompt="Make it louder">Make it louder</button>
+                        <button type="button" class="btn btn-ghost btn-small quick-prompt-mastering" data-prompt="More punch">More punch</button>
+                        <button type="button" class="btn btn-ghost btn-small quick-prompt-mastering" data-prompt="Brighter master">Brighter master</button>
+                        <button type="button" class="btn btn-ghost btn-small quick-prompt-mastering" data-prompt="Warmer">Warmer</button>
+                        <button type="button" class="btn btn-ghost btn-small quick-prompt-mastering" data-prompt="More clarity">More clarity</button>
+                        <button type="button" class="btn btn-ghost btn-small quick-prompt-mastering" data-prompt="Less compression">Less compression</button>
+                    </div>
+                    <div class="chat-input-wrap">
+                        <input type="text" id="chat-input-mastering" placeholder="e.g. make it louder or warmer">
+                        <button type="button" class="btn btn-small" id="chat-send-mastering">Send</button>
+                    </div>
+                </div>
+            </section>
+            <section class="mastering-download-section">
+                <h3>Download Your Mixed &amp; Mastered Audio Track</h3>
+                <p class="mastering-download-sub">Ready for Spotify, Apple Music, and more.</p>
+                <button type="button" class="btn btn-primary" id="btn-download-mastered-final">Download WAV</button>
+            </section>
+        </div>
+    </main>
+
+    <!-- Pricing view -->
+    <main id="view-pricing" class="view hidden">
+        <section class="pricing-section">
+            <h1>Simple pricing</h1>
+            <p class="pricing-sub">Choose the best plan for your needs</p>
+            <div class="pricing-cards">
+                <div class="pricing-card">
+                    <h3>Essential</h3>
+                    <p class="price-desc">For new artists and creators</p>
+                    <p class="price-amount">Free tier</p>
+                    <p class="price-detail">Full-length preview · No credit card</p>
+                    <a href="#" class="btn btn-secondary" data-view="app">Start free</a>
+                </div>
+                <div class="pricing-card featured">
+                    <h3>Creator</h3>
+                    <p class="price-desc">For artists looking to grow</p>
+                    <p class="price-amount">Credits / month</p>
+                    <p class="price-detail">More credits · Priority processing</p>
+                    <a href="#" class="btn btn-primary" data-view="app">Get Creator</a>
+                </div>
+                <div class="pricing-card">
+                    <h3>Pro</h3>
+                    <p class="price-desc">For professional creators</p>
+                    <p class="price-amount">Unlimited</p>
+                    <p class="price-detail">Unlimited exports · Cloud storage</p>
+                    <a href="#" class="btn btn-secondary" data-view="app">Get Pro</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <a href="/">Home</a>
+        <a href="#" id="footer-contact">Contact Us</a>
+        <a href="#" id="footer-free-trial">Get 7-Day Free Trial</a>
+        <a href="#" id="footer-newsletter">Sign Up for Newsletter</a>
+    </footer>
+    </div><!-- end app-content-wrap -->
+
+    <!-- Contact Support modal -->
+    <div id="contactModalApp" class="contact-modal-app hidden">
+        <div class="contact-modal-app-content">
+            <div class="contact-modal-app-header">
+                <h3>Contact Support</h3>
+                <span class="contact-modal-app-close" id="contactModalAppClose" aria-label="Close">&times;</span>
+            </div>
+            <div class="contact-modal-app-body">
+                <form id="contactFormApp">
+                    <div class="form-group">
+                        <label for="contactNameApp">Your Name:</label>
+                        <input type="text" id="contactNameApp" name="contactName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contactEmailApp">Your Email:</label>
+                        <input type="email" id="contactEmailApp" name="contactEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contactSubjectApp">Subject:</label>
+                        <select id="contactSubjectApp" name="contactSubject" required>
+                            <option value="">Select a topic...</option>
+                            <option value="Plugin Installation Help">Plugin Installation Help</option>
+                            <option value="License Key Issues">License Key Issues</option>
+                            <option value="Plugin Not Working">Plugin Not Working</option>
+                            <option value="Feature Request">Feature Request</option>
+                            <option value="Bug Report">Bug Report</option>
+                            <option value="General Question">General Question</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="contactMessageApp">Message:</label>
+                        <textarea id="contactMessageApp" name="contactMessage" rows="5" placeholder="Please describe your issue or question in detail..." required></textarea>
+                    </div>
+                    <div class="contact-modal-app-buttons">
+                        <button type="button" class="cancel-btn" id="contactModalAppCancel">Cancel</button>
+                        <button type="submit" class="submit-btn">Send Message</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Email signup modal (before mix/mastered download) -->
+    <div id="emailModalApp" class="email-modal-app hidden">
+        <div class="email-modal-app-content">
+            <div class="email-modal-app-header">
+                <h3>Join the MegaMixAI Community!</h3>
+                <span class="email-modal-app-close" id="emailModalAppClose">&times;</span>
+            </div>
+            <div class="email-modal-app-body">
+                <p class="email-modal-app-p">Be the first to find out about our next releases by signing up now.</p>
+                <p class="email-modal-app-coming">Coming Soon: JoshEQ and JoshVerb</p>
+                <label for="emailInputApp">Enter your email address:</label>
+                <input type="email" id="emailInputApp" placeholder="your.email@example.com">
+                <div class="email-modal-app-buttons">
+                    <button type="button" class="btn btn-primary" id="emailModalAppYes">Yes, Sign Me Up!</button>
+                    <button type="button" class="btn btn-ghost" id="emailModalAppNo">No Thanks</button>
+                </div>
+                <p class="email-modal-app-note">*You don't have to sign up to get your download. Click "No Thanks" and your download will begin.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Newsletter signup-only modal (footer link; no download) -->
+    <div id="newsletterSignupModalApp" class="email-modal-app hidden">
+        <div class="email-modal-app-content">
+            <div class="email-modal-app-header">
+                <h3>Join the MegaMixAI Community</h3>
+                <span class="email-modal-app-close" id="newsletterSignupModalAppClose">&times;</span>
+            </div>
+            <div class="email-modal-app-body">
+                <p class="email-modal-app-p">Be the first to find out about our next releases. Sign up for our newsletter.</p>
+                <label for="newsletterEmailInputApp">Your email address:</label>
+                <input type="email" id="newsletterEmailInputApp" placeholder="your.email@example.com">
+                <div class="email-modal-app-buttons">
+                    <button type="button" class="btn btn-primary" id="newsletterSignupModalAppSubmit">Sign Me Up</button>
+                    <button type="button" class="btn btn-ghost" id="newsletterSignupModalAppCancel">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script src="state.js"></script>
+    <script src="audio.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
@@ -66,6 +67,14 @@ app.use('/assets', express.static('assets'));
 
 // Serve plugin downloads
 app.use('/downloads', express.static('downloads'));
+
+// MegaMix Now: serve app page for exact path /app (before static so it takes precedence)
+app.get('/app', (req, res) => {
+  res.sendFile(path.join(__dirname, 'app', 'index.html'));
+});
+
+// Static assets at /app/* (e.g. /app/state.js, /app/styles.css)
+app.use('/app', express.static(path.join(__dirname, 'app')));
 
 // Webhook endpoint for Stripe events (must be before express.json() middleware)
 app.post('/webhooks/stripe', express.raw({type: 'application/json'}), async (req, res) => {
@@ -169,6 +178,91 @@ app.post('/webhooks/stripe', express.raw({type: 'application/json'}), async (req
 // Add express.json() middleware after webhook route
 app.use(express.json());
 app.use(express.static('public')); // Serve static files (like your HTML)
+
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key';
+const BYPASS_AUTH = process.env.BYPASS_AUTH === '1' || process.env.BYPASS_AUTH === 'true';
+
+// Web app auth: login with email + license key, get JWT for session
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email = '', licenseKey = '' } = req.body || {};
+    const trimEmail = typeof email === 'string' ? email.trim() : '';
+    const trimKey = typeof licenseKey === 'string' ? licenseKey.trim() : '';
+
+    // Testing: allow login with no credentials
+    if (BYPASS_AUTH || (trimEmail === '' && trimKey === '')) {
+      const token = jwt.sign(
+        { bypass: true, email: trimEmail || 'test@local' },
+        JWT_SECRET,
+        { expiresIn: '30d' }
+      );
+      return res.json({ ok: true, token });
+    }
+
+    if (!trimKey) {
+      return res.status(400).json({ error: 'License key is required' });
+    }
+
+    const result = await pool.query(
+      'SELECT * FROM licenses WHERE license_key = $1',
+      [trimKey]
+    );
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: 'Invalid license key.' });
+    }
+    const license = result.rows[0];
+    if (trimEmail && license.customer_email && license.customer_email.toLowerCase() !== trimEmail.toLowerCase()) {
+      return res.status(401).json({ error: 'Email does not match this license.' });
+    }
+    if (new Date() > new Date(license.expires_at)) {
+      return res.status(403).json({ error: 'License has expired' });
+    }
+    if (license.status !== 'active') {
+      return res.status(403).json({ error: 'License is not active' });
+    }
+    if (license.stripe_subscription_id) {
+      try {
+        const subscription = await stripe.subscriptions.retrieve(license.stripe_subscription_id);
+        const valid = ['active', 'trialing'].includes(subscription.status);
+        if (!valid) {
+          return res.status(403).json({ error: 'Subscription is not active' });
+        }
+      } catch (e) {
+        if (e.code === 'resource_missing') {
+          return res.status(403).json({ error: 'Subscription not found' });
+        }
+        console.error('Stripe error in auth/login:', e.message);
+        return res.status(500).json({ error: 'Could not verify subscription' });
+      }
+    }
+
+    const token = jwt.sign(
+      { licenseKey: license.license_key, email: license.customer_email },
+      JWT_SECRET,
+      { expiresIn: '30d' }
+    );
+    res.json({ ok: true, token });
+  } catch (error) {
+    console.error('[api/auth/login]', error.message || error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Web app: verify stored token (e.g. on page load)
+app.get('/api/auth/me', (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+    if (!token) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const email = decoded.email || decoded.customerEmail || (decoded.bypass ? 'test@local' : '');
+    res.json({ ok: true, email });
+  } catch (e) {
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
+});
 
 // Stripe Price IDs: 1mo = monthly, STRIPE_PRICE_ID = 3-month, 1yr = yearly
 const PRICE_ID_1MO = process.env.STRIPE_PRICE_ID_1MO;
@@ -949,9 +1043,14 @@ app.get('/api/coupon-usage', async (req, res) => {
   }
 });
 
-// Serve the main page
+// Home: mixing app (AI Mixing & Mastering)
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/index.html');
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Audio Plugin: marketing + plugin download + purchase
+app.get('/plugin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'plugin.html'));
 });
 
 // Initialize database and start server

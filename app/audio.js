@@ -1,0 +1,503 @@
+/**
+ * MegaMix audio: encode/decode, mix build, mastering chain, live graph, transport.
+ * Reads/writes MegaMix.state. No DOM. Attaches to window.MegaMix.
+ */
+(function () {
+    'use strict';
+
+    const state = window.MegaMix && window.MegaMix.state;
+    if (!state) return;
+
+    let buildAfterTimer = null;
+    let liveGraph = null;
+    let livePlaybackSources = [];
+    let transportOffset = 0;
+    let playbackStartTime = 0;
+    let livePlaybackRaf = null;
+
+    function getAudioContext() {
+        if (!state.audioCtx) state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        return state.audioCtx;
+    }
+
+    function revokeMixUrls() {
+        if (state.mixedBeforeUrl) { URL.revokeObjectURL(state.mixedBeforeUrl); state.mixedBeforeUrl = null; }
+        if (state.mixedAfterUrl) { URL.revokeObjectURL(state.mixedAfterUrl); state.mixedAfterUrl = null; }
+    }
+    function revokeMasteredUrl() {
+        if (state.masteredUrl) { URL.revokeObjectURL(state.masteredUrl); state.masteredUrl = null; }
+    }
+
+    function encodeWav(left, right, sampleRate) {
+        const numChannels = 2;
+        const numSamples = left.length;
+        const buffer = new ArrayBuffer(44 + numSamples * numChannels * 2);
+        const view = new DataView(buffer);
+        const writeStr = (o, s) => { for (let i = 0; i < s.length; i++) view.setUint8(o + i, s.charCodeAt(i)); };
+        writeStr(0, 'RIFF');
+        view.setUint32(4, 36 + numSamples * numChannels * 2, true);
+        writeStr(8, 'WAVE');
+        writeStr(12, 'fmt ');
+        view.setUint32(16, 16, true);
+        view.setUint16(20, 1, true);
+        view.setUint16(22, numChannels, true);
+        view.setUint32(24, sampleRate, true);
+        view.setUint32(28, sampleRate * numChannels * 2, true);
+        view.setUint16(32, numChannels * 2, true);
+        view.setUint16(34, 16, true);
+        writeStr(36, 'data');
+        view.setUint32(40, numSamples * numChannels * 2, true);
+        const offset = 44;
+        for (let i = 0; i < numSamples; i++) {
+            const l = Math.max(-1, Math.min(1, left[i]));
+            const r = Math.max(-1, Math.min(1, right[i]));
+            view.setInt16(offset + i * 4, l < 0 ? l * 0x8000 : l * 0x7FFF, true);
+            view.setInt16(offset + i * 4 + 2, r < 0 ? r * 0x8000 : r * 0x7FFF, true);
+        }
+        return new Blob([buffer], { type: 'audio/wav' });
+    }
+
+    function panGain(pan) {
+        const p = Math.max(-1, Math.min(1, pan));
+        const left = Math.sqrt(0.5 - p / 2);
+        const right = Math.sqrt(0.5 + p / 2);
+        return { left, right };
+    }
+
+    /** Generate a short plate-style IR: exponential decay for dense, bright tail. */
+    function createPlateIR(ctxOrSampleRate, lengthSeconds) {
+        const sampleRate = typeof ctxOrSampleRate === 'number' ? ctxOrSampleRate : (ctxOrSampleRate && ctxOrSampleRate.sampleRate) ? ctxOrSampleRate.sampleRate : 48000;
+        const lengthSamples = Math.max(2, Math.floor(lengthSeconds * sampleRate));
+        const ctx = typeof ctxOrSampleRate !== 'number' && ctxOrSampleRate ? ctxOrSampleRate : getAudioContext();
+        const buffer = ctx.createBuffer(1, lengthSamples, sampleRate);
+        const data = buffer.getChannelData(0);
+        data[0] = 1;
+        const decay = Math.exp(-3 / lengthSamples);
+        for (let i = 1; i < lengthSamples; i++) data[i] = data[i - 1] * decay;
+        return buffer;
+    }
+
+    async function decodeStemsToBuffers() {
+        if (state.uploadedFiles.length === 0) { state.stemBuffers = []; state.trackAnalyses = []; return; }
+        const ctx = getAudioContext();
+        const buffers = [];
+        for (const entry of state.uploadedFiles) {
+            const ab = await entry.file.arrayBuffer();
+            const buf = await ctx.decodeAudioData(ab.slice(0));
+            buffers.push(buf);
+        }
+        state.stemBuffers = buffers;
+        analyzeStems();
+    }
+
+    /** ARA-style: analyze each stem for dynamics, loudest/softest blocks, and inferred role. Fills state.trackAnalyses. */
+    function analyzeStems() {
+        state.trackAnalyses = [];
+        if (!state.stemBuffers.length || !state.uploadedFiles.length) return;
+        const inferRole = window.MegaMix && window.MegaMix.inferRole;
+        const total = state.stemBuffers.length;
+        for (let i = 0; i < state.stemBuffers.length; i++) {
+            const buf = state.stemBuffers[i];
+            const entry = state.uploadedFiles[i];
+            const ch0 = buf.getChannelData(0);
+            const ch1 = buf.numberOfChannels > 1 ? buf.getChannelData(1) : ch0;
+            const len = buf.length;
+            const sr = buf.sampleRate;
+            const blockSec = 0.2;
+            const blockSamples = Math.max(1, Math.floor(sr * blockSec));
+            const numBlocks = Math.max(1, Math.floor(len / blockSamples));
+            const rmsOverTime = new Float32Array(numBlocks);
+            let sumSqAll = 0;
+            let peak = 0;
+            let loudestIdx = 0;
+            let softestIdx = 0;
+            let minRms = Infinity;
+            for (let b = 0; b < numBlocks; b++) {
+                const start = b * blockSamples;
+                const end = Math.min(start + blockSamples, len);
+                let sumSq = 0;
+                for (let j = start; j < end; j++) {
+                    const s = (ch0[j] + ch1[j]) / 2;
+                    const s2 = s * s;
+                    sumSq += s2;
+                    sumSqAll += s2;
+                    if (Math.abs(s) > peak) peak = Math.abs(s);
+                }
+                const rms = Math.sqrt(sumSq / (end - start)) || 0;
+                rmsOverTime[b] = rms;
+                if (rms > rmsOverTime[loudestIdx]) loudestIdx = b;
+                if (rms < minRms) { minRms = rms; softestIdx = b; }
+            }
+            const rmsAll = Math.sqrt(sumSqAll / len) || 1e-6;
+            const peakDb = 20 * Math.log10(peak || 1e-6);
+            const rmsDb = 20 * Math.log10(rmsAll);
+            state.trackAnalyses.push({
+                duration: len / sr,
+                sampleRate: sr,
+                numberOfChannels: buf.numberOfChannels,
+                rmsOverTime,
+                peakDb,
+                rmsDb,
+                loudestBlockIndex: loudestIdx,
+                softestBlockIndex: softestIdx,
+                inferredRole: inferRole ? inferRole(entry.name, i, total) : 'other'
+            });
+        }
+    }
+
+    function buildMixedBuffer(useBefore) {
+        if (state.stemBuffers.length === 0) return null;
+        let maxLen = 0;
+        let sampleRate = state.stemBuffers[0].sampleRate;
+        for (const b of state.stemBuffers) {
+            if (b.length > maxLen) maxLen = b.length;
+        }
+        const left = new Float32Array(maxLen);
+        const right = new Float32Array(maxLen);
+        const tracks = state.tracks;
+        for (let ti = 0; ti < state.stemBuffers.length; ti++) {
+            const buf = state.stemBuffers[ti];
+            const numCh = buf.numberOfChannels;
+            const ch0 = buf.getChannelData(0);
+            const ch1 = numCh > 1 ? buf.getChannelData(1) : ch0;
+            const gain = useBefore ? 1 : (tracks[ti] ? tracks[ti].gain : 1);
+            const pan = useBefore ? 0 : (tracks[ti] ? tracks[ti].pan : 0);
+            const { left: gL, right: gR } = panGain(pan);
+            const volL = gain * gL;
+            const volR = gain * gR;
+            for (let i = 0; i < buf.length; i++) {
+                left[i] += (ch0[i] * volL);
+                right[i] += (ch1[i] * volR);
+            }
+        }
+        let peak = 0;
+        for (let i = 0; i < maxLen; i++) {
+            peak = Math.max(peak, Math.abs(left[i]), Math.abs(right[i]));
+        }
+        if (peak > 0.99) {
+            const scale = 0.99 / peak;
+            for (let i = 0; i < maxLen; i++) {
+                left[i] *= scale;
+                right[i] *= scale;
+            }
+        }
+        return { left, right, sampleRate, length: maxLen };
+    }
+
+    async function buildAfterMixWithFX() {
+        if (state.stemBuffers.length === 0) return null;
+        const interpolateAutomation = window.MegaMix.interpolateAutomation;
+        const tracks = state.tracks;
+        let maxLen = 0;
+        const sampleRate = state.stemBuffers[0].sampleRate;
+        for (const b of state.stemBuffers) {
+            if (b.length > maxLen) maxLen = b.length;
+        }
+        const left = new Float32Array(maxLen);
+        const right = new Float32Array(maxLen);
+
+        for (let ti = 0; ti < state.stemBuffers.length; ti++) {
+            const buf = state.stemBuffers[ti];
+            const track = tracks[ti];
+            const ctx = new OfflineAudioContext({ length: maxLen, numberOfChannels: 2, sampleRate });
+            const src = ctx.createBufferSource();
+            src.buffer = buf;
+            let last = src;
+
+            if (track && track.eqOn && track.eqParams) {
+                const eq = track.eqParams;
+                const lowShelf = ctx.createBiquadFilter();
+                lowShelf.type = 'lowshelf';
+                lowShelf.frequency.value = 320;
+                lowShelf.gain.value = typeof eq.low === 'number' ? eq.low : 0;
+                const midPeak = ctx.createBiquadFilter();
+                midPeak.type = 'peaking';
+                midPeak.frequency.value = 1000;
+                midPeak.Q.value = 1;
+                midPeak.gain.value = typeof eq.mid === 'number' ? eq.mid : 0;
+                const highShelf = ctx.createBiquadFilter();
+                highShelf.type = 'highshelf';
+                highShelf.frequency.value = 3200;
+                highShelf.gain.value = typeof eq.high === 'number' ? eq.high : 0;
+                last.connect(lowShelf);
+                lowShelf.connect(midPeak);
+                midPeak.connect(highShelf);
+                last = highShelf;
+            }
+
+            if (track && track.compOn && track.compParams) {
+                const c = track.compParams;
+                const comp = ctx.createDynamicsCompressor();
+                comp.threshold.value = typeof c.threshold === 'number' ? c.threshold : -20;
+                comp.knee.value = typeof c.knee === 'number' ? c.knee : 6;
+                comp.ratio.value = typeof c.ratio === 'number' ? c.ratio : 2;
+                comp.attack.value = typeof c.attack === 'number' ? c.attack : 0.003;
+                comp.release.value = typeof c.release === 'number' ? c.release : 0.25;
+                last.connect(comp);
+                last = comp;
+            }
+
+            if (track && track.reverbOn) {
+                const rp = track.reverbParams || { mix: 0.25, decaySeconds: 0.4 };
+                const mix = typeof rp.mix === 'number' ? Math.max(0, Math.min(1, rp.mix)) : 0.25;
+                const decaySeconds = typeof rp.decaySeconds === 'number' ? rp.decaySeconds : 0.4;
+                const dryGain = ctx.createGain();
+                dryGain.gain.value = 1 - mix;
+                const wetGain = ctx.createGain();
+                wetGain.gain.value = mix;
+                const convolver = ctx.createConvolver();
+                convolver.buffer = createPlateIR(ctx, decaySeconds);
+                convolver.normalize = true;
+                last.connect(dryGain);
+                last.connect(convolver);
+                convolver.connect(wetGain);
+                const sumGain = ctx.createGain();
+                sumGain.gain.value = 1;
+                dryGain.connect(sumGain);
+                wetGain.connect(sumGain);
+                last = sumGain;
+            }
+
+            const gainNode = ctx.createGain();
+            gainNode.gain.value = 1;
+            last.connect(gainNode);
+            const panner = ctx.createStereoPanner();
+            panner.pan.value = 0;
+            gainNode.connect(panner);
+            panner.connect(ctx.destination);
+
+            src.start(0);
+            const rendered = await ctx.startRendering();
+            const ch0 = rendered.getChannelData(0);
+            const ch1 = rendered.getChannelData(1);
+
+            const levelPoints = (track && track.automation && track.automation.level && track.automation.level.length) ? track.automation.level : [{ t: 0, value: track ? track.gain : 1 }, { t: 1, value: track ? track.gain : 1 }];
+            const panPoints = (track && track.automation && track.automation.pan && track.automation.pan.length) ? track.automation.pan : [{ t: 0, value: track ? track.pan : 0 }, { t: 1, value: track ? track.pan : 0 }];
+
+            for (let i = 0; i < rendered.length; i++) {
+                const t = i / maxLen;
+                const g = interpolateAutomation(levelPoints, t);
+                const p = interpolateAutomation(panPoints, t);
+                const { left: gL, right: gR } = panGain(p);
+                const volL = g * gL;
+                const volR = g * gR;
+                left[i] += ch0[i] * volL + ch1[i] * volL;
+                right[i] += ch0[i] * volR + ch1[i] * volR;
+            }
+        }
+
+        let peak = 0;
+        for (let i = 0; i < maxLen; i++) {
+            peak = Math.max(peak, Math.abs(left[i]), Math.abs(right[i]));
+        }
+        if (peak > 0.99) {
+            const scale = 0.99 / peak;
+            for (let i = 0; i < maxLen; i++) {
+                left[i] *= scale;
+                right[i] *= scale;
+            }
+        }
+        return { left, right, sampleRate, length: maxLen };
+    }
+
+    async function runMasteringChain(mix, options) {
+        if (!mix || !mix.left || !mix.right) return null;
+        const opts = options || {};
+        const punch = Math.max(0, Math.min(2, Number(opts.punch) || 0));
+        const loudness = Math.max(0, Math.min(2, Number(opts.loudness) || 0));
+        const compression = Math.max(0, Math.min(2, Number(opts.compression) !== undefined ? opts.compression : 1));
+        const len = mix.left.length;
+        const sr = mix.sampleRate;
+        const ctx = new OfflineAudioContext({ length: len, numberOfChannels: 2, sampleRate: sr });
+        const buffer = ctx.createBuffer(2, len, sr);
+        buffer.copyToChannel(mix.left, 0);
+        buffer.copyToChannel(mix.right, 1);
+        const src = ctx.createBufferSource();
+        src.buffer = buffer;
+        const comp = ctx.createDynamicsCompressor();
+        const thr = compression === 0 ? -12 : compression === 2 ? -24 : -18;
+        const ratio = compression === 0 ? 1.5 : compression === 2 ? 4 : 2.5;
+        comp.threshold.value = thr;
+        comp.knee.value = 6;
+        comp.ratio.value = ratio;
+        comp.attack.value = punch === 0 ? 0.01 : punch === 1 ? 0.005 : 0.003;
+        comp.release.value = punch === 0 ? 0.2 : punch === 1 ? 0.15 : 0.1;
+        src.connect(comp);
+        comp.connect(ctx.destination);
+        src.start(0);
+        const rendered = await ctx.startRendering();
+        const left = rendered.getChannelData(0);
+        const right = rendered.getChannelData(1);
+        let peak = 0;
+        for (let i = 0; i < len; i++) {
+            peak = Math.max(peak, Math.abs(left[i]), Math.abs(right[i]));
+        }
+        const targetPeak = loudness === 0 ? 0.99 : loudness === 1 ? 1 : 1;
+        const scale = peak > 0 ? targetPeak / peak : 1;
+        for (let i = 0; i < len; i++) {
+            left[i] = Math.max(-1, Math.min(1, left[i] * scale));
+            right[i] = Math.max(-1, Math.min(1, right[i] * scale));
+        }
+        return { left, right, sampleRate: sr, length: len };
+    }
+
+    function getTransportDuration() {
+        if (state.stemBuffers.length === 0) return 0;
+        let maxLen = 0;
+        const sr = state.stemBuffers[0].sampleRate;
+        for (const b of state.stemBuffers) if (b.length > maxLen) maxLen = b.length;
+        return maxLen / sr;
+    }
+
+    function scheduleBuildAfter() {
+        if (buildAfterTimer) clearTimeout(buildAfterTimer);
+        buildAfterTimer = setTimeout(() => {
+            buildAfterTimer = null;
+            buildAfterOnly();
+            if (window.MegaMix.syncAllTracksToLiveGraph) window.MegaMix.syncAllTracksToLiveGraph();
+        }, 300);
+    }
+
+    async function buildAfterOnly() {
+        if (state.stemBuffers.length === 0 || state.uploadedFiles.length === 0) return;
+        try {
+            const afterMix = await buildAfterMixWithFX();
+            if (afterMix) {
+                if (state.mixedAfterUrl) URL.revokeObjectURL(state.mixedAfterUrl);
+                state.mixedAfterUrl = URL.createObjectURL(encodeWav(afterMix.left, afterMix.right, afterMix.sampleRate));
+            }
+        } catch (e) {
+            console.error('buildAfterOnly', e);
+        }
+    }
+
+    function createLiveGraph() {
+        if (state.stemBuffers.length === 0 || !state.tracks.length) return;
+        const ctx = getAudioContext();
+        if (liveGraph) {
+            try {
+                if (liveGraph.masterGain) liveGraph.masterGain.disconnect();
+            } catch (_) {}
+        }
+        liveGraph = { ctx, masterGain: ctx.createGain(), tracks: [] };
+        liveGraph.masterGain.connect(ctx.destination);
+        const tracks = state.tracks;
+        for (let i = 0; i < tracks.length; i++) {
+            const gainNode = ctx.createGain();
+            const panner = ctx.createStereoPanner();
+            const lowShelf = ctx.createBiquadFilter();
+            lowShelf.type = 'lowshelf';
+            lowShelf.frequency.value = 320;
+            const midPeak = ctx.createBiquadFilter();
+            midPeak.type = 'peaking';
+            midPeak.frequency.value = 1000;
+            midPeak.Q.value = 1;
+            const highShelf = ctx.createBiquadFilter();
+            highShelf.type = 'highshelf';
+            highShelf.frequency.value = 3200;
+            const comp = ctx.createDynamicsCompressor();
+            gainNode.connect(panner);
+            panner.connect(lowShelf);
+            lowShelf.connect(midPeak);
+            midPeak.connect(highShelf);
+            highShelf.connect(comp);
+            comp.connect(liveGraph.masterGain);
+            liveGraph.tracks.push({ gainNode, pannerNode: panner, lowShelf, midPeak, highShelf, compNode: comp });
+        }
+        if (window.MegaMix.syncAllTracksToLiveGraph) window.MegaMix.syncAllTracksToLiveGraph();
+    }
+
+    function syncTrackToLiveGraph(i) {
+        if (!liveGraph || i < 0 || i >= liveGraph.tracks.length || i >= state.tracks.length) return;
+        const track = state.tracks[i];
+        const chain = liveGraph.tracks[i];
+        chain.gainNode.gain.setTargetAtTime(track.gain, liveGraph.ctx.currentTime, 0.01);
+        chain.pannerNode.pan.setTargetAtTime(Math.max(-1, Math.min(1, track.pan)), liveGraph.ctx.currentTime, 0.01);
+        const eq = track.eqParams || { low: 0, mid: 0, high: 0 };
+        chain.lowShelf.gain.setTargetAtTime(track.eqOn ? (eq.low || 0) : 0, liveGraph.ctx.currentTime, 0.01);
+        chain.midPeak.gain.setTargetAtTime(track.eqOn ? (eq.mid || 0) : 0, liveGraph.ctx.currentTime, 0.01);
+        chain.highShelf.gain.setTargetAtTime(track.eqOn ? (eq.high || 0) : 0, liveGraph.ctx.currentTime, 0.01);
+        const c = track.compParams || {};
+        if (track.compOn) {
+            chain.compNode.threshold.setTargetAtTime(c.threshold !== undefined ? c.threshold : -20, liveGraph.ctx.currentTime, 0.01);
+            chain.compNode.ratio.setTargetAtTime(c.ratio !== undefined ? c.ratio : 2, liveGraph.ctx.currentTime, 0.01);
+            chain.compNode.attack.setTargetAtTime(c.attack !== undefined ? c.attack : 0.003, liveGraph.ctx.currentTime, 0.01);
+            chain.compNode.release.setTargetAtTime(c.release !== undefined ? c.release : 0.25, liveGraph.ctx.currentTime, 0.01);
+            chain.compNode.knee.setTargetAtTime(c.knee !== undefined ? c.knee : 6, liveGraph.ctx.currentTime, 0.01);
+        } else {
+            chain.compNode.ratio.setTargetAtTime(1, liveGraph.ctx.currentTime, 0.01);
+            chain.compNode.threshold.setTargetAtTime(0, liveGraph.ctx.currentTime, 0.01);
+        }
+    }
+
+    function syncAllTracksToLiveGraph() {
+        if (!liveGraph) return;
+        for (let i = 0; i < liveGraph.tracks.length && i < state.tracks.length; i++) syncTrackToLiveGraph(i);
+    }
+
+    function stopLivePlayback() {
+        livePlaybackSources.forEach(s => {
+            try { s.stop(); } catch (_) {}
+        });
+        livePlaybackSources = [];
+        transportOffset = 0;
+        if (livePlaybackRaf) {
+            cancelAnimationFrame(livePlaybackRaf);
+            livePlaybackRaf = null;
+        }
+    }
+
+    function startLivePlayback(offset) {
+        if (!liveGraph || state.stemBuffers.length === 0) return;
+        stopLivePlayback();
+        const ctx = liveGraph.ctx;
+        const duration = getTransportDuration();
+        const safeOffset = Math.max(0, Math.min(offset, duration - 0.01));
+        for (let i = 0; i < state.stemBuffers.length && i < liveGraph.tracks.length; i++) {
+            const src = ctx.createBufferSource();
+            src.buffer = state.stemBuffers[i];
+            src.connect(liveGraph.tracks[i].gainNode);
+            src.start(ctx.currentTime, safeOffset);
+            livePlaybackSources.push(src);
+        }
+        playbackStartTime = ctx.currentTime;
+        transportOffset = safeOffset;
+    }
+
+    /** Current playback position in seconds for the After timeline (live or seek). Used so Josh and UI share the same reference. */
+    function getCurrentPlaybackPosition() {
+        if (!liveGraph) return transportOffset;
+        if (livePlaybackSources.length > 0) {
+            const elapsed = liveGraph.ctx.currentTime - playbackStartTime;
+            return transportOffset + elapsed;
+        }
+        return transportOffset;
+    }
+
+    window.MegaMix.getAudioContext = getAudioContext;
+    window.MegaMix.encodeWav = encodeWav;
+    window.MegaMix.panGain = panGain;
+    window.MegaMix.revokeMixUrls = revokeMixUrls;
+    window.MegaMix.revokeMasteredUrl = revokeMasteredUrl;
+    window.MegaMix.decodeStemsToBuffers = decodeStemsToBuffers;
+    window.MegaMix.analyzeStems = analyzeStems;
+    window.MegaMix.buildMixedBuffer = buildMixedBuffer;
+    window.MegaMix.buildAfterMixWithFX = buildAfterMixWithFX;
+    window.MegaMix.runMasteringChain = runMasteringChain;
+    window.MegaMix.getTransportDuration = getTransportDuration;
+    window.MegaMix.scheduleBuildAfter = scheduleBuildAfter;
+    window.MegaMix.buildAfterOnly = buildAfterOnly;
+    window.MegaMix.createLiveGraph = createLiveGraph;
+    window.MegaMix.syncTrackToLiveGraph = syncTrackToLiveGraph;
+    window.MegaMix.syncAllTracksToLiveGraph = syncAllTracksToLiveGraph;
+    window.MegaMix.startLivePlayback = startLivePlayback;
+    window.MegaMix.stopLivePlayback = stopLivePlayback;
+    window.MegaMix.liveGraph = function () { return liveGraph; };
+    window.MegaMix.livePlaybackSources = function () { return livePlaybackSources; };
+    window.MegaMix.transportOffset = function () { return transportOffset; };
+    window.MegaMix.playbackStartTime = function () { return playbackStartTime; };
+    window.MegaMix.livePlaybackRaf = function () { return livePlaybackRaf; };
+    window.MegaMix.setLivePlaybackRaf = function (v) { livePlaybackRaf = v; };
+    window.MegaMix.setTransportOffset = function (v) { transportOffset = v; };
+    window.MegaMix.getCurrentPlaybackPosition = getCurrentPlaybackPosition;
+})();

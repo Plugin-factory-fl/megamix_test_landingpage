@@ -3,43 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MegaMixAI</title>
-    <link rel="icon" type="image/png" href="assets/Logo.png">
-    <link rel="shortcut icon" type="image/png" href="assets/Logo.png">
-    <link rel="apple-touch-icon" href="assets/Logo.png">
-    
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-4JZ3RNEJWY"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-
-      gtag('config', 'G-4JZ3RNEJWY');
-    </script>
+    <title>MegaMix AI – AI Mixing &amp; Mastering</title>
+    <link rel="icon" type="image/png" href="/assets/Logo.png">
+    <link rel="stylesheet" href="/app/styles.css">
     <style>
-        html {
-            scroll-behavior: smooth;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-            color: white;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 150px 20px 20px 20px;
-        }
-
         .announcement-bar {
             position: fixed;
             top: 0;
@@ -53,12 +20,7 @@
             display: flex;
             align-items: center;
         }
-
-        .announcement-inner {
-            width: 100%;
-            overflow: hidden;
-        }
-
+        .announcement-inner { width: 100%; overflow: hidden; }
         .announcement-track {
             display: inline-flex;
             align-items: center;
@@ -69,1208 +31,53 @@
             letter-spacing: 0.8px;
             font-weight: normal;
         }
-
-        .announcement-track span {
-            white-space: nowrap;
-        }
-
+        .announcement-track span { white-space: nowrap; }
         @keyframes marquee {
-            0% {
-                transform: translateX(0);
-            }
-            100% {
-                transform: translateX(-50%);
-            }
-        }
-
-        .navbar {
-            position: fixed;
-            top: 40px;
-            left: 0;
-            width: 100%;
-            background: #000;
-            z-index: 1000;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .navbar-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 6px 20px;
-            width: 100%;
-            position: relative;
-        }
-
-        .navbar-logo img {
-            height: 100px;
-            display: block;
-            object-fit: contain;
-        }
-
-        .navbar-toggle {
-            display: none;
-            background: none;
-            border: none;
-            color: #fff;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 8px;
-            transition: background 0.2s ease;
-        }
-
-        .navbar-toggle:hover {
-            background: rgba(255, 255, 255, 0.08);
-        }
-
-        .navbar-toggle:focus-visible {
-            outline: 2px solid #8b5cf6;
-            outline-offset: 2px;
-        }
-
-        .navbar-toggle span {
-            display: block;
-            width: 24px;
-            height: 2px;
-            background: #fff;
-            margin: 5px 0;
-            transition: transform 0.3s ease, opacity 0.3s ease;
-        }
-
-        .navbar-links {
-            display: flex;
-            gap: 30px;
-            align-items: center;
-            transition: max-height 0.3s ease;
-        }
-
-        .navbar-links a {
-            color: #fff;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.95rem;
-            letter-spacing: 0.5px;
-            transition: color 0.3s ease;
-        }
-
-        .navbar-links a:hover,
-        .navbar-links a:focus {
-            color: #8b5cf6;
-        }
-
-        #contact-section,
-        #purchase-section,
-        #plugin-downloads,
-        #reviews-section {
-            scroll-margin-top: 120px;
-        }
-
-        .container {
-            text-align: center;
-            max-width: 1200px;
-            width: 100%;
-        }
-        
-        .cover-section {
-            position: relative;
-            width: 100vw;
-            height: 400px;
-            margin: -40px calc(-50vw + 50%);
-            overflow: hidden;
-        }
-        
-        .cover-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center 80%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 1;
-        }
-        
-        .cover-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to top, #1a1a1a 0%, rgba(26, 26, 26, 0.8) 30%, rgba(26, 26, 26, 0.4) 60%, transparent 100%);
-            z-index: 2;
-        }
-        
-        .cover-content {
-            position: relative;
-            z-index: 3;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            align-items: center;
-            text-align: center;
-            padding: 40px 20px 0px 20px;
-            transform: translateY(30px);
-        }
-
-        .header {
-            background: transparent;
-            padding: 0;
-            border-radius: 0;
-            margin-bottom: 20px;
-            box-shadow: none;
-        }
-
-        .presents-text {
-            font-size: 20px;
-            font-weight: bold;
-            font-style: italic;
-            color: white;
-            margin-bottom: 10px;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            opacity: 0.9;
-            text-align: left;
-        }
-        
-        .header h1 {
-            font-size: 3.5rem;
-            font-weight: 700;
-            margin-bottom: 20px;
-            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-        }
-
-        .subheader {
-            font-size: 1.4rem;
-            font-weight: 300;
-            opacity: 0.9;
-            line-height: 1.6;
-            margin-bottom: 50px;
-        }
-
-        .hero-benefits {
-            max-width: 720px;
-            margin: 40px auto 30px auto;
-            text-align: center;
-        }
-
-        .hero-heading {
-            display: block;
-            font-size: 2rem;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            margin-bottom: 6px;
-            color: #ffffff;
-            position: relative;
-            z-index: 5;
-        }
-
-        .hero-subheading {
-            font-size: 2rem;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            margin-bottom: 14px;
-            color: #8b5cf6;
-            position: relative;
-            z-index: 5;
-        }
-
-        .hero-benefits p {
-            font-size: 1.1rem;
-            opacity: 0.85;
-            line-height: 1.5;
-        }
-
-        .buy-button {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-            border: none;
-            padding: 20px 50px;
-            font-size: 1.3rem;
-            font-weight: 700;
-            letter-spacing: 2px;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
-            text-transform: uppercase;
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        .buy-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
-            background: linear-gradient(135deg, #059669 0%, #047857 100%);
-        }
-
-        .buy-button:active {
-            transform: translateY(-1px);
-        }
-        
-        .buy-button-center {
-            text-align: center;
-        }
-        .buy-button-center .buy-button {
-            display: inline-block;
-        }
-        
-        #reviewSummary {
-            font-size: 1rem;
-            color: #ccc;
-            text-align: center;
-            text-decoration: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            padding: 10px 15px;
-            border-radius: 8px;
-            display: inline-block;
-            width: auto;
-            min-width: 200px;
-        }
-        
-        #reviewSummary:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: #fff;
-            transform: scale(1.02);
-        }
-        
-        .two-column-section {
-            display: flex;
-            gap: 40px;
-            margin: 40px 0;
-            align-items: flex-start;
-        }
-        
-        .left-column {
-            flex: 0 0 45%;
-            align-self: flex-start;
-            margin: 0;
-        }
-        
-        .right-column {
-            flex: 1;
-        }
-        
-        .image-container {
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            transition: box-shadow 0.3s ease;
-        }
-        
-        .image-container:hover {
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
-        }
-        
-        .slideshow-container {
-            position: relative;
-            width: 100%;
-            overflow: hidden;
-        }
-        
-        .slideshow-wrapper {
-            display: flex;
-            transition: transform 0.5s ease;
-        }
-        
-        .slide {
-            min-width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .plugin-image {
-            width: 100%;
-            height: auto;
-            object-fit: contain;
-            display: block;
-        }
-        
-        .slideshow-arrow {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(139, 92, 246, 0.8);
-            color: white;
-            border: none;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-            z-index: 10;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        }
-        
-        .slideshow-arrow.right {
-            right: 20px;
-        }
-        
-        .slideshow-arrow.left {
-            left: 20px;
-        }
-        
-        .slideshow-arrow:hover {
-            background: rgba(139, 92, 246, 1);
-            transform: translateY(-50%) scale(1.1);
-        }
-        
-        .slideshow-arrow:active {
-            transform: translateY(-50%) scale(0.95);
-        }
-        
-        .slideshow-arrow.hidden {
-            display: none;
-        }
-        
-        .plugin-description {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 30px;
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .description-text {
-            font-size: 1.1rem;
-            line-height: 1.7;
-            margin-bottom: 30px;
-            opacity: 0.9;
-        }
-        
-        .testimonial {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 25px;
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            text-align: center;
-            margin: 40px 0 60px 0;
-        }
-        
-        .testimonial-text {
-            font-size: 1.1rem;
-            font-style: italic;
-            margin-bottom: 10px;
-            line-height: 1.6;
-            opacity: 0.9;
-        }
-        
-        .testimonial-author {
-            font-size: 0.9rem;
-            opacity: 0.7;
-            margin-bottom: 15px;
-        }
-        
-        .testimonial-stars {
-            font-size: 1.3rem;
-            color: #ffd700;
-        }
-
-        /* Before/After hearing test cards */
-        .before-after-heading {
-            text-align: center;
-            color: #8b5cf6;
-            font-size: 1.8rem;
-            margin: 50px 0 24px 0;
-        }
-        .before-after-section {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 24px;
-            margin: 40px 0 50px 0;
-            max-width: 520px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        .before-after-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 20px;
-            backdrop-filter: blur(10px);
-        }
-        .before-after-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 12px;
-            margin-bottom: 14px;
-        }
-        .before-after-card-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #fff;
-            margin: 0;
-        }
-        .before-after-tabs {
-            display: flex;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-            padding: 3px;
-            flex-shrink: 0;
-        }
-        .before-after-tabs button {
-            padding: 6px 14px;
-            border: none;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            background: transparent;
-            color: rgba(255, 255, 255, 0.8);
-        }
-        .before-after-tabs button.active {
-            background: #fff;
-            color: #111;
-        }
-        .before-after-tabs button:not(.active):hover {
-            color: #fff;
-        }
-        .before-after-genre {
-            display: inline-block;
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            font-size: 0.7rem;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            padding: 4px 10px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-        }
-        .before-after-desc {
-            font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 16px;
-            line-height: 1.4;
-        }
-        .before-after-play-wrap {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .before-after-play-btn {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            border: none;
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: #fff;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .before-after-play-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
-        }
-        .before-after-play-btn.playing {
-            background: linear-gradient(135deg, #059669 0%, #047857 100%);
-        }
-        .before-after-tagline {
-            color: #8b5cf6;
-            font-size: 0.85rem;
-            margin-top: 8px;
-            margin-bottom: 6px;
-            text-align: center;
-        }
-        .before-after-instruction {
-            font-size: 0.8rem;
-            color: rgba(255, 255, 255, 0.65);
-            text-align: center;
-            margin-bottom: 8px;
-            line-height: 1.35;
-        }
-        .before-after-listen-label {
-            font-size: 0.78rem;
-            color: rgba(255, 255, 255, 0.7);
-            text-align: center;
-            margin-bottom: 4px;
-        }
-        .before-after-listen-list {
-            font-size: 0.78rem;
-            color: rgba(255, 255, 255, 0.6);
-            text-align: left;
-            margin: 0 auto 14px auto;
-            padding-left: 1.25rem;
-            max-width: 320px;
-            line-height: 1.5;
-        }
-        .before-after-listen-list li {
-            margin-bottom: 2px;
-        }
-        .before-after-progress-wrap {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 14px;
-            width: 100%;
-        }
-        .before-after-time,
-        .before-after-duration {
-            font-size: 0.8rem;
-            color: rgba(255, 255, 255, 0.8);
-            min-width: 36px;
-        }
-        .before-after-duration {
-            text-align: right;
-        }
-        .before-after-progress {
-            flex: 1;
-            height: 8px;
-            -webkit-appearance: none;
-            appearance: none;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
-            outline: none;
-        }
-        .before-after-progress::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: #8b5cf6;
-            cursor: pointer;
-            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.3);
-        }
-        .before-after-progress::-moz-range-thumb {
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: #8b5cf6;
-            cursor: pointer;
-            border: none;
-            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.3);
-        }
-        .before-after-progress::-webkit-slider-runnable-track {
-            height: 8px;
-            border-radius: 4px;
-            background: rgba(255, 255, 255, 0.2);
-        }
-        .before-after-progress::-moz-range-track {
-            height: 8px;
-            border-radius: 4px;
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .pricing-overview {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 40px 30px;
-            margin: 40px auto 20px auto;
-            max-width: 850px;
-            text-align: left;
-        }
-
-        .pricing-overview h3 {
-            color: #8b5cf6;
-            font-size: 1.8rem;
-            margin-bottom: 15px;
-        }
-
-        .pricing-overview p {
-            opacity: 0.85;
-            line-height: 1.6;
-            margin-bottom: 25px;
-        }
-
-        .pricing-card {
-            background: rgba(255, 255, 255, 0.07);
-            border-radius: 16px;
-            padding: 24px 20px;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-        }
-
-        .pricing-card h4 {
-            font-size: 1.2rem;
-            margin-bottom: 10px;
-            color: #8b5cf6;
-        }
-
-        .pricing-price {
-            font-size: 1.4rem;
-            font-weight: 700;
-            margin-bottom: 12px;
-        }
-
-        .pricing-card ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .pricing-card ul li {
-            margin-bottom: 10px;
-            font-size: 0.95rem;
-            line-height: 1.4;
-            opacity: 0.85;
-        }
-
-        .pricing-note {
-            margin-top: 20px;
-            font-size: 0.9rem;
-            opacity: 0.7;
-        }
-        
-        @media (max-width: 768px) {
-            .two-column-section {
-                flex-direction: column;
-                gap: 30px;
-            }
-            
-            .left-column {
-                position: static;
-                flex: none;
-                margin-top: 0;
-                margin-bottom: 0;
-            }
-            
-            /* Add breathing room between image and preceding content on mobile */
-            .two-column-section .left-column {
-                margin-top: 40px;
-            }
-            
-            /* Mobile layout for genre sections - ensure picture on top, text below */
-            .genre-section {
-                flex-direction: column;
-                gap: 30px;
-            }
-            
-            .genre-section .genre-image {
-                order: 1;
-                flex: none;
-            }
-            
-            .genre-section .genre-description {
-                order: 2;
-                flex: none;
-            }
-            
-            /* Ensure all images are properly sized on mobile */
-            .genre-image img {
-                width: 100%;
-                height: auto;
-                display: block;
-                border-radius: 15px;
-            }
-            
-            .genre-image.feature2 img,
-            .genre-image.feature3 img {
-                width: 100%;
-                margin: 0;
-            }
-            
-            /* Fix reviews section for mobile */
-            .reviews-grid {
-                display: grid !important;
-                grid-template-columns: 1fr !important;
-                gap: 20px !important;
-                margin: 40px auto 0 auto !important;
-                max-width: 100% !important;
-                position: static !important;
-                height: auto !important;
-            }
-            
-            .review-card {
-                position: static !important;
-                left: auto !important;
-                top: auto !important;
-                width: 100% !important;
-                margin-bottom: 20px;
-            }
-            
-        }
-
-        .features {
-            margin-top: 60px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-            padding: 40px 0;
-        }
-        
-        .genre-section {
-            display: flex;
-            gap: 40px;
-            margin: 60px 0;
-            align-items: center;
-        }
-        
-        .genre-description {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 30px;
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .genre-image {
-            flex: 0 0 50%;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-        
-        .genre-image img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-        
-        .genre-image.feature2 img {
-            width: 75%;
-            height: auto;
-            display: block;
-            margin: 0 auto;
-            border-radius: 15px;
-        }
-        
-        .genre-image.feature3 img {
-            width: 75%;
-            height: auto;
-            display: block;
-            margin: 0 auto;
-            border-radius: 15px;
-        }
-        
-        .guarantee-section {
-            text-align: center;
-            margin: 60px 0;
-            padding: 40px 20px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        /* Reviews Section */
-        .reviews-section {
-            margin: 60px 0;
-            padding: 0 20px;
-        }
-        
-        .reviews-header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        
-        .average-rating {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            margin: 20px 0;
-            flex-wrap: wrap;
-        }
-        
-        .stars-large {
-            font-size: 2rem;
-            color: #ffd700;
-        }
-        
-        .rating-number {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: #8b5cf6;
-        }
-        
-        .rating-text {
-            font-size: 1.2rem;
-            color: #ccc;
-        }
-        
-        .review-count {
-            font-size: 1rem;
-            color: #999;
-            margin: 10px 0;
-        }
-        
-        .submit-review-btn {
-            background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 10px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 20px;
-        }
-        
-        .submit-review-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);
-        }
-        
-        .reviews-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin: 40px auto 0 auto;
-            grid-auto-rows: max-content;
-            max-width: 1200px;
-            justify-content: center;
-        }
-        
-        @supports (grid-template-rows: masonry) {
-            .reviews-grid {
-                grid-template-rows: masonry;
-            }
-        }
-        
-        .review-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 20px;
-            transition: all 0.3s ease;
-        }
-        
-        .review-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            border-color: rgba(139, 92, 246, 0.3);
-        }
-        
-        .review-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 15px;
-        }
-        
-        .reviewer-info {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-        
-        .reviewer-info strong {
-            color: #8b5cf6;
-            font-size: 1.1rem;
-        }
-        
-        .reviewer-info .stars {
-            color: #ffd700;
-            font-size: 0.9rem;
-        }
-        
-        .review-date {
-            color: #999;
-            font-size: 0.9rem;
-        }
-        
-        .review-text {
-            color: #ccc;
-            line-height: 1.6;
-            font-style: italic;
-        }
-        
-        /* Review Modal */
-        .review-modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(5px);
-        }
-        
-        /* Email Signup Modal */
-        .email-modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(5px);
-        }
-        
-        /* Contact Support Modal */
-        .contact-modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(5px);
-        }
-        
-        .modal-content {
-            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-            margin: 5% auto;
-            padding: 0;
-            border-radius: 20px;
-            width: 90%;
-            max-width: 500px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-        }
-        
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 30px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .modal-header h3 {
-            color: #8b5cf6;
-            margin: 0;
-            font-size: 1.5rem;
-        }
-        
-        .close {
-            color: #999;
-            font-size: 2rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: color 0.3s ease;
-        }
-        
-        .close:hover {
-            color: #fff;
-        }
-        
-        .modal-body {
-            padding: 30px;
-        }
-        
-        .form-group {
-            margin-bottom: 25px;
-        }
-        
-        .form-group label {
-            display: block;
-            color: #fff;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-        
-        .form-group input,
-        .form-group textarea {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.05);
-            color: #fff;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-        
-        .form-group input:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #8b5cf6;
-            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
-        }
-        
-        /* Email input specific styling */
-        #emailInput:focus {
-            outline: none;
-            border-color: #8b5cf6;
-            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3);
-            background: rgba(255, 255, 255, 1);
-        }
-        
-        #emailInput::placeholder {
-            color: rgba(102, 102, 102, 0.7);
-            font-style: italic;
-        }
-        
-        .form-group textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-        
-        .star-rating {
-            display: flex;
-            gap: 5px;
-            margin-top: 8px;
-        }
-        
-        .star {
-            font-size: 2rem;
-            color: #333;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .star:hover,
-        .star.active {
-            color: #ffd700;
-            transform: scale(1.1);
-        }
-        
-        .modal-buttons {
-            display: flex;
-            gap: 15px;
-            justify-content: flex-end;
-            margin-top: 30px;
-        }
-        
-        .cancel-btn,
-        .submit-btn {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .cancel-btn {
-            background: rgba(255, 255, 255, 0.1);
-            color: #ccc;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        .cancel-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            color: #fff;
-        }
-        
-        .submit-btn {
-            background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
-            color: white;
-        }
-        
-        .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3);
-        }
-        
-        .submit-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-        
-        .testimonial-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            margin-top: 30px;
-        }
-        
-        .testimonial-card {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 25px;
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .stars {
-            color: #ffd700;
-            font-size: 1.2rem;
-            margin-bottom: 10px;
-        }
-
-        .feature {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 30px 20px;
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .feature h3 {
-            color: #8b5cf6;
-            margin-bottom: 15px;
-            font-size: 1.2rem;
-        }
-
-        .feature p {
-            opacity: 0.8;
-            line-height: 1.5;
-        }
-
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 2.5rem;
-            }
-            
-            .subheader {
-                font-size: 1.1rem;
-            }
-            
-            .buy-button {
-                padding: 15px 30px;
-                font-size: 1.1rem;
-            }
-
-            .navbar-logo img {
-                height: 60px;
-            }
-
-            .navbar-toggle {
-                display: block;
-            }
-
-            .navbar-links {
-                position: absolute;
-                top: calc(100% + 12px);
-                right: 20px;
-                left: 20px;
-                background: rgba(0, 0, 0, 0.95);
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                border-radius: 12px;
-                padding: 16px 20px;
-                flex-direction: column;
-                gap: 18px;
-                display: none;
-                box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
-                z-index: 1200;
-            }
-
-            .navbar-links.open {
-                display: flex;
-            }
-
-            .navbar-links a {
-                font-size: 1rem;
-                font-weight: 600;
-            }
-            
-            .pricing-overview > div[style*="grid"] {
-                grid-template-columns: 1fr !important;
-            }
-            
-            .pricing-card {
-                margin-bottom: 20px;
-            }
-        }
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .home-nav { top: 40px; }
+        .home-main { padding-top: 140px; }
+        .navbar-logo img { height: 100px; display: block; object-fit: contain; }
+        .before-after-heading { text-align: center; color: #8b5cf6; font-size: 1.8rem; margin: 50px 0 24px 0; }
+        .before-after-section { display: grid; grid-template-columns: 1fr; gap: 24px; margin: 40px 0 50px 0; max-width: 520px; margin-left: auto; margin-right: auto; }
+        .before-after-card { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; padding: 20px; backdrop-filter: blur(10px); }
+        .before-after-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
+        .before-after-card-title { font-size: 1.25rem; font-weight: 700; color: #fff; margin: 0; }
+        .before-after-tabs { display: flex; background: rgba(0, 0, 0, 0.3); border-radius: 10px; padding: 3px; flex-shrink: 0; }
+        .before-after-tabs button { padding: 6px 14px; border: none; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: transparent; color: rgba(255, 255, 255, 0.8); }
+        .before-after-tabs button.active { background: #fff; color: #111; }
+        .before-after-tabs button:not(.active):hover { color: #fff; }
+        .before-after-genre { display: inline-block; background: rgba(255, 255, 255, 0.1); color: #fff; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.5px; padding: 4px 10px; border-radius: 6px; margin-bottom: 10px; }
+        .before-after-tagline { color: #8b5cf6; font-size: 0.85rem; margin-top: 8px; margin-bottom: 6px; text-align: center; }
+        .before-after-instruction { font-size: 0.8rem; color: rgba(255, 255, 255, 0.65); text-align: center; margin-bottom: 8px; line-height: 1.35; }
+        .before-after-listen-label { font-size: 0.78rem; color: rgba(255, 255, 255, 0.7); text-align: center; margin-bottom: 4px; }
+        .before-after-listen-list { font-size: 0.78rem; color: rgba(255, 255, 255, 0.6); text-align: left; margin: 0 auto 14px auto; padding-left: 1.25rem; max-width: 320px; line-height: 1.5; }
+        .before-after-listen-list li { margin-bottom: 2px; }
+        .before-after-play-wrap { display: flex; justify-content: center; align-items: center; }
+        .before-after-play-btn { width: 48px; height: 48px; border-radius: 50%; border: none; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .before-after-play-btn:hover { transform: scale(1.05); box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4); }
+        .before-after-play-btn.playing { background: linear-gradient(135deg, #059669 0%, #047857 100%); }
+        .before-after-progress-wrap { display: flex; align-items: center; gap: 10px; margin-top: 14px; width: 100%; }
+        .before-after-time, .before-after-duration { font-size: 0.8rem; color: rgba(255, 255, 255, 0.8); min-width: 36px; }
+        .before-after-duration { text-align: right; }
+        .before-after-progress { flex: 1; height: 8px; -webkit-appearance: none; appearance: none; background: rgba(255, 255, 255, 0.2); border-radius: 4px; outline: none; }
+        .before-after-progress::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #8b5cf6; cursor: pointer; box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.3); }
+        .before-after-progress::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: #8b5cf6; cursor: pointer; border: none; box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.3); }
+        .before-after-progress::-webkit-slider-runnable-track { height: 8px; border-radius: 4px; background: rgba(255, 255, 255, 0.2); }
+        .before-after-progress::-moz-range-track { height: 8px; border-radius: 4px; background: rgba(255, 255, 255, 0.2); }
+        .footer { text-align: center; padding: 24px 20px; border-top: 1px solid rgba(255,255,255,0.08); display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 24px; }
+        .footer a { color: #94a3b8; text-decoration: none; font-size: 0.9rem; }
+        .footer a:hover { color: #8b5cf6; }
+        .cover-section { position: relative; width: 100vw; height: 280px; margin: -40px calc(-50vw + 50%); overflow: hidden; background: linear-gradient(to bottom, #6d28d9 0%, #5b21b6 25%, #4c1d95 50%, #1e293b 75%, #0f172a 100%); }
+        .cover-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to top, rgba(15, 23, 42, 0.4) 0%, transparent 50%); z-index: 2; pointer-events: none; }
+        .cover-content { position: relative; z-index: 3; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; text-align: center; padding: 40px 20px 0; transform: translateY(30px); }
+        .cover-content .header { background: transparent; padding: 0; margin-bottom: 20px; box-shadow: none; }
+        .cover-content .header h1 { font-size: 3.5rem; font-weight: 700; margin-bottom: 20px; text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); color: #fff; }
+        .cover-content .subheader { font-size: 1.4rem; font-weight: 300; opacity: 0.9; line-height: 1.6; margin-bottom: 50px; color: #fff; }
     </style>
 </head>
-<body id="top">
+<body>
     <div class="announcement-bar">
         <div class="announcement-inner">
             <div class="announcement-track">
@@ -1279,92 +86,45 @@
             </div>
         </div>
     </div>
-    <nav class="navbar">
+    <nav class="navbar home-nav">
         <div class="navbar-container">
             <div class="navbar-logo">
-                <a href="#top">
-                    <img src="assets/Logo.png" alt="MegaMixAI Logo">
-                </a>
+                <a href="/"><img src="/assets/Logo.png" alt="MegaMix AI"></a>
             </div>
-            <button class="navbar-toggle" id="navToggle" aria-label="Toggle navigation" aria-expanded="false">
-                <span></span>
-                <span></span>
-                <span></span>
-            </button>
-            <div class="navbar-links" id="navbarLinks">
-                <a href="#contact-section">Contact Us</a>
-                <a href="#purchase-section">Purchase Subscription</a>
-                <a href="#plugin-downloads">Download Plugin</a>
-                <a href="#reviews-section">Reviews</a>
+            <div class="navbar-links">
+                <a href="/">Home</a>
+                <a href="/app">MegaMix AI</a>
+                <a href="/plugin">DAW Plugin</a>
             </div>
         </div>
     </nav>
 
-    <div class="cover-section">
-        <img src="assets/webpagebanner.png" alt="MegaMixAI Banner" class="cover-image">
-        <div class="cover-overlay"></div>
-        <div class="cover-content">
-            <div class="header">
-                <h1>MegaMixAI™</h1>
-            </div>
-            
-            <div class="subheader">
-                The world's first AI mixing plugin. Chat controls your mix.
-            </div>
-        </div>
-    </div>
-    
-    <div class="container">
-        
-        <div class="hero-benefits">
-            <h2 class="hero-heading">AI mixing gets you to polished mixes</h2>
-            <div class="hero-subheading">in minutes.</div>
-            <p>Chat controls your mix—tell Josh what you want and AI mixing nails your genre without the technical back-and-forth.</p>
-        </div>
-        <div class="testimonial">
-            <div class="testimonial-text">
-                "Beyond easy. I got pro-sounding mixes with MegaMixAI—I just told Josh what I wanted and he controlled the mix."
-            </div>
-            <div class="testimonial-author">
-                - Thad C., Bedroom Producer and Musician
-            </div>
-            <div class="testimonial-stars">
-                ⭐⭐⭐⭐⭐
-            </div>
-        </div>
-        <div class="two-column-section">
-            <div class="left-column">
-                <div class="image-container">
-                    <div class="slideshow-container">
-                        <div class="slideshow-wrapper" id="slideshowWrapper">
-                            <div class="slide">
-                                <img src="assets/MasterModeInterface.png" alt="Master Mode Interface" class="plugin-image">
-                            </div>
-                            <div class="slide">
-                                <img src="assets/JoshSquash Interface.png" alt="JoshSquash Plugin Interface" class="plugin-image">
-                            </div>
-                            <div class="slide">
-                                <img src="assets/JoshEQ Interface.png" alt="JoshEQ Plugin Interface" class="plugin-image">
-                            </div>
-                        </div>
-                        <button class="slideshow-arrow right" id="nextSlideBtn" onclick="nextSlide()">→</button>
-                        <button class="slideshow-arrow left hidden" id="prevSlideBtn" onclick="prevSlide()">←</button>
-                    </div>
+    <main class="view home-main">
+        <div class="cover-section">
+            <div class="cover-overlay"></div>
+            <div class="cover-content">
+                <div class="header">
+                    <h1>MegaMix AI</h1>
                 </div>
-            </div>
-            
-            <div class="right-column">
-                <div class="plugin-description">
-                    <div class="description-text">
-                        <strong>🎛️ Chat controls the mix—tell Josh the vibe, not the settings.</strong> Type a request like “add punch to my kick” or “smooth out my vocals” and Josh applies the ideal mix moves instantly.
-                        <br><br>
-                        <strong>🗣️ Focus on your music, not 50 knobs.</strong> AI mixing that understands plain English: Josh analyzes your track and dials in pro-grade moves automatically—no guesswork, no overwhelm.
-                        <br><br>
-                        <strong>👍 Pro sound in minutes.</strong> Bedroom producers and seasoned engineers alike get consistent results fast, across Logic Pro, Pro Tools, Ableton, FL Studio, and more.
-                    </div>
+                <div class="subheader">
+                    Browser-based AI mixing and mastering. Upload stems, chat to refine, get a release-ready mix.
                 </div>
             </div>
         </div>
+        <section class="hero">
+            <h1>AI Mixing &amp; Mastering for Release-Ready Music</h1>
+            <p class="hero-sub">MegaMix AI is a web app that turns your stems or rough mix into a finished, mastered track in minutes. Upload your tracks, let the AI mix and master, then refine with natural language — no studio or engineering degree required.</p>
+            <p class="hero-plugin-note">MegaMix AI is primarily a web app service. For the professional audio engineer, we also offer a DAW plugin version that is automatically available with your regular MegaMix AI subscription—no extra cost.</p>
+            <div class="hero-cta-center">
+                <a href="/app" class="btn btn-primary btn-hero">Upload stems now</a>
+            </div>
+            <ul class="hero-benefits hero-benefits-below-btn">
+                <li><span class="hero-benefit-emoji" aria-hidden="true">📤</span> Upload stems or a stereo mix</li>
+                <li><span class="hero-benefit-emoji" aria-hidden="true">🎚️</span> AI mixing and mastering in one flow</li>
+                <li><span class="hero-benefit-emoji" aria-hidden="true">💬</span> Iterate with chat (e.g. “bring up the vocals”, “more punch”)</li>
+                <li><span class="hero-benefit-emoji" aria-hidden="true">📥</span> Download WAV when you’re done</li>
+            </ul>
+        </section>
         <h2 class="before-after-heading">Hear MegaMix AI in Action</h2>
         <section class="before-after-section" aria-label="Before / After hearing demos">
             <div class="before-after-card" data-card="1">
@@ -1385,1588 +145,287 @@
                     <li>Prominent guitar solo and main vocals</li>
                 </ul>
                 <div class="before-after-play-wrap">
-                    <button type="button" class="before-after-play-btn" aria-label="Play audio" data-card="1" title="Play">
-                        &#9658;
-                    </button>
+                    <button type="button" class="before-after-play-btn" aria-label="Play audio" data-card="1" title="Play">&#9658;</button>
                 </div>
                 <div class="before-after-progress-wrap">
                     <span class="before-after-time" aria-live="polite">0:00</span>
                     <input type="range" class="before-after-progress" min="0" max="100" value="0" step="0.1" aria-label="Seek">
                     <span class="before-after-duration">0:00</span>
                 </div>
-                <audio class="before-after-audio" data-card="1" data-mode="before" preload="metadata" src="assets/audio/TomSawyer_BEFORE.mp3"></audio>
-                <audio class="before-after-audio" data-card="1" data-mode="after" preload="metadata" src="assets/audio/TomSawyer_AFTER.mp3"></audio>
+                <audio class="before-after-audio" data-card="1" data-mode="before" preload="metadata" src="/assets/audio/TomSawyer_BEFORE.mp3"></audio>
+                <audio class="before-after-audio" data-card="1" data-mode="after" preload="metadata" src="/assets/audio/TomSawyer_AFTER.mp3"></audio>
             </div>
         </section>
-        <div id="purchase-section" style="text-align: center; margin: 30px 0;">
-            <button class="buy-button" onclick="handleBuyNow('1mo'); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_1', 'button_text': 'GET FREE TRIAL' });" id="firstBuyButton">
-                GET FREE TRIAL
-            </button>
-            
-            <p style="color: white; font-size: 0.9rem; margin: 15px 0; text-align: center; opacity: 0.8; line-height: 1.4;">
-                This license key is for MegaMixAI™, which includes AI mixing tools like JoshSquash and JoshEQ. Purchasing this license key and keeping your subscription active will guarantee access to all future MegaMixAI AI Mixing Suite plugins. New updates every month.<br><br>
-                <strong>COMING SOON: JoshVerb and JoshRetro.</strong>
-            </p>
-            
-            <div style="margin-top: 20px;">
-                <a href="#reviews-section" id="reviewSummary" onclick="smoothScrollToReviews(event)">
-                    <div id="reviewCount">Loading reviews...</div>
-                </a>
+        <section class="hero-free-trial-bottom">
+            <button type="button" class="btn btn-primary btn-hero" id="btn-get-free-trial-bottom">GET FREE TRIAL</button>
+        </section>
+    </main>
+    <footer class="footer">
+        <a href="/">Home</a>
+        <a href="#" id="footer-contact-home">Contact Us</a>
+        <a href="#" id="footer-free-trial-home">Get 7-Day Free Trial</a>
+        <a href="#" id="footer-newsletter-home">Sign Up for Newsletter</a>
+    </footer>
+    <!-- Contact Support modal (home page) -->
+    <div id="contactModalHome" class="contact-modal-app hidden">
+        <div class="contact-modal-app-content">
+            <div class="contact-modal-app-header">
+                <h3>Contact Support</h3>
+                <span class="contact-modal-app-close" id="contactModalHomeClose" aria-label="Close">&times;</span>
+            </div>
+            <div class="contact-modal-app-body">
+                <form id="contactFormHome">
+                    <div class="form-group">
+                        <label for="contactNameHome">Your Name:</label>
+                        <input type="text" id="contactNameHome" name="contactName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contactEmailHome">Your Email:</label>
+                        <input type="email" id="contactEmailHome" name="contactEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contactSubjectHome">Subject:</label>
+                        <select id="contactSubjectHome" name="contactSubject" required>
+                            <option value="">Select a topic...</option>
+                            <option value="Plugin Installation Help">Plugin Installation Help</option>
+                            <option value="License Key Issues">License Key Issues</option>
+                            <option value="Plugin Not Working">Plugin Not Working</option>
+                            <option value="Feature Request">Feature Request</option>
+                            <option value="Bug Report">Bug Report</option>
+                            <option value="General Question">General Question</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="contactMessageHome">Message:</label>
+                        <textarea id="contactMessageHome" name="contactMessage" rows="5" placeholder="Please describe your issue or question in detail..." required></textarea>
+                    </div>
+                    <div class="contact-modal-app-buttons">
+                        <button type="button" class="cancel-btn" id="contactModalHomeCancel">Cancel</button>
+                        <button type="submit" class="submit-btn">Send Message</button>
+                    </div>
+                </form>
             </div>
         </div>
-        <div id="plugin-downloads" class="plugin-downloads" style="text-align: center; margin: 40px 0; padding: 30px; background: rgba(255, 255, 255, 0.05); border-radius: 15px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1);">
-            <h3 style="color: #8b5cf6; margin-bottom: 10px; font-size: 1.5rem;">Download MegaMixAI™ Plugin</h3>
-            <p style="color: #8b5cf6; margin-bottom: 20px; font-size: 1.1rem;">Current Version: V1.0.6</p>
-            <p style="color: #ccc; margin-bottom: 30px; font-size: 1.1rem;">Choose your format and platform:</p>
-            
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; max-width: 600px; margin: 0 auto;">
-                <!-- VST3 Downloads -->
-                <div class="download-option" style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.1);">
-                    <h4 style="color: #8b5cf6; margin-bottom: 15px;">VST3 Format</h4>
-                    <button class="download-btn green" onclick="openEmailModal('vst3', 'windows'); gtag('event', 'download_button_click', { 'button_id': 'VST_windows_download_button', 'format': 'VST3', 'platform': 'Windows' });" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; width: 100%; transition: all 0.3s ease;">
-                        Windows VST3
-                    </button>
-                </div>
-                
-                <!-- AU Downloads -->
-                <div class="download-option" style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.1);">
-                    <h4 style="color: #8b5cf6; margin-bottom: 15px;">AU Format</h4>
-                    <button class="download-btn green" onclick="openEmailModal('au', 'mac'); gtag('event', 'download_button_click', { 'button_id': 'AU_mac_download_button', 'format': 'AU', 'platform': 'Mac' });" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; width: 100%; transition: all 0.3s ease;">
-                        Mac AU
-                    </button>
-                </div>
+    </div>
+    <!-- Newsletter signup-only modal (home page) -->
+    <div id="newsletterSignupModalHome" class="email-modal-app hidden">
+        <div class="email-modal-app-content" onclick="event.stopPropagation()">
+            <div class="email-modal-app-header">
+                <h3>Join the MegaMixAI Community</h3>
+                <span class="email-modal-app-close" id="newsletterSignupModalHomeClose">&times;</span>
             </div>
-            
-            <p style="color: white; font-size: 1rem; margin-top: 20px; font-weight: bold; text-align: center;">ATTENTION: This plugin uses a license key to verify ownership. You can download the plugin for free but it will be unusable without a license key. Subscribe now to receive yours!</p>
-        </div>
-        
-        <button class="buy-button" onclick="handleBuyNow('1mo'); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_2', 'button_text': 'GET FREE TRIAL' });">
-            GET FREE TRIAL
-        </button>
-        
-        <div id="contact-section" style="text-align: center; margin: 40px 0;">
-            <button onclick="openContactModal()" style="background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%); color: white; border: none; padding: 20px 40px; border-radius: 12px; font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);">
-                Need help? Contact Us Now
-            </button>
-        </div>
-        
-        <div class="genre-section">
-            <div class="genre-description">
-                <p style="font-size: 1.1rem; line-height: 1.6; opacity: 0.9;">
-                    <strong>❌ Still wrestling with endless parameters?</strong><br><br>
-                    🎵 Switch to AI mixing. Describe the sound you want and Josh controls the mix—no jargon, no guesswork, no wasted hours.<br><br>
-                    🤝 MegaMixAI™'s AI personality, Josh, acts like an engineer on call. You tell Josh what you want; he controls the mix and delivers mix-ready results on the spot.
-                </p>
-            </div>
-            
-            <div class="genre-image">
-                <img src="assets/problemimage.png" alt="Mixing Problems" class="genre-feature-image">
-            </div>
-        </div>
-        
-        <div class="features">
-            <div class="feature">
-                <h3>🗣️ AI Mixing—Chat Controls Your Mix</h3>
-                <p>Producers report mixes approved 45% faster when AI mixing controls the mix—brief Josh instead of tweaking parameters the old way.</p>
-            </div>
-            <div class="feature">
-                <h3>🎛️ Never look at a wall of knobs again. Chat controls your mix.</h3>
-                <p>Skip 50+ controls and keep your flow—most users cut revision time by more than half on day one with AI mixing.</p>
-            </div>
-             <div class="feature">
-                <h3>🤝 Unlimited devices. No restrictions.</h3>
-                <p>Use Josh anywhere you create. One license covers every studio, laptop, and collaborator you work with.</p>
-            </div>
-             <div class="feature">
-                <h3>💻 Available in VST3 and AU formats</h3>
-                <p>Drop Josh into Logic Pro, Pro Tools, Ableton, FL Studio, and more—setup takes under five minutes.</p>
-            </div>
-        </div>
-        
-        <button class="buy-button" onclick="handleBuyNow('1mo'); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_3', 'button_text': 'GET FREE TRIAL' });">
-            GET FREE TRIAL
-        </button>
-        <h3 style="color: #8b5cf6; margin: 40px 0 20px 0; font-size: 1.5rem; text-align: center;">Step 1: Set up your hierarchy.</h3>
-        
-        <div class="genre-section">
-            <div class="genre-image feature3">
-                <img src="assets/feature3.png" alt="Josh Quick Prompts" class="genre-feature-image">
-            </div>
-            
-            <div class="genre-description">
-                <p style="font-size: 1.1rem; line-height: 1.6; opacity: 0.9;">
-                    Place your master instance of MegaMixAI on the Master fader or the main Stereo Out track in your DAW. Then, put a &quot;slave&quot; instance of MegaMixAI on every track you'd like to control.
-                </p>
-            </div>
-        </div>
-        
-        <h3 style="color: #8b5cf6; margin: 40px 0 20px 0; font-size: 1.5rem; text-align: center;">Step 2: Mega Mix.</h3>
-        
-        <div class="genre-section">
-            <div class="genre-description">
-                <p style="font-size: 1.1rem; line-height: 1.6; opacity: 0.9;">
-                    Let Josh take a listen to your song in full, then allow him to work his magic.
-                </p>
-            </div>
-            
-            <div class="genre-image feature2">
-                <img src="assets/Feature2.png" alt="Josh Adjust Knob" class="genre-feature-image">
-            </div>
-        </div>
-        
-        <h3 style="color: #8b5cf6; margin: 40px 0 20px 0; font-size: 1.5rem; text-align: center;">Step 3: Fine tune by chatting</h3>
-        
-        <div class="genre-section">
-            <div class="genre-image">
-                <img src="assets/Feature1.png" alt="Josh Genre-Smart Compression" class="genre-feature-image">
-            </div>
-            
-            <div class="genre-description">
-                <p style="font-size: 1.1rem; line-height: 1.6; opacity: 0.9;">
-                    After Josh's first mix, you can tell him &quot;make the snare louder&quot; or &quot;the bass is too quiet and not punchy.&quot; Josh will make changes based on your suggestions until your perfect mix is achieved.
-                </p>
-            </div>
-        </div>
-        <button class="buy-button" onclick="handleBuyNow('1mo'); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_4', 'button_text': 'GET FREE TRIAL' });" style="margin-bottom: 60px;">
-            GET FREE TRIAL
-        </button>
-        <div class="pricing-overview">
-            <h3>Your all-access pass to pro-sounding mixes</h3>
-            <p>Chat controls your mix—flexible subscription options so you can choose what works best for you. Monthly updates at no extra charge.</p>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin: 30px 0;">
-                <!-- Monthly Plan -->
-                <div class="pricing-card">
-                    <h4>Monthly</h4>
-                    <div class="pricing-price">$5.99 / month</div>
-                    <div style="font-size: 0.85rem; color: #999; margin-bottom: 15px;">Most convenient, pay as you go</div>
-                    <ul>
-                        <li>Instant license key for MegaMixAI™</li>
-                        <li>Automatic access to every future MegaMixAI AI mixing plugin</li>
-                        <li>Unlimited devices and activations</li>
-                        <li>Cancel anytime, 30-day money-back guarantee</li>
-                    </ul>
-                    <button class="buy-button" onclick="handleBuyNow('1mo'); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_monthly', 'button_text': 'Subscribe Monthly - $5.99/mo' });" style="width: 100%; margin-top: 20px; padding: 12px 20px; font-size: 1rem;">
-                        Subscribe Monthly
-                    </button>
-                </div>
-                
-                <!-- 3-Month Plan (Most Popular) -->
-                <div class="pricing-card" style="border: 2px solid #8b5cf6; position: relative;">
-                    <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #8b5cf6; color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;">MOST POPULAR</div>
-                    <h4>3-Month</h4>
-                    <div class="pricing-price">$11.99 / 3 months</div>
-                    <div style="font-size: 0.85rem; color: #10b981; margin-bottom: 15px; font-weight: bold;">Save $6.98 (33% off)</div>
-                    <div style="font-size: 0.85rem; color: #999; margin-bottom: 15px;">Just $3.99/month - Best value!</div>
-                    <ul>
-                        <li>Instant license key for MegaMixAI™</li>
-                        <li>Automatic access to every future MegaMixAI AI mixing plugin</li>
-                        <li>Unlimited devices and activations</li>
-                        <li>Cancel anytime, 30-day money-back guarantee</li>
-                    </ul>
-                    <button class="buy-button" onclick="handleBuyNow('3mo'); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_3month', 'button_text': 'Subscribe 3-Month - $11.99' });" style="width: 100%; margin-top: 20px; padding: 12px 20px; font-size: 1rem;">
-                        Subscribe 3-Month
-                    </button>
-                </div>
-                
-                <!-- Yearly Plan -->
-                <div class="pricing-card">
-                    <h4>Yearly</h4>
-                    <div class="pricing-price">$39.99 / year</div>
-                    <div style="font-size: 0.85rem; color: #10b981; margin-bottom: 15px; font-weight: bold;">Save $31.89 (44% off)</div>
-                    <div style="font-size: 0.85rem; color: #999; margin-bottom: 15px;">Just $3.33/month - Maximum savings!</div>
-                    <ul>
-                        <li>Instant license key for MegaMixAI™</li>
-                        <li>Automatic access to every future MegaMixAI AI mixing plugin</li>
-                        <li>Unlimited devices and activations</li>
-                        <li>Cancel anytime, 30-day money-back guarantee</li>
-                    </ul>
-                    <button class="buy-button" onclick="handleBuyNow('1yr'); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_yearly', 'button_text': 'Subscribe Yearly - $39.99' });" style="width: 100%; margin-top: 20px; padding: 12px 20px; font-size: 1rem;">
-                        Subscribe Yearly
-                    </button>
-                </div>
-            </div>
-            <div class="pricing-note">Includes priority support and access to ALL future updates. Simply update your plugin when a new version is available.</div>
-        </div>
-        
-        <div class="guarantee-section">
-            <h1 style="color: #8b5cf6; margin-bottom: 20px; font-size: 3rem; font-weight: 700;">A MegaMixAI Guarantee</h1>
-            <p style="font-size: 1.2rem; line-height: 1.6; margin-bottom: 30px; opacity: 0.9;">
-                🤝 At MegaMixAI, we believe in the quality of our products therefore we offer a 30 Day Money Back Guarantee with no questions asked! When you purchase from us, there is ZERO Risk for you!
-            </p>
-            
-            <div style="margin: 40px 0;">
-                <h4 style="color: #8b5cf6; margin-bottom: 10px; font-size: 1.3rem;">Customer Support:</h4>
-                <p style="font-size: 1.1rem; opacity: 0.9;">Email: megamix.ai.plugins@gmail.com</p>
-            </div>
-            
-            <h3 style="color: #8b5cf6; margin: 50px 0 30px 0; font-size: 1.8rem;">What are people saying about MegaMixAI™</h3>
-            
-            <div class="testimonial-grid">
-                <div class="testimonial-card">
-                    <div class="stars">★ ★ ★ ★ ★</div>
-                    <p style="font-style: italic; margin: 15px 0; line-height: 1.6;">
-                        "As a bedroom producer always struggling with compression, I recently had the pleasure of trying out JoshSquash, and I must say, it's a game-changer. Finally, professional-sounding mixes without the technical headache."
-                    </p>
-                    <p style="font-weight: bold; color: #8b5cf6;">— Jason F., Bedroom Producer</p>
-                </div>
-                
-                <div class="testimonial-card">
-                    <div class="stars">★ ★ ★ ★ ★</div>
-                    <p style="font-style: italic; margin: 15px 0; line-height: 1.6;">
-                        "I will admit that I am not the best at mixing - so I wanted to find something that would help me get professional results. I had heard of AI-powered plugins - so this was a plus. JoshSquash delivers exactly what it promises."
-                    </p>
-                    <p style="font-weight: bold; color: #8b5cf6;">— Terri F., Indie Artist</p>
-                </div>
-                
-                <div class="testimonial-card">
-                    <div class="stars">★ ★ ★ ★ ★</div>
-                    <p style="font-style: italic; margin: 15px 0; line-height: 1.6;">
-                        "I've been mixing for 15 years and this plugin is revolutionary. AI mixing that listens—I tell Josh what I want and he controls the mix. It's like having a professional engineer in my studio 24/7."
-                    </p>
-                    <p style="font-weight: bold; color: #8b5cf6;">— Marcus R., Professional Mix Engineer</p>
-                </div>
-                
-                <div class="testimonial-card">
-                    <div class="stars">★ ★ ★ ★ ★</div>
-                    <p style="font-style: italic; margin: 15px 0; line-height: 1.6;">
-                        "I'm a hip-hop producer and Josh understands my style perfectly. When I say 'make it sound like Travis Scott' or 'give me that old school vibe', he nails it every time. No more guessing with compression settings!"
-                    </p>
-                    <p style="font-weight: bold; color: #8b5cf6;">— Aaliyah K., Hip-Hop Producer</p>
-                </div>
-                
-                <div class="testimonial-card">
-                    <div class="stars">★ ★ ★ ★ ★</div>
-                    <p style="font-style: italic; margin: 15px 0; line-height: 1.6;">
-                        "As a singer-songwriter, I never had time to learn complex mixing. JoshSquash changed everything - I just chat with Josh about my vision and he makes my vocals sound professional. My demos now sound like finished tracks!"
-                    </p>
-                    <p style="font-weight: bold; color: #8b5cf6;">— Sarah M., Singer-Songwriter</p>
-                </div>
-                
-                <div class="testimonial-card">
-                    <div class="stars">★ ★ ★ ★ ★</div>
-                    <p style="font-style: italic; margin: 15px 0; line-height: 1.6;">
-                        "I run a small recording studio and JoshSquash has become my secret weapon. Clients love the results and I love how fast I can get professional-sounding mixes. The Study Track feature is absolutely incredible - it analyzes and applies perfect settings automatically."
-                    </p>
-                    <p style="font-weight: bold; color: #8b5cf6;">— David L., Studio Owner</p>
-                </div>
-            </div>
-        </div>
-        <div class="buy-button-center" style="margin: 40px 0;">
-            <button class="buy-button" onclick="handleBuyNow('1mo'); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_5', 'button_text': 'GET FREE TRIAL' });">
-                GET FREE TRIAL
-            </button>
-        </div>
-        <!-- User Reviews Section -->
-        <div class="reviews-section" id="reviews-section">
-            <div class="reviews-header">
-                <h3 style="color: #8b5cf6; margin: 60px 0 20px 0; font-size: 2rem; text-align: center;">User Reviews</h3>
-                <div class="average-rating">
-                    <div class="stars-large">★ ★ ★ ★ ☆</div>
-                    <span class="rating-number">4.3</span>
-                    <span class="rating-text">out of 5 stars</span>
-                    <p class="review-count">Based on 35 reviews</p>
-                </div>
-                <button class="submit-review-btn" onclick="openReviewModal()">Submit Your Own Review</button>
-            </div>
-            
-            <div class="reviews-grid" id="reviewsGrid">
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>Mike Chen</strong>
-                            <div class="stars">★ ★ ★ ★ ★</div>
-                        </div>
-                        <span class="review-date">Nov 12, 2024</span>
-                    </div>
-                    <p class="review-text">"absolutly love this plugin!"</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>Lisa Rodriguez</strong>
-                            <div class="stars">★ ★ ★ ★ ☆</div>
-                        </div>
-                        <span class="review-date">Oct 28, 2024</span>
-                    </div>
-                    <p class="review-text">"great plugin but sometimes takes a few trys to get the right sound. overall very happy with the purchase. the ai suggestions are usually spot on but occasionally miss the mark. when it works though, it works really well. saved me hours of tweaking parameters. definitely recommend for anyone struggling with compression settings. the conversational interface is so much easier than traditional plugins. josh really gets what im trying to achieve with my music"</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>Alex Thompson</strong>
-                            <div class="stars">★ ★ ★ ★ ★</div>
-                        </div>
-                        <span class="review-date">Sep 15, 2024</span>
-                    </div>
-                    <p class="review-text">"game changer!"</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>Sarah Johnson</strong>
-                            <div class="stars">★ ★ ★ ☆ ☆</div>
-                        </div>
-                        <span class="review-date">Aug 22, 2024</span>
-                    </div>
-                    <p class="review-text">"</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>David Park</strong>
-                            <div class="stars">★ ★ ★ ★ ★</div>
-                        </div>
-                        <span class="review-date">Jul 8, 2024</span>
-                    </div>
-                    <p class="review-text">"best compression plugin ive ever used. joshs suggestions are always spot on. worth every penny! this thing has completely transformed my mixing workflow. before this plugin, i was spending hours trying to get the right compression settings. now i just tell josh what i want and he delivers. the genre specific features are incredible - when i say make it sound like drake, he actually gets it. my clients have been asking what i changed in my setup because the quality improvement is so noticeable. the study track feature is mind blowing, it analyzes my reference tracks and applies similar settings automatically. ive tried every major compressor plugin out there and nothing comes close to this. the conversational interface is so intuitive, its like having a professional mixing engineer in my studio. the adjust knob is perfect for fine tuning joshs suggestions. this plugin has saved me countless hours and my mixes sound more professional than ever. i cant recommend this enough to anyone serious about music production"</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>Emma Wilson</strong>
-                            <div class="stars">★ ★ ★ ★ ☆</div>
-                        </div>
-                        <span class="review-date">Jun 3, 2024</span>
-                    </div>
-                    <p class="review-text">"amazing!"</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>James Brown</strong>
-                            <div class="stars">★ ★ ★ ★ ★</div>
-                        </div>
-                        <span class="review-date">Mar 22, 2024</span>
-                    </div>
-                    <p class="review-text">"</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>Maria Garcia</strong>
-                            <div class="stars">★ ★ ★ ☆ ☆</div>
-                        </div>
-                        <span class="review-date">Feb 14, 2024</span>
-                    </div>
-                    <p class="review-text">"decent"</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>Tom Anderson</strong>
-                            <div class="stars">★ ★ ★ ★ ★</div>
-                        </div>
-                        <span class="review-date">Jan 8, 2024</span>
-                    </div>
-                    <p class="review-text">"revolutionary! the conversational interface is exactly what music production needed. no more complex knobs and sliders. this plugin has completely changed how i approach mixing. before this, i was intimidated by all the technical parameters and settings. now i can just have a conversation with josh about what sound i want, and he makes it happen. the genre specific features are incredible - when i tell him to make it sound like the weeknd, he actually understands the reference and applies the right settings. the study track feature is mind blowing, it analyzes my reference tracks and learns from them. ive been using this for weeks now and my mixes have never sounded better. my clients are constantly asking what changed in my setup because the quality improvement is so dramatic. the adjust knob is perfect for fine tuning joshs suggestions when i need to make small tweaks. this is hands down the best plugin investment ive ever made. if you're serious about music production, you need this plugin"</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>Rachel Green</strong>
-                            <div class="stars">★ ★ ★ ★ ☆</div>
-                        </div>
-                        <span class="review-date">Dec 19, 2023</span>
-                    </div>
-                    <p class="review-text">"saves me so much time!"</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>Kevin Lee</strong>
-                            <div class="stars">★ ★ ★ ★ ★</div>
-                        </div>
-                        <span class="review-date">Nov 30, 2023</span>
-                    </div>
-                    <p class="review-text">"</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>Amanda Taylor</strong>
-                            <div class="stars">★ ★ ★ ☆ ☆</div>
-                        </div>
-                        <span class="review-date">Oct 12, 2023</span>
-                    </div>
-                    <p class="review-text">"good concept but the ai sometimes misses the mark. still usefull for basic compression tasks. the interface is intuitive but the suggestions are hit or miss. when it works, it works really well. when it doesnt, you end up spending more time trying to get josh to understand what you want. the genre specific features are nice but not always accurate. the study track feature is interesting but limited. overall its a decent plugin for beginners who dont know much about compression. for more experienced users, you might find the ai suggestions too generic. the adjust knob is useful for fine tuning. the conversational interface is novel but not always practical. i use it occasionally but still rely on traditional compressors for most of my work. its worth trying if you're new to mixing but dont expect it to replace your existing workflow completely"</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>Chris Martinez</strong>
-                            <div class="stars">★ ★ ★ ★ ★</div>
-                        </div>
-                        <span class="review-date">Sep 5, 2023</span>
-                    </div>
-                    <p class="review-text">"love it!"</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>Jennifer White</strong>
-                            <div class="stars">★ ★ ★ ★ ☆</div>
-                        </div>
-                        <span class="review-date">Aug 21, 2023</span>
-                    </div>
-                    <p class="review-text">"</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>Robert Davis</strong>
-                            <div class="stars">★ ★ ★ ★ ★</div>
-                        </div>
-                        <span class="review-date">Jul 14, 2023</span>
-                    </div>
-                    <p class="review-text">"best investment ive made for my studio. joshs suggestions are always on point. highly recommend! this plugin has completely transformed my mixing workflow. before this, i was spending hours trying to get the right compression settings. now i just tell josh what i want and he delivers. the genre specific features are incredible - when i say make it sound like drake, he actually gets it. my clients have been asking what i changed in my setup because the quality improvement is so noticeable. the study track feature is mind blowing, it analyzes my reference tracks and applies similar settings automatically. ive tried every major compressor plugin out there and nothing comes close to this. the conversational interface is so intuitive, its like having a professional mixing engineer in my studio. the adjust knob is perfect for fine tuning joshs suggestions. this plugin has saved me countless hours and my mixes sound more professional than ever. i cant recommend this enough to anyone serious about music production"</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>Michelle Clark</strong>
-                            <div class="stars">★ ★ ★ ☆ ☆</div>
-                        </div>
-                        <span class="review-date">Jun 28, 2023</span>
-                    </div>
-                    <p class="review-text">"good plugin but the learning curve was steeper than expected. once you get the hang of it, its usefull"</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>Daniel Kim</strong>
-                            <div class="stars">★ ★ ★ ★ ★</div>
-                        </div>
-                        <span class="review-date">May 11, 2023</span>
-                    </div>
-                    <p class="review-text">"incredible plugin! the genre specific features are spot on. when i say make it sound like the weeknd, josh delivers!"</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>Nicole Adams</strong>
-                            <div class="stars">★ ★ ★ ★ ☆</div>
-                        </div>
-                        <span class="review-date">Apr 3, 2024</span>
-                    </div>
-                    <p class="review-text">"love this plugin! the conversational interface is so natural. its like having a mixing engineer in my studio"</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>Brandon Wilson</strong>
-                            <div class="stars">★ ★ ★ ★ ★</div>
-                        </div>
-                        <span class="review-date">Mar 17, 2024</span>
-                    </div>
-                    <p class="review-text">"game changer! my mixes went from amateur to professional overnight. the ai really understands music production"</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>Stephanie Moore</strong>
-                            <div class="stars">★ ★ ★ ☆ ☆</div>
-                        </div>
-                        <span class="review-date">Feb 29, 2024</span>
-                    </div>
-                    <p class="review-text">"decent plugin but sometimes the ai suggestions dont work for my style. good for basic compression though"</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>Michael Turner</strong>
-                            <div class="stars">★ ★ ★ ★ ★</div>
-                        </div>
-                        <span class="review-date">Jan 25, 2024</span>
-                    </div>
-                    <p class="review-text">"revolutionary plugin! the study track feature is incredible. it analyzes my audio and applies perfect settings automatically"</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>Ashley Johnson</strong>
-                            <div class="stars">★ ★ ★ ★ ☆</div>
-                        </div>
-                        <span class="review-date">Dec 7, 2023</span>
-                    </div>
-                    <p class="review-text">"great plugin! the adjust knob is perfect for fine tuning. saves me so much time in my mixing workflow"</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>Ryan Smith</strong>
-                            <div class="stars">★ ★ ★ ★ ★</div>
-                        </div>
-                        <span class="review-date">Nov 18, 2023</span>
-                    </div>
-                    <p class="review-text">"amazing plugin! josh understands my creative vision perfectly. the conversational interface is exactly what i needed"</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>Lauren Brown</strong>
-                            <div class="stars">★ ★ ★ ☆ ☆</div>
-                        </div>
-                        <span class="review-date">Oct 4, 2023</span>
-                    </div>
-                    <p class="review-text">"good plugin but the interface could be more intuitive. takes some time to learn how to communicate with josh effectively"</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>Joshua Miller</strong>
-                            <div class="stars">★ ★ ★ ★ ★</div>
-                        </div>
-                        <span class="review-date">Sep 19, 2023</span>
-                    </div>
-                    <p class="review-text">"best compression plugin ever! the ai really gets what im going for. my clients are amazed by the results"</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>Jessica Davis</strong>
-                            <div class="stars">★ ★ ★ ★ ☆</div>
-                        </div>
-                        <span class="review-date">Aug 8, 2023</span>
-                    </div>
-                    <p class="review-text">"excellent plugin! the genre specific features are incredible. when i say make it sound like ariana grande, josh nails it!"</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>Andrew Wilson</strong>
-                            <div class="stars">★ ★ ★ ★ ★</div>
-                        </div>
-                        <span class="review-date">Jul 2, 2023</span>
-                    </div>
-                    <p class="review-text">"incredible plugin! the study track feature is a game changer. it analyzes my audio and applies perfect settings automatically"</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>Megan Taylor</strong>
-                            <div class="stars">★ ★ ★ ☆ ☆</div>
-                        </div>
-                        <span class="review-date">Jun 15, 2023</span>
-                    </div>
-                    <p class="review-text">"good plugin but sometimes the ai suggestions dont match my creative vision. still usefull for basic compression tasks"</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>Brian Anderson</strong>
-                            <div class="stars">★ ★ ★ ★ ★</div>
-                        </div>
-                        <span class="review-date">May 27, 2023</span>
-                    </div>
-                    <p class="review-text">"revolutionary! this plugin changed my entire approach to mixing. the conversational interface is exactly what music production needed"</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>Alex P.</strong>
-                            <div class="stars">★ ★ ★ ★ ☆</div>
-                        </div>
-                        <span class="review-date">May 4, 2024</span>
-                    </div>
-                    <p class="review-text">"</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>Mikey</strong>
-                            <div class="stars">★ ★ ★ ★ ★</div>
-                        </div>
-                        <span class="review-date">Apr 20, 2024</span>
-                    </div>
-                    <p class="review-text">"this thing is awsome! josh gets it man. my beats sound so much better now. def worth the money"</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>Kimberly Martinez</strong>
-                            <div class="stars">★ ★ ★ ★ ☆</div>
-                        </div>
-                        <span class="review-date">Mar 9, 2024</span>
-                    </div>
-                    <p class="review-text">"love this plugin! the adjust knob is perfect for fine tuning joshs suggestions. saves me so much time!"</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>Steven Clark</strong>
-                            <div class="stars">★ ★ ★ ★ ★</div>
-                        </div>
-                        <span class="review-date">Feb 1, 2024</span>
-                    </div>
-                    <p class="review-text">"amazing plugin! josh understands my style perfectly. the genre specific features are spot on. highly recommend!"</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>DJ_Sam</strong>
-                            <div class="stars">★ ★ ★ ★ ★</div>
-                        </div>
-                        <span class="review-date">Jan 12, 2024</span>
-                    </div>
-                    <p class="review-text">"</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>Sarah M.</strong>
-                            <div class="stars">★ ★ ★ ☆ ☆</div>
-                        </div>
-                        <span class="review-date">Dec 25, 2023</span>
-                    </div>
-                    <p class="review-text">"its ok i guess. sometimes works sometimes dosent. the ai is kinda weird but its better than nothing"</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>Lisa Rodriguez</strong>
-                            <div class="stars">★ ★ ★ ☆ ☆</div>
-                        </div>
-                        <span class="review-date">Nov 5, 2023</span>
-                    </div>
-                    <p class="review-text">"Decent plugin but the learning curve was steeper than expected. Once you get the hang of it, it's useful for basic tasks."</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>David Park</strong>
-                            <div class="stars">★ ★ ★ ★ ★</div>
-                        </div>
-                        <span class="review-date">Oct 21, 2023</span>
-                    </div>
-                    <p class="review-text">"Best investment I've made for my studio! Josh's suggestions are always on point. My mixes sound professional now."</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>Sarah Johnson</strong>
-                            <div class="stars">★ ★ ★ ★ ☆</div>
-                        </div>
-                        <span class="review-date">Sep 28, 2023</span>
-                    </div>
-                    <p class="review-text">"Great plugin! The Study Track feature is incredible. It analyzes my audio and applies perfect settings automatically."</p>
-                </div>
-                
-                <div class="review-card">
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>Mike Chen</strong>
-                            <div class="stars">★ ★ ★ ★ ★</div>
-                        </div>
-                        <span class="review-date">Aug 15, 2023</span>
-                    </div>
-                    <p class="review-text">"Incredible plugin! The conversational interface is so intuitive. Josh really understands what I'm going for. Game changer!"</p>
-                </div>
-            </div>
-            
-            <div style="text-align: center; margin: 30px 0;">
-                <button id="loadMoreBtn" class="load-more-btn" onclick="loadMoreReviews()" style="background: #666; color: white; border: none; padding: 10px 25px; border-radius: 8px; font-size: 0.9rem; font-style: italic; cursor: pointer; transition: all 0.3s ease;">
-                    See more reviews
-                </button>
-            </div>
-        </div>
-        <div class="buy-button-center" style="margin: 60px 0 40px 0;">
-            <button class="buy-button" onclick="handleBuyNow('1mo'); gtag('event', 'buy_button_click', { 'button_id': 'buybutton_6', 'button_text': 'GET FREE TRIAL' });">
-                GET FREE TRIAL
-            </button>
-        </div>
-        
-        <!-- Review Modal -->
-        <div id="reviewModal" class="review-modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>Submit Your Review</h3>
-                    <span class="close" onclick="closeReviewModal()">&times;</span>
-                </div>
-                <div class="modal-body">
-                    <form id="reviewForm">
-                        <div class="form-group">
-                            <label for="reviewerName">Your Name:</label>
-                            <input type="text" id="reviewerName" name="reviewerName" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Rating:</label>
-                            <div class="star-rating">
-                                <span class="star" data-rating="1">★</span>
-                                <span class="star" data-rating="2">★</span>
-                                <span class="star" data-rating="3">★</span>
-                                <span class="star" data-rating="4">★</span>
-                                <span class="star" data-rating="5">★</span>
-                            </div>
-                            <input type="hidden" id="rating" name="rating" value="0">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="reviewText">Your Review:</label>
-                            <textarea id="reviewText" name="reviewText" rows="4" placeholder="Share your experience with MegaMixAI..." required></textarea>
-                        </div>
-                        
-                        <div class="modal-buttons">
-                            <button type="button" class="cancel-btn" onclick="closeReviewModal()">Cancel</button>
-                            <button type="submit" class="submit-btn">Submit Review</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Email Signup Modal -->
-        <div id="emailModal" class="email-modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>🎵 Join the MegaMixAI Community!</h3>
-                    <span class="close" onclick="closeEmailModal()">&times;</span>
-                </div>
-                <div class="modal-body">
-                    <div style="text-align: center; margin-bottom: 30px;">
-                        <p style="font-size: 1.1rem; line-height: 1.6; margin-bottom: 20px; opacity: 0.9;">
-                            We are building a suite of the world's first AI mixing plugins—chat controls your mix—to help you become the best music producer you can be, without the engineering skills.<br><br>
-                            Be the first to find out about our next releases by signing up now.
-                        </p>
-                        <p style="font-size: 1rem; opacity: 0.8; margin-bottom: 30px;">
-                            <strong>Coming Soon:</strong> JoshEQ and JoshVerb
-                        </p>
-                    </div>
-                    
-                    <div class="form-group" style="margin-bottom: 30px;">
-                        <label for="emailInput" style="display: block; color: #fff; margin-bottom: 10px; font-weight: 500; text-align: center;">Enter your email address:</label>
-                        <input type="email" id="emailInput" name="emailInput" placeholder="your.email@example.com" required style="width: 100%; padding: 15px 20px; border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 10px; background: rgba(255, 255, 255, 0.95); color: #333; font-size: 1rem; transition: all 0.3s ease; text-align: center;">
-                    </div>
-                    
-                    <div class="modal-buttons" style="justify-content: center; gap: 20px;">
-                        <button type="button" class="submit-btn" onclick="handleEmailSignup(true)" style="background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%); color: white; border: none; padding: 15px 30px; border-radius: 10px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">
-                            Yes, Sign Me Up! 🎵
-                        </button>
-                        <button type="button" class="cancel-btn" onclick="handleEmailSignup(false)" style="background: rgba(255, 255, 255, 0.1); color: #ccc; border: 1px solid rgba(255, 255, 255, 0.2); padding: 15px 30px; border-radius: 10px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">
-                            No Thanks
-                        </button>
-                    </div>
-                    
-                    <div style="text-align: center; margin-top: 20px;">
-                        <p style="font-style: italic; font-size: 0.9rem; opacity: 0.7; color: #ccc; line-height: 1.4;">
-                            *You don't have to sign up in order to get your download. If not interested, click "No Thanks" and your download will begin.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Contact Support Modal -->
-        <div id="contactModal" class="contact-modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>🛠️ Contact Support</h3>
-                    <span class="close" onclick="closeContactModal()">&times;</span>
-                </div>
-                <div class="modal-body">
-                    <form id="contactForm">
-                        <div class="form-group">
-                            <label for="contactName">Your Name:</label>
-                            <input type="text" id="contactName" name="contactName" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="contactEmail">Your Email:</label>
-                            <input type="email" id="contactEmail" name="contactEmail" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="contactSubject">Subject:</label>
-                            <select id="contactSubject" name="contactSubject" required>
-                                <option value="">Select a topic...</option>
-                                <option value="Plugin Installation Help">Plugin Installation Help</option>
-                                <option value="License Key Issues">License Key Issues</option>
-                                <option value="Plugin Not Working">Plugin Not Working</option>
-                                <option value="Feature Request">Feature Request</option>
-                                <option value="Bug Report">Bug Report</option>
-                                <option value="General Question">General Question</option>
-                                <option value="Other">Other</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="contactMessage">Message:</label>
-                            <textarea id="contactMessage" name="contactMessage" rows="5" placeholder="Please describe your issue or question in detail..." required></textarea>
-                        </div>
-                        
-                        <div class="modal-buttons">
-                            <button type="button" class="cancel-btn" onclick="closeContactModal()">Cancel</button>
-                            <button type="submit" class="submit-btn">Send Message</button>
-                        </div>
-                    </form>
+            <div class="email-modal-app-body">
+                <p class="email-modal-app-p">Be the first to find out about our next releases. Sign up for our newsletter.</p>
+                <label for="newsletterEmailInputHome">Your email address:</label>
+                <input type="email" id="newsletterEmailInputHome" placeholder="your.email@example.com">
+                <div class="email-modal-app-buttons">
+                    <button type="button" class="btn btn-primary" id="newsletterSignupModalHomeSubmit">Sign Me Up</button>
+                    <button type="button" class="btn btn-ghost" id="newsletterSignupModalHomeCancel">Close</button>
                 </div>
             </div>
         </div>
     </div>
-
-        <script>
-            let currentRating = 0;
-            const API_BASE_URL = 'https://megamixai-mvp-backend.onrender.com';
-            const promoCodeId = 'promo_1SRGXLIKMp3hwEiG23L3tfc2';
-            const promoFallbackTotal = 500;
-            let promoSpots = promoFallbackTotal;
-            let promoRefreshTimer = null;
-
-            function renderPromoSpots(remaining) {
-                const spotsEl = document.getElementById('spots');
-                if (!spotsEl) return;
-
-                const valueToDisplay = (typeof remaining === 'number' && !Number.isNaN(remaining))
-                    ? remaining
-                    : promoFallbackTotal;
-
-                spotsEl.innerHTML = `<strong style="color:#8b5cf6; background: #ffffff; padding: 0 6px; border-radius: 6px;">${valueToDisplay}</strong> left – updating live!`;
-            }
-
-            async function refreshPromoSpots() {
-                try {
-                    const queryParam = promoCodeId ? `?id=${encodeURIComponent(promoCodeId)}` : '?code=FIRST500';
-                    const response = await fetch(`${API_BASE_URL}/api/coupon-usage${queryParam}`, {
-                        headers: { 'Accept': 'application/json' },
-                        cache: 'no-store'
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`Request failed with status ${response.status}`);
-                    }
-
-                    const data = await response.json();
-
-                    if (data.success && typeof data.remaining === 'number') {
-                        promoSpots = data.remaining;
-                    } else if (data.success && typeof data.maxRedemptions === 'number' && typeof data.timesRedeemed === 'number') {
-                        promoSpots = Math.max(data.maxRedemptions - data.timesRedeemed, 0);
-                    } else {
-                        promoSpots = null;
-                    }
-                } catch (error) {
-                    console.error('Failed to fetch promotion usage:', error);
-                    promoSpots = null;
-                } finally {
-                    renderPromoSpots(promoSpots);
-                }
-            }
-            
-            function openReviewModal() {
-                document.getElementById('reviewModal').style.display = 'block';
+    <script>
+        (function () {
+            var newsletterModal = document.getElementById('newsletterSignupModalHome');
+            var newsletterLink = document.getElementById('footer-newsletter-home');
+            var newsletterClose = document.getElementById('newsletterSignupModalHomeClose');
+            var newsletterCancel = document.getElementById('newsletterSignupModalHomeCancel');
+            var newsletterSubmit = document.getElementById('newsletterSignupModalHomeSubmit');
+            var newsletterInput = document.getElementById('newsletterEmailInputHome');
+            function openNewsletter() {
+                newsletterModal.classList.remove('hidden');
+                if (newsletterInput) newsletterInput.value = '';
                 document.body.style.overflow = 'hidden';
             }
-            
-            function closeReviewModal() {
-                document.getElementById('reviewModal').style.display = 'none';
-                document.body.style.overflow = 'auto';
-                resetForm();
+            function closeNewsletter() {
+                newsletterModal.classList.add('hidden');
+                document.body.style.overflow = '';
             }
-            
-            function resetForm() {
-                document.getElementById('reviewForm').reset();
-                currentRating = 0;
-                document.getElementById('rating').value = '0';
-                updateStars();
-            }
-            
-            function updateStars() {
-                const stars = document.querySelectorAll('.star');
-                stars.forEach((star, index) => {
-                    if (index < currentRating) {
-                        star.classList.add('active');
-                    } else {
-                        star.classList.remove('active');
-                    }
-                });
-            }
-            
-            function setRating(rating) {
-                currentRating = rating;
-                document.getElementById('rating').value = rating;
-                updateStars();
-            }
-            
-            function addReviewToPage(name, rating, text) {
-                const reviewsGrid = document.querySelector('.reviews-grid');
-                const newReview = document.createElement('div');
-                newReview.className = 'review-card';
-                
-                const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
-                const currentDate = new Date().toLocaleDateString('en-US', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                });
-                
-                newReview.innerHTML = `
-                    <div class="review-header">
-                        <div class="reviewer-info">
-                            <strong>${name}</strong>
-                            <div class="stars">${stars}</div>
-                        </div>
-                        <span class="review-date">${currentDate}</span>
-                    </div>
-                    <p class="review-text">"${text}"</p>
-                `;
-                
-                // Add to the top of the reviews
-                reviewsGrid.insertBefore(newReview, reviewsGrid.firstChild);
-                
-                // Update the review count
-                const reviewCount = document.querySelector('.review-count');
-                const currentCount = parseInt(reviewCount.textContent.match(/\d+/)[0]);
-                reviewCount.textContent = `Based on ${currentCount + 1} reviews`;
-                
-                // Update average rating (simplified calculation)
-                updateAverageRating();
-                
-                // Update the first buy button with new stats
-                updateFirstBuyButton();
-            }
-            
-            function updateAverageRating() {
-                const reviews = document.querySelectorAll('.review-card');
-                let totalRating = 0;
-                let totalReviews = reviews.length;
-                
-                reviews.forEach(review => {
-                    const stars = review.querySelector('.stars').textContent;
-                    const rating = (stars.match(/★/g) || []).length;
-                    totalRating += rating;
-                });
-                
-                const average = (totalRating / totalReviews).toFixed(1);
-                document.querySelector('.rating-number').textContent = average;
-                
-                // Update the large stars display
-                const starsLarge = document.querySelector('.stars-large');
-                const fullStars = Math.floor(average);
-                const hasHalfStar = average % 1 >= 0.5;
-                let starsDisplay = '★'.repeat(fullStars);
-                if (hasHalfStar) starsDisplay += '☆';
-                starsDisplay += '☆'.repeat(5 - fullStars - (hasHalfStar ? 1 : 0));
-                starsLarge.textContent = starsDisplay;
-            }
-            
-            // Function for smooth scrolling to reviews section
-            function smoothScrollToReviews(event) {
-                event.preventDefault();
-                const reviewsSection = document.getElementById('reviews-section');
-                if (reviewsSection) {
-                    reviewsSection.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
-            }
-            
-            // Masonry layout fallback for browsers that don't support CSS masonry
-            function applyMasonryLayout() {
-                const grid = document.querySelector('.reviews-grid');
-                if (!grid) return;
-                
-                // Skip masonry layout on mobile devices
-                if (window.innerWidth <= 768) {
-                    return;
-                }
-                
-                // Check if browser supports CSS masonry
-                if (CSS.supports('grid-template-rows', 'masonry')) {
-                    return; // Use native CSS masonry
-                }
-                
-                // Fallback: JavaScript masonry layout
-                const cards = Array.from(grid.children);
-                const cardWidth = 300;
-                const gap = 20;
-                const totalCardWidth = cardWidth + gap;
-                const availableWidth = grid.offsetWidth;
-                let columns = Math.floor(availableWidth / totalCardWidth);
-                if (!Number.isFinite(columns) || columns < 1) {
-                    columns = 1;
-                }
-                
-                const columnHeights = new Array(columns).fill(0);
-                
-                // Calculate starting position to center the grid
-                const totalGridWidth = (columns * totalCardWidth) - gap;
-                const startX = (availableWidth - totalGridWidth) / 2;
-                
-                cards.forEach(card => {
-                    // Find the shortest column
-                    const shortestColumn = columnHeights.indexOf(Math.min(...columnHeights));
-                    
-                    // Position the card
-                    card.style.position = 'absolute';
-                    card.style.left = `${startX + (shortestColumn * totalCardWidth)}px`;
-                    card.style.top = `${columnHeights[shortestColumn]}px`;
-                    card.style.width = `${cardWidth}px`;
-                    
-                    // Update column height
-                    columnHeights[shortestColumn] += card.offsetHeight + gap;
-                });
-                
-                // Set grid container height
-                grid.style.position = 'relative';
-                grid.style.height = `${Math.max(...columnHeights)}px`;
-            }
-            
-            // Apply masonry layout on load and resize
-            window.addEventListener('load', applyMasonryLayout);
-            window.addEventListener('resize', applyMasonryLayout);
-            
-            // Function to update the first buy button with review stats
-            function updateFirstBuyButton() {
-                const reviews = document.querySelectorAll('.review-card');
-                let totalRating = 0;
-                let totalReviews = reviews.length;
-                
-                if (totalReviews === 0) {
-                    document.getElementById('reviewCount').textContent = 'No reviews yet';
-                    return;
-                }
-                
-                reviews.forEach(review => {
-                    const stars = review.querySelector('.stars').textContent;
-                    const rating = (stars.match(/★/g) || []).length;
-                    totalRating += rating;
-                });
-                
-                const average = (totalRating / totalReviews).toFixed(1);
-                const fullStars = Math.floor(average);
-                const hasHalfStar = average % 1 >= 0.5;
-                
-                let starsDisplay = '';
-                for (let i = 0; i < fullStars; i++) {
-                    starsDisplay += '<span style="color: #ffd700; font-size: 1.2rem;">★</span>';
-                }
-                if (hasHalfStar) {
-                    starsDisplay += '<span style="color: #ffd700; font-size: 1.2rem;">☆</span>';
-                }
-                for (let i = fullStars + (hasHalfStar ? 1 : 0); i < 5; i++) {
-                    starsDisplay += '<span style="color: #666; font-size: 1.2rem;">☆</span>';
-                }
-                
-                document.getElementById('reviewCount').innerHTML = 
-                    `${starsDisplay} <span style="color: #8b5cf6; font-weight: bold;">${average}/5</span> <span style="color: #999;">(${totalReviews} reviews)</span>`;
-            }
-            
-            // Slideshow functionality
-            let currentSlide = 0;
-            const totalSlides = 3; // Master Mode, JoshSquash, JoshEQ
-            
-            function nextSlide() {
-                currentSlide = (currentSlide + 1) % totalSlides;
-                updateSlideshow();
-            }
-            
-            function prevSlide() {
-                currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
-                updateSlideshow();
-            }
-            
-            function updateSlideshow() {
-                const wrapper = document.getElementById('slideshowWrapper');
-                const nextBtn = document.getElementById('nextSlideBtn');
-                const prevBtn = document.getElementById('prevSlideBtn');
-                
-                if (wrapper) {
-                    wrapper.style.transform = `translateX(-${currentSlide * 100}%)`;
-                }
-                
-                // Show/hide arrows based on current slide
-                if (nextBtn) {
-                    if (currentSlide === totalSlides - 1) {
-                        // Last slide - hide right arrow
-                        nextBtn.classList.add('hidden');
-                    } else {
-                        // Not last slide - show right arrow
-                        nextBtn.classList.remove('hidden');
-                    }
-                }
-                
-                if (prevBtn) {
-                    if (currentSlide === 0) {
-                        // First slide - hide left arrow
-                        prevBtn.classList.add('hidden');
-                    } else {
-                        // Not first slide - show left arrow
-                        prevBtn.classList.remove('hidden');
-                    }
-                }
-            }
-            
-            renderPromoSpots(promoSpots);
-            
-            // Reviews pagination functionality
-            let currentPage = 1;
-            const reviewsPerPage = 20;
-            let allReviews = [];
-            
-            function initializeReviewsPagination() {
-                const reviewsGrid = document.getElementById('reviewsGrid');
-                allReviews = Array.from(reviewsGrid.children);
-                
-                // Hide all reviews initially
-                allReviews.forEach(review => {
-                    review.style.display = 'none';
-                });
-                
-                // Show first page
-                showReviewsPage(1);
-            }
-            
-            function showReviewsPage(page) {
-                const startIndex = (page - 1) * reviewsPerPage;
-                const endIndex = startIndex + reviewsPerPage;
-                
-                // Show reviews for current page (append to existing)
-                for (let i = startIndex; i < endIndex && i < allReviews.length; i++) {
-                    allReviews[i].style.display = 'block';
-                }
-                
-                // Update button text
-                const loadMoreBtn = document.getElementById('loadMoreBtn');
-                if (endIndex >= allReviews.length) {
-                    loadMoreBtn.style.display = 'none';
-                } else {
-                    loadMoreBtn.style.display = 'inline-block';
-                    loadMoreBtn.textContent = `See more reviews (${allReviews.length - endIndex} remaining)`;
-                }
-                
-                // Reapply masonry layout after adding new reviews
-                setTimeout(() => {
-                    applyMasonryLayout();
-                }, 100);
-            }
-            
-            function loadMoreReviews() {
-                currentPage++;
-                showReviewsPage(currentPage);
-            }
-            
-            // Initialize star rating functionality
-            document.addEventListener('DOMContentLoaded', function() {
-                const navToggle = document.getElementById('navToggle');
-                const navLinks = document.getElementById('navbarLinks');
-
-                // Fetch live promotion usage and continue refreshing while the page is open
-                refreshPromoSpots();
-                promoRefreshTimer = setInterval(refreshPromoSpots, 60000);
-
-                if (navToggle && navLinks) {
-                    navToggle.addEventListener('click', function() {
-                        const isOpen = navLinks.classList.toggle('open');
-                        navToggle.setAttribute('aria-expanded', isOpen);
-                    });
-
-                    navLinks.querySelectorAll('a').forEach(link => {
-                        link.addEventListener('click', () => {
-                            if (navLinks.classList.contains('open')) {
-                                navLinks.classList.remove('open');
-                                navToggle.setAttribute('aria-expanded', 'false');
-                            }
-                        });
-                    });
-                }
-
-                // Initialize slideshow
-                updateSlideshow();
-                
-                // Initialize reviews pagination
-                initializeReviewsPagination();
-                
-                // Update the first buy button with review stats
-                updateFirstBuyButton();
-                const stars = document.querySelectorAll('.star');
-                stars.forEach((star, index) => {
-                    star.addEventListener('click', () => setRating(index + 1));
-                    star.addEventListener('mouseenter', () => {
-                        for (let i = 0; i <= index; i++) {
-                            stars[i].style.color = '#ffd700';
-                        }
-                    });
-                    star.addEventListener('mouseleave', () => {
-                        updateStars();
-                    });
-                });
-                
-                // Handle form submission
-                document.getElementById('reviewForm').addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    
-                    const name = document.getElementById('reviewerName').value.trim();
-                    const rating = parseInt(document.getElementById('rating').value);
-                    const text = document.getElementById('reviewText').value.trim();
-                    
-                    if (!name || !rating || !text) {
-                        alert('Please fill in all fields and select a rating.');
-                        return;
-                    }
-                    
-                    if (rating < 1 || rating > 5) {
-                        alert('Please select a valid rating.');
-                        return;
-                    }
-                    
-                    // Add the review to the page
-                    addReviewToPage(name, rating, text);
-                    
-                    // Close the modal
-                    closeReviewModal();
-                    
-                    // Show success message
-                    alert('Thank you for your review! It has been added to our reviews section.');
-                });
-                
-                // Close modal when clicking outside
-                document.getElementById('reviewModal').addEventListener('click', function(e) {
-                    if (e.target === this) {
-                        closeReviewModal();
-                    }
-                });
-                
-                // Close email modal when clicking outside
-                document.getElementById('emailModal').addEventListener('click', function(e) {
-                    if (e.target === this) {
-                        closeEmailModal();
-                    }
-                });
-                
-                // Close contact modal when clicking outside
-                document.getElementById('contactModal').addEventListener('click', function(e) {
-                    if (e.target === this) {
-                        closeContactModal();
-                    }
-                });
-                
-                // Handle contact form submission
-                document.getElementById('contactForm').addEventListener('submit', async function(e) {
-                    e.preventDefault();
-                    
-                    const formData = {
-                        name: document.getElementById('contactName').value.trim(),
-                        email: document.getElementById('contactEmail').value.trim(),
-                        subject: document.getElementById('contactSubject').value,
-                        message: document.getElementById('contactMessage').value.trim()
-                    };
-                    
-                    // Basic validation
-                    if (!formData.name || !formData.email || !formData.subject || !formData.message) {
-                        alert('Please fill in all fields.');
-                        return;
-                    }
-                    
-                    try {
-                        const response = await fetch(`${API_BASE_URL}/contact-support`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify(formData)
-                        });
-                        
-                        const result = await response.json();
-                        
-                        if (result.success) {
-                            alert('Thank you for contacting us! We\'ll get back to you within 24 hours.');
-                            closeContactModal();
-                        } else {
-                            alert('Sorry, there was an error sending your message. Please try again or email us directly at support@megamixai.com');
-                        }
-                    } catch (error) {
-                        console.error('Contact form error:', error);
-                        alert('Sorry, there was an error sending your message. Please try again or email us directly at support@megamixai.com');
-                    }
-                });
+            function isValidEmail(email) { return /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email || ''); }
+            if (newsletterLink) newsletterLink.addEventListener('click', function (e) { e.preventDefault(); openNewsletter(); });
+            if (newsletterClose) newsletterClose.addEventListener('click', closeNewsletter);
+            if (newsletterCancel) newsletterCancel.addEventListener('click', closeNewsletter);
+            newsletterModal.addEventListener('click', function (e) { if (e.target === newsletterModal) closeNewsletter(); });
+            if (newsletterSubmit) newsletterSubmit.addEventListener('click', function () {
+                var email = newsletterInput ? newsletterInput.value.trim() : '';
+                if (!email || !isValidEmail(email)) { alert('Please enter a valid email address.'); return; }
+                fetch((window.location.origin || '') + '/mailchimp-signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, format: 'web-newsletter', platform: 'web' })
+                }).then(function (r) { return r.json().catch(function () { return {}; }); }).then(function (data) {
+                    if (data.success) { alert('Thanks for signing up!'); } else { alert(data.error || 'Please try again.'); }
+                    closeNewsletter();
+                }).catch(function () { alert('Something went wrong. Please try again.'); closeNewsletter(); });
             });
-
-            // Before/After hearing cards: A/B playback (both play, switch audible), progress bar, tab = mute/unmute
-            (function initBeforeAfterCards() {
-                function formatTime(seconds) {
-                    if (!isFinite(seconds) || seconds < 0) return '0:00';
-                    var m = Math.floor(seconds / 60);
-                    var s = Math.floor(seconds % 60);
-                    return m + ':' + (s < 10 ? '0' : '') + s;
+        })();
+    </script>
+    <script>
+        (function () {
+            var contactModal = document.getElementById('contactModalHome');
+            var contactLink = document.getElementById('footer-contact-home');
+            var contactClose = document.getElementById('contactModalHomeClose');
+            var contactCancel = document.getElementById('contactModalHomeCancel');
+            var contactForm = document.getElementById('contactFormHome');
+            function openContact() {
+                if (contactModal) {
+                    contactModal.classList.remove('hidden');
+                    document.body.style.overflow = 'hidden';
                 }
-                var section = document.querySelector('.before-after-section');
-                if (!section) return;
-                section.querySelectorAll('.before-after-card').forEach(function (card) {
-                    var audioBefore = card.querySelector('.before-after-audio[data-mode="before"]');
-                    var audioAfter = card.querySelector('.before-after-audio[data-mode="after"]');
-                    var playBtn = card.querySelector('.before-after-play-btn');
-                    var progress = card.querySelector('.before-after-progress');
-                    var timeEl = card.querySelector('.before-after-time');
-                    var durationEl = card.querySelector('.before-after-duration');
-                    var tabs = card.querySelectorAll('.before-after-tab');
-                    if (!audioBefore || !audioAfter || !playBtn || !progress) return;
-                    function getActiveMode() {
-                        var active = card.querySelector('.before-after-tab.active');
-                        return active ? active.getAttribute('data-mode') : 'after';
+            }
+            function closeContact() {
+                if (contactModal) {
+                    contactModal.classList.add('hidden');
+                    document.body.style.overflow = '';
+                    if (contactForm) contactForm.reset();
+                }
+            }
+            if (contactLink) contactLink.addEventListener('click', function (e) { e.preventDefault(); openContact(); });
+            if (contactClose) contactClose.addEventListener('click', closeContact);
+            if (contactCancel) contactCancel.addEventListener('click', closeContact);
+            if (contactModal) contactModal.addEventListener('click', function (e) { if (e.target === contactModal) closeContact(); });
+            if (contactForm) contactForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                var name = document.getElementById('contactNameHome') && document.getElementById('contactNameHome').value.trim();
+                var email = document.getElementById('contactEmailHome') && document.getElementById('contactEmailHome').value.trim();
+                var subject = document.getElementById('contactSubjectHome') && document.getElementById('contactSubjectHome').value;
+                var message = document.getElementById('contactMessageHome') && document.getElementById('contactMessageHome').value.trim();
+                if (!name || !email || !subject || !message) { alert('Please fill in all fields.'); return; }
+                fetch((window.location.origin || '') + '/contact-support', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: name, email: email, subject: subject, message: message })
+                }).then(function (r) { return r.json(); }).then(function (result) {
+                    if (result.success) { alert('Thank you for contacting us! We\'ll get back to you within 24 hours.'); closeContact(); }
+                    else { alert('Sorry, there was an error. Please try again or email support@megamixai.com'); }
+                }).catch(function () { alert('Sorry, there was an error. Please try again or email support@megamixai.com'); });
+            });
+        })();
+    </script>
+    <script>
+        (function () {
+            function startCheckout(e) {
+                if (e) e.preventDefault();
+                fetch((window.location.origin || '') + '/create-checkout-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ priceId: '1mo' })
+                }).then(function (r) { return r.json(); }).then(function (data) {
+                    if (data.url) window.location.href = data.url;
+                    else alert(data.error || 'Could not start checkout.');
+                }).catch(function () { alert('Network error. Please try again.'); });
+            }
+            var ft = document.getElementById('footer-free-trial-home');
+            if (ft) ft.addEventListener('click', startCheckout);
+            var btnTrialHome = document.getElementById('btn-get-free-trial-home');
+            if (btnTrialHome) btnTrialHome.addEventListener('click', startCheckout);
+            var btnTrialBottom = document.getElementById('btn-get-free-trial-bottom');
+            if (btnTrialBottom) btnTrialBottom.addEventListener('click', startCheckout);
+        })();
+    </script>
+    <script>
+        (function () {
+            function formatTime(seconds) {
+                if (!isFinite(seconds) || seconds < 0) return '0:00';
+                var m = Math.floor(seconds / 60);
+                var s = Math.floor(seconds % 60);
+                return m + ':' + (s < 10 ? '0' : '') + s;
+            }
+            var section = document.querySelector('.before-after-section');
+            if (!section) return;
+            section.querySelectorAll('.before-after-card').forEach(function (card) {
+                var audioBefore = card.querySelector('.before-after-audio[data-mode="before"]');
+                var audioAfter = card.querySelector('.before-after-audio[data-mode="after"]');
+                var playBtn = card.querySelector('.before-after-play-btn');
+                var progress = card.querySelector('.before-after-progress');
+                var timeEl = card.querySelector('.before-after-time');
+                var durationEl = card.querySelector('.before-after-duration');
+                var tabs = card.querySelectorAll('.before-after-tab');
+                if (!audioBefore || !audioAfter || !playBtn || !progress) return;
+                function getActiveMode() {
+                    var active = card.querySelector('.before-after-tab.active');
+                    return active ? active.getAttribute('data-mode') : 'after';
+                }
+                function setMutedFromTab() {
+                    var mode = getActiveMode();
+                    audioBefore.muted = (mode !== 'before');
+                    audioAfter.muted = (mode !== 'after');
+                }
+                function updateProgress() {
+                    var t = audioBefore.currentTime;
+                    var d = audioBefore.duration;
+                    if (d && isFinite(d)) {
+                        progress.value = d > 0 ? (t / d) * 100 : 0;
+                        if (durationEl) durationEl.textContent = formatTime(d);
                     }
-                    function setMutedFromTab() {
-                        var mode = getActiveMode();
-                        audioBefore.muted = (mode !== 'before');
-                        audioAfter.muted = (mode !== 'after');
-                    }
-                    function updateProgress() {
-                        var t = audioBefore.currentTime;
-                        var d = audioBefore.duration;
-                        if (d && isFinite(d)) {
-                            progress.value = d > 0 ? (t / d) * 100 : 0;
-                            durationEl.textContent = formatTime(d);
-                        }
-                        timeEl.textContent = formatTime(t);
-                    }
-                    function syncCurrentTime(source) {
-                        var t = source.currentTime;
-                        if (audioBefore !== source) audioBefore.currentTime = t;
-                        if (audioAfter !== source) audioAfter.currentTime = t;
-                    }
-                    function stopBoth() {
+                    if (timeEl) timeEl.textContent = formatTime(t);
+                }
+                tabs.forEach(function (tab) {
+                    tab.addEventListener('click', function () {
+                        tabs.forEach(function (t) { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
+                        tab.classList.add('active');
+                        tab.setAttribute('aria-selected', 'true');
+                        setMutedFromTab();
+                    });
+                });
+                playBtn.addEventListener('click', function () {
+                    var playing = !audioBefore.paused || !audioAfter.paused;
+                    if (playing) {
                         audioBefore.pause();
                         audioAfter.pause();
                         playBtn.classList.remove('playing');
                         playBtn.textContent = '\u25B6';
-                        updateProgress();
+                    } else {
+                        var pos = audioBefore.currentTime || 0;
+                        audioBefore.currentTime = pos;
+                        audioAfter.currentTime = pos;
+                        setMutedFromTab();
+                        audioBefore.play();
+                        audioAfter.play();
+                        playBtn.classList.add('playing');
+                        playBtn.textContent = '\u23F8';
                     }
-                    tabs.forEach(function (tab) {
-                        tab.addEventListener('click', function () {
-                            tabs.forEach(function (t) {
-                                t.classList.remove('active');
-                                t.setAttribute('aria-selected', 'false');
-                            });
-                            tab.classList.add('active');
-                            tab.setAttribute('aria-selected', 'true');
-                            setMutedFromTab();
-                        });
-                    });
-                    playBtn.addEventListener('click', function () {
-                        var playing = !audioBefore.paused || !audioAfter.paused;
-                        if (playing) {
-                            audioBefore.pause();
-                            audioAfter.pause();
-                            playBtn.classList.remove('playing');
-                            playBtn.textContent = '\u25B6';
-                        } else {
-                            var pos = audioBefore.currentTime || 0;
-                            audioBefore.currentTime = pos;
-                            audioAfter.currentTime = pos;
-                            setMutedFromTab();
-                            audioBefore.play();
-                            audioAfter.play();
-                            playBtn.classList.add('playing');
-                            playBtn.textContent = '\u23F8';
-                        }
-                    });
-                    progress.addEventListener('input', function () {
-                        var d = audioBefore.duration;
-                        if (d && isFinite(d)) {
-                            var t = (progress.value / 100) * d;
-                            audioBefore.currentTime = t;
-                            audioAfter.currentTime = t;
-                            timeEl.textContent = formatTime(t);
-                        }
-                    });
-                    audioBefore.addEventListener('loadedmetadata', function () {
-                        durationEl.textContent = formatTime(audioBefore.duration);
-                    });
-                    audioBefore.addEventListener('timeupdate', function () {
-                        updateProgress();
-                        if (Math.abs(audioBefore.currentTime - audioAfter.currentTime) > 0.15)
-                            audioAfter.currentTime = audioBefore.currentTime;
-                    });
-                    audioAfter.addEventListener('timeupdate', function () {
-                        if (Math.abs(audioBefore.currentTime - audioAfter.currentTime) > 0.15)
-                            audioBefore.currentTime = audioAfter.currentTime;
-                    });
-                    audioBefore.addEventListener('ended', stopBoth);
-                    audioAfter.addEventListener('ended', stopBoth);
-                    setMutedFromTab();
                 });
-            })();
-            
-            async function handleBuyNow(priceId) {
-                try {
-                    // This will call your Render backend to create a Stripe checkout session
-                    const response = await fetch(`${API_BASE_URL}/create-checkout-session`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ priceId: priceId || '1mo' }) // Default to 1-month if not specified
-                    });
-                    
-                    const session = await response.json();
-                    
-                    if (session.error) {
-                        alert('Error: ' + session.error);
-                        return;
+                progress.addEventListener('input', function () {
+                    var d = audioBefore.duration;
+                    if (d && isFinite(d)) {
+                        var t = (progress.value / 100) * d;
+                        audioBefore.currentTime = t;
+                        audioAfter.currentTime = t;
+                        if (timeEl) timeEl.textContent = formatTime(t);
                     }
-                    
-                    // Redirect to Stripe Checkout
-                    window.location.href = session.url;
-                } catch (error) {
-                    console.error('Error creating checkout session:', error);
-                    alert('Error processing payment. Please try again.');
-                }
-            }
-            
-            // Email signup modal functions
-            let pendingDownload = null;
-            
-            function openEmailModal(format, platform) {
-                pendingDownload = { format: format, platform: platform };
-                document.getElementById('emailModal').style.display = 'block';
-                document.body.style.overflow = 'hidden';
-            }
-            
-            function closeEmailModal() {
-                document.getElementById('emailModal').style.display = 'none';
-                document.body.style.overflow = 'auto';
-                pendingDownload = null;
-            }
-            
-            // Contact support modal functions
-            function openContactModal() {
-                document.getElementById('contactModal').style.display = 'block';
-                document.body.style.overflow = 'hidden';
-            }
-            
-            function closeContactModal() {
-                document.getElementById('contactModal').style.display = 'none';
-                document.body.style.overflow = 'auto';
-                document.getElementById('contactForm').reset();
-            }
-            
-            async function handleEmailSignup(signedUp) {
-                let emailAddress = '';
-                
-                // If user wants to sign up, get their email
-                if (signedUp) {
-                    const emailInput = document.getElementById('emailInput');
-                    emailAddress = emailInput.value.trim();
-                    
-                    // Basic email validation
-                    if (!emailAddress || !isValidEmail(emailAddress)) {
-                        alert('Please enter a valid email address.');
-                        return;
-                    }
-                }
-                
-                // Store download info before closing modal
-                const downloadInfo = pendingDownload;
-                
-                // Track email signup decision
-                if (downloadInfo) {
-                    gtag('event', 'email_signup_decision', {
-                        'signed_up': signedUp,
-                        'email_provided': emailAddress,
-                        'format': downloadInfo.format,
-                        'platform': downloadInfo.platform
-                    });
-                }
-                
-                // If user signed up, add to Mailchimp
-                if (signedUp && emailAddress && downloadInfo) {
-                    try {
-                        const response = await fetch(`${API_BASE_URL}/mailchimp-signup`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                email: emailAddress,
-                                format: downloadInfo.format,
-                                platform: downloadInfo.platform
-                            })
-                        });
-                        
-                        const result = await response.json();
-                        
-                        if (result.success) {
-                            console.log('Successfully added to Mailchimp:', result.message);
-                        } else {
-                            console.error('Mailchimp signup failed:', result.error);
-                        }
-                    } catch (error) {
-                        console.error('Error adding to Mailchimp:', error);
-                    }
-                }
-                
-                // Close modal
-                closeEmailModal();
-                
-                // Proceed with download
-                if (downloadInfo) {
-                    downloadPlugin(downloadInfo.format, downloadInfo.platform);
-                }
-            }
-            
-            function isValidEmail(email) {
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                return emailRegex.test(email);
-            }
-            
-            // Download plugin function
-            function downloadPlugin(format, platform) {
-                // Map format/platform to real files in ./downloads
-                const map = {
-                    'au:mac': './downloads/MegaMixAI_AU_mac/MegaMixAI_AU_mac.pkg',
-                    'vst3:windows': './downloads/MegaMixAI_VST3_windows/MegaMixAI_VST3_win.exe',
-                };
-                const key = `${format}:${platform}`;
-                const url = map[key];
-                if (!url) {
-                    alert('Download for this format/platform is not available yet.');
-                    return;
-                }
-                const link = document.createElement('a');
-                link.href = url;
-                link.style.display = 'none';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            }
-            
-        </script>
+                });
+                audioBefore.addEventListener('loadedmetadata', function () {
+                    if (durationEl) durationEl.textContent = formatTime(audioBefore.duration);
+                });
+                audioBefore.addEventListener('timeupdate', function () {
+                    updateProgress();
+                    if (Math.abs(audioBefore.currentTime - audioAfter.currentTime) > 0.15)
+                        audioAfter.currentTime = audioBefore.currentTime;
+                });
+                audioAfter.addEventListener('timeupdate', function () {
+                    if (Math.abs(audioBefore.currentTime - audioAfter.currentTime) > 0.15)
+                        audioBefore.currentTime = audioAfter.currentTime;
+                });
+                audioBefore.addEventListener('ended', function () {
+                    audioBefore.pause();
+                    audioAfter.pause();
+                    playBtn.classList.remove('playing');
+                    playBtn.textContent = '\u25B6';
+                    updateProgress();
+                });
+                audioAfter.addEventListener('ended', function () {
+                    audioBefore.pause();
+                    audioAfter.pause();
+                    playBtn.classList.remove('playing');
+                    playBtn.textContent = '\u25B6';
+                    updateProgress();
+                });
+                setMutedFromTab();
+            });
+        })();
+    </script>
 </body>
 </html>
