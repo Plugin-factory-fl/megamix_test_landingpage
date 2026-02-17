@@ -1582,6 +1582,22 @@ body {
     padding: 20px;
 }
 
+@media (max-width: 768px) {
+    .auth-overlay {
+        align-items: flex-start;
+        overflow-y: auto;
+        padding: 16px;
+        -webkit-overflow-scrolling: touch;
+    }
+    .login-modal {
+        max-height: 88vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding: 24px;
+        margin: 12px auto 32px;
+    }
+}
+
 .login-modal {
     background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
     border: 1px solid rgba(255,255,255,0.15);
