@@ -48,6 +48,43 @@
     const playbackSection = document.getElementById('playback-section');
     const masteringStatusEl = document.getElementById('mastering-status');
 
+    const AI_MIX_API_TIMEOUT_MS = 45000;
+
+    async function fetchAiMixChanges(message) {
+        const token = window.MegaMixAuth && typeof window.MegaMixAuth.getToken === 'function' ? window.MegaMixAuth.getToken() : null;
+        const url = (typeof window !== 'undefined' && window.location && window.location.origin ? window.location.origin : '') + '/api/ai/mix';
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), AI_MIX_API_TIMEOUT_MS);
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': token ? 'Bearer ' + token : ''
+                },
+                body: JSON.stringify({
+                    message: message,
+                    tracks: state.tracks,
+                    trackAnalyses: state.trackAnalyses || []
+                }),
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            const data = await res.json().catch(() => ({}));
+            if (res.status === 401) {
+                if (window.MegaMixAuth && typeof window.MegaMixAuth.showLoginRequired === 'function') {
+                    window.MegaMixAuth.showLoginRequired();
+                }
+                return null;
+            }
+            if (res.ok && Array.isArray(data.changes) && data.changes.length > 0) return data.changes;
+            return null;
+        } catch (e) {
+            clearTimeout(timeoutId);
+            return null;
+        }
+    }
+
     let masteringGraphInited = false;
     let masterCompressor = null;
     let masterGain = null;
@@ -729,7 +766,10 @@
             }
             if (guidanceForJosh && guidanceForJosh.value.trim()) {
                 const guidance = guidanceForJosh.value.trim();
-                const changes = window.MegaMix.interpretChatMessage(guidance, state.tracks, state.trackAnalyses);
+                let changes = await fetchAiMixChanges(guidance);
+                if (!changes || changes.length === 0) {
+                    changes = window.MegaMix.interpretChatMessage(guidance, state.tracks, state.trackAnalyses);
+                }
                 if (changes && changes.length > 0) {
                     pushUndo();
                     window.MegaMix.applyJoshResponse(state.tracks, changes);
@@ -801,7 +841,7 @@
             }
         });
     });
-    function sendChat() {
+    async function sendChat() {
         const text = chatInput.value.trim();
         if (!text) return;
         addChatMessage('user', text);
@@ -810,7 +850,13 @@
             setTimeout(() => addChatMessage('bot', 'Create your mix first: click Mix it, then I can help you refine it.'), 400);
             return;
         }
-        const changes = window.MegaMix.interpretChatMessage(text, state.tracks, state.trackAnalyses);
+        if (chatSend) chatSend.disabled = true;
+        addChatMessage('bot', 'Josh is thinking…');
+        let changes = await fetchAiMixChanges(text);
+        if (!changes || changes.length === 0) {
+            changes = window.MegaMix.interpretChatMessage(text, state.tracks, state.trackAnalyses);
+        }
+        if (chatSend) chatSend.disabled = false;
         if (changes && changes.length > 0) {
             pushUndo();
             window.MegaMix.applyJoshResponse(state.tracks, changes);
@@ -821,7 +867,7 @@
             }).catch(() => {});
             setTimeout(() => addChatMessage('bot', "I've applied those changes. Check the After tab and have a listen."), 400);
         } else {
-            setTimeout(() => addChatMessage('bot', "I didn't catch which state.tracks to change. Try something like \"make the kick and snare more prominent\" or \"bring up the vocals\"."), 400);
+            setTimeout(() => addChatMessage('bot', "I didn't catch which tracks to change. Try something like \"make the kick and snare more prominent\" or \"bring up the vocals\"."), 400);
         }
     }
 

@@ -264,6 +264,107 @@ app.get('/api/auth/me', (req, res) => {
   }
 });
 
+// AI mix: Josh-style track changes via OpenAI (requires OPENAI_KEY and JWT)
+const OPENAI_KEY = process.env.OPENAI_KEY || process.env.OPENAI_API_KEY;
+app.post('/api/ai/mix', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+    if (!token) {
+      return res.status(401).json({ error: 'Not authenticated', fallback: true });
+    }
+    try {
+      jwt.verify(token, JWT_SECRET);
+    } catch (e) {
+      return res.status(401).json({ error: 'Invalid or expired token', fallback: true });
+    }
+
+    if (!OPENAI_KEY || OPENAI_KEY.trim() === '') {
+      return res.status(503).json({ error: 'AI service not configured', fallback: true });
+    }
+
+    const { message = '', tracks = [], trackAnalyses = [] } = req.body || {};
+    if (!message || typeof message !== 'string' || !Array.isArray(tracks) || tracks.length === 0) {
+      return res.status(400).json({ error: 'message and tracks (array) required', fallback: true });
+    }
+
+    const trackList = tracks.map((t, i) => {
+      const name = t.name != null ? String(t.name) : `Track ${i}`;
+      const gain = t.gain != null ? Number(t.gain) : 1;
+      const pan = t.pan != null ? Number(t.pan) : 0;
+      const gainDb = 20 * Math.log10(Math.max(gain, 0.01));
+      return {
+        i,
+        name,
+        gainDb: Math.round(gainDb * 10) / 10,
+        pan: Math.round(pan * 100) / 100,
+        eqOn: !!t.eqOn,
+        compOn: !!t.compOn,
+        eqParams: t.eqParams || { low: 0, mid: 0, high: 0 },
+        compParams: t.compParams || { threshold: -20, ratio: 2, attack: 0.003, release: 0.25, knee: 6 }
+      };
+    });
+
+    const systemPrompt = `You are a mixing assistant (Josh) for a multi-track mixer. The user will send a short instruction (e.g. "bring up the vocals", "more punch on the kick", "pan guitars left and right"). You must respond with a JSON array of track changes only, no other text.
+
+Track list (0-based index i):
+${JSON.stringify(trackList, null, 2)}
+
+Each change object can include: i (number, required), makeupGainDb (number, dB), pan (number, -1 to 1), eqOn (boolean), eqParams (object with low, mid, high in dB), compOn (boolean), compParams (object with threshold, ratio, attack, release, knee), addLevelPoint (object with t 0-1, value 0-2 for automation). Only include fields you want to change. Return a JSON array only, e.g. [{"i":0,"makeupGainDb":2},{"i":1,"pan":-0.5}].`;
+
+    const userContent = `User request: "${message.trim()}"\n\nRespond with a JSON array of change objects only.`;
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + OPENAI_KEY.trim()
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userContent }
+        ],
+        temperature: 0.3,
+        max_tokens: 1024
+      })
+    });
+
+    if (!response.ok) {
+      const errBody = await response.text();
+      const status = response.status;
+      if (status === 401) {
+        return res.status(502).json({ error: 'OpenAI API key invalid', fallback: true });
+      }
+      if (status === 429) {
+        return res.status(503).json({ error: 'AI rate limited', fallback: true });
+      }
+      return res.status(502).json({ error: 'AI service error', fallback: true });
+    }
+
+    const data = await response.json();
+    const content = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content
+      ? data.choices[0].message.content.trim()
+      : '';
+    let changes = [];
+    const jsonMatch = content.match(/\[[\s\S]*\]/);
+    if (jsonMatch) {
+      try {
+        changes = JSON.parse(jsonMatch[0]);
+        if (!Array.isArray(changes)) changes = [];
+        changes = changes.filter(c => c && typeof c === 'object' && typeof c.i === 'number' && c.i >= 0 && c.i < tracks.length);
+      } catch (e) {
+        // leave changes []
+      }
+    }
+    res.json({ changes });
+  } catch (e) {
+    console.error('[api/ai/mix]', e.message || e);
+    res.status(500).json({ error: 'Internal server error', fallback: true });
+  }
+});
+
 // Stripe Price IDs: 1mo = monthly, STRIPE_PRICE_ID = 3-month, 1yr = yearly
 const PRICE_ID_1MO = process.env.STRIPE_PRICE_ID_1MO;
 const PRICE_ID = process.env.STRIPE_PRICE_ID;   // 3-month plan only
