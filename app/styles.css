@@ -79,10 +79,16 @@ body {
 .btn-primary {
     background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
     color: #fff;
+    box-shadow: 0 4px 14px rgba(139, 92, 246, 0.35);
+    transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 .btn-primary:hover {
     background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
     transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.45);
+}
+.btn-primary:active {
+    transform: translateY(0) scale(0.98);
 }
 .btn-secondary {
     background: rgba(255,255,255,0.1);
@@ -97,8 +103,17 @@ body {
     background: transparent;
     color: #fff;
     border: 1px solid rgba(255,255,255,0.2);
+    transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
-.btn-ghost:hover { border-color: #8b5cf6; color: #8b5cf6; }
+.btn-ghost:hover {
+    border-color: #8b5cf6;
+    color: #8b5cf6;
+    background: rgba(139, 92, 246, 0.08);
+}
+.btn-ghost:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.4);
+}
 .btn-small { padding: 6px 12px; font-size: 0.85rem; }
 .btn-hero { padding: 16px 40px; font-size: 1.1rem; margin-top: 0; }
 .hero-cta-center {
@@ -220,11 +235,37 @@ body {
 }
 
 /* Workspace – App view */
-#view-app .workspace { padding: 0; }
+#view-app .workspace {
+    padding: 0;
+    animation: workspaceIn 0.5s ease forwards;
+}
+@keyframes workspaceIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+    #view-app .workspace { animation: none; }
+}
 
 /* Upload and file list – collapsible */
-.flow-step { font-size: 1.035rem; font-weight: 600; color: #8b5cf6; margin-bottom: 12px; margin-top: 24px; }
+.flow-step {
+    font-size: 1.035rem;
+    font-weight: 600;
+    color: #8b5cf6;
+    margin-bottom: 12px;
+    margin-top: 24px;
+    letter-spacing: 0.03em;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    animation: flowStepIn 0.4s ease forwards;
+}
 .flow-step:first-child { margin-top: 0; }
+@keyframes flowStepIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .flow-step { animation: none; }
+}
 .upload-and-files { margin-bottom: 24px; }
 .upload-and-files-header {
     display: flex;
@@ -252,16 +293,17 @@ body {
     text-align: center;
     cursor: pointer;
     background: rgba(139, 92, 246, 0.06);
-    transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+    transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
 }
 .upload-zone:hover {
     background: rgba(139, 92, 246, 0.12);
     border-color: rgba(139, 92, 246, 0.7);
+    box-shadow: 0 0 24px rgba(139, 92, 246, 0.15);
 }
 .upload-zone.dragover {
     background: rgba(139, 92, 246, 0.18);
     border-color: #8b5cf6;
-    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.25);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.25), 0 0 24px rgba(139, 92, 246, 0.15);
 }
 .upload-zone p { margin: 4px 0; }
 .upload-hint { font-size: 0.9rem; opacity: 0.7; }
@@ -368,9 +410,13 @@ body {
     box-sizing: border-box;
 }
 .panel .guidance-input::placeholder { color: #94a3b8; }
+.panel .guidance-input {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
 .panel .guidance-input:focus {
     outline: none;
     border-color: #8b5cf6;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
 }
 #btn-mix-it { margin-bottom: 20px; }
 .btn-ai-mastering-sparkle {
@@ -421,6 +467,14 @@ body {
     background: rgba(139, 92, 246, 0.12);
     border-radius: 10px;
     border: 1px solid rgba(139, 92, 246, 0.3);
+    animation: mixItPulse 2.5s ease-in-out infinite;
+}
+@keyframes mixItPulse {
+    0%, 100% { box-shadow: 0 0 0 rgba(139, 92, 246, 0); }
+    50% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.2); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .mix-it-loading { animation: none; }
 }
 .mix-it-loading-row {
     display: flex;
@@ -563,7 +617,7 @@ body {
 .quick-prompts .quick-prompt:hover,
 #view-mastering .quick-prompts .quick-prompt-mastering:hover {
     transform: scale(1.02);
-    box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.3);
+    box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.3), 0 0 12px rgba(139, 92, 246, 0.2);
 }
 .quick-prompts .quick-prompt:focus-visible,
 #view-mastering .quick-prompts .quick-prompt-mastering:focus-visible {
@@ -710,12 +764,16 @@ body {
 /* Step 3: one unified card (Before/After + Refine with Josh) */
 .step3-unified-card {
     background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.08);
     border-radius: 16px;
     padding: 24px;
     backdrop-filter: blur(10px);
-    box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
     margin-top: 12px;
+    transition: box-shadow 0.3s ease;
+}
+.step3-unified-card:hover {
+    box-shadow: 0 12px 40px rgba(0,0,0,0.25);
 }
 .playback-section .step3-unified-card .before-after-card-header {
     justify-content: flex-end;
@@ -779,6 +837,7 @@ body {
     cursor: pointer;
     background: transparent;
     color: rgba(255,255,255,0.8);
+    transition: background 0.2s ease, color 0.2s ease;
 }
 .before-after-tabs button.active {
     background: #fff;
@@ -811,11 +870,12 @@ body {
     align-items: center;
     justify-content: center;
     font-size: 1.2rem;
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .before-after-play-btn:hover {
     transform: scale(1.05);
-    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+    box-shadow: 0 0 24px rgba(16, 185, 129, 0.45), 0 4px 20px rgba(16, 185, 129, 0.4);
 }
 .before-after-play-btn.playing {
     background: linear-gradient(135deg, #059669 0%, #047857 100%);
@@ -894,6 +954,7 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
+    transition: background 0.2s ease;
 }
 .mixer-collapsible-header::before {
     content: '\25B8';
