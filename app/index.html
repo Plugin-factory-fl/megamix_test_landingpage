@@ -58,6 +58,7 @@
             <h2>Welcome to MegaMix AI</h2>
             <p class="login-welcome">Mix and master your tracks in the browser with AI. No install required—upload stems, chat with Josh to refine, and get a pro sound in minutes.</p>
             <p class="login-hint">Enter the email and license key from your free trial or subscription.</p>
+            <p class="login-context-mastered hidden" id="login-context-mastered">To download your mastered WAV, sign in with your email and license key below or get a free trial.</p>
             <form id="login-form">
                 <label for="login-email">Email</label>
                 <input type="email" id="login-email" name="email" placeholder="your@email.com" autocomplete="email">
@@ -378,6 +379,27 @@
                     <button type="button" class="btn btn-ghost" id="emailModalAppNo">No Thanks</button>
                 </div>
                 <p class="email-modal-app-note">*You don't have to sign up to get your download. Click "No Thanks" and your download will begin.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview user: download mix (no mastering) – newsletter optional -->
+    <div id="previewMixDownloadModal" class="email-modal-app hidden">
+        <div class="email-modal-app-content">
+            <div class="email-modal-app-header">
+                <h3>Download your mix</h3>
+                <span class="email-modal-app-close" id="previewMixDownloadModalClose">&times;</span>
+            </div>
+            <div class="email-modal-app-body">
+                <p class="email-modal-app-p">We're glad you're trying out MegaMix! To download your non-mastered mix, we just ask you to sign up for our newsletter in return so we can offer you more stuff in the future. If not, you can totally click "No" below and download the non-mastered mix of your song. No hard feelings.</p>
+                <label for="previewMixDownloadEmail">Your email (optional, for newsletter):</label>
+                <input type="email" id="previewMixDownloadEmail" placeholder="your.email@example.com">
+                <div class="email-modal-app-buttons">
+                    <button type="button" class="btn btn-primary" id="previewMixDownloadSignup">Sign me up &amp; Download</button>
+                    <button type="button" class="btn btn-ghost" id="previewMixDownloadNo">No thanks, just download</button>
+                </div>
+                <p class="login-trial-copy" style="margin-top: 1rem;">Ready to unlock the full experience?</p>
+                <button type="button" class="buy-button buy-button-trial" id="previewMixDownloadFreeTrial">GET FREE TRIAL</button>
             </div>
         </div>
     </div>

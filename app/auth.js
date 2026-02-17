@@ -113,9 +113,11 @@
         }
     }
 
-    function showLoginRequired() {
+    function showLoginRequired(reason) {
         if (overlay) overlay.classList.remove('hidden');
         setRequiredMode(true);
+        const contextMastered = document.getElementById('login-context-mastered');
+        if (contextMastered) contextMastered.classList.toggle('hidden', reason !== 'mastered');
     }
 
     async function doFreeTrial() {

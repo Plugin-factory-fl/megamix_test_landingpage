@@ -957,6 +957,22 @@
         pendingDownload = null;
         document.body.style.overflow = '';
     }
+    const previewMixDownloadModal = document.getElementById('previewMixDownloadModal');
+    function openPreviewMixDownloadModal() {
+        if (previewMixDownloadModal) {
+            previewMixDownloadModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            const emailEl = document.getElementById('previewMixDownloadEmail');
+            if (emailEl) emailEl.value = '';
+        }
+    }
+    function closePreviewMixDownloadModal() {
+        if (previewMixDownloadModal) {
+            previewMixDownloadModal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+        pendingDownload = null;
+    }
     function performMixDownload() {
         if (!state.mixReady || state.stemBuffers.length === 0) return;
         try {
@@ -1024,7 +1040,7 @@
         if (!state.mixReady || state.stemBuffers.length === 0) return;
         if (isPreviewMode()) {
             pendingDownload = { type: 'mix' };
-            if (window.MegaMixAuth && window.MegaMixAuth.showLoginRequired) window.MegaMixAuth.showLoginRequired();
+            openPreviewMixDownloadModal();
             return;
         }
         openEmailModal('mix');
@@ -1352,7 +1368,7 @@
                     if (!state.masteredUrl) return;
                     if (isPreviewMode()) {
                         pendingDownload = { type: 'mastered' };
-                        if (window.MegaMixAuth && window.MegaMixAuth.showLoginRequired) window.MegaMixAuth.showLoginRequired();
+                        if (window.MegaMixAuth && window.MegaMixAuth.showLoginRequired) window.MegaMixAuth.showLoginRequired('mastered');
                         return;
                     }
                     openEmailModal('mastered');
@@ -1374,6 +1390,47 @@
     if (emailModalApp) {
         emailModalApp.addEventListener('click', function (e) {
             if (e.target === emailModalApp) { closeEmailModal(); pendingDownload = null; }
+        });
+    }
+
+    const previewMixDownloadModalClose = document.getElementById('previewMixDownloadModalClose');
+    const previewMixDownloadEmail = document.getElementById('previewMixDownloadEmail');
+    const previewMixDownloadSignup = document.getElementById('previewMixDownloadSignup');
+    const previewMixDownloadNo = document.getElementById('previewMixDownloadNo');
+    const previewMixDownloadFreeTrial = document.getElementById('previewMixDownloadFreeTrial');
+    if (previewMixDownloadModalClose) previewMixDownloadModalClose.addEventListener('click', closePreviewMixDownloadModal);
+    if (previewMixDownloadModal) {
+        previewMixDownloadModal.addEventListener('click', function (e) {
+            if (e.target === previewMixDownloadModal) closePreviewMixDownloadModal();
+        });
+    }
+    if (previewMixDownloadSignup) {
+        previewMixDownloadSignup.addEventListener('click', async function () {
+            const email = previewMixDownloadEmail ? previewMixDownloadEmail.value.trim() : '';
+            if (email && isValidEmail(email)) {
+                try {
+                    const base = window.location.origin || '';
+                    await fetch(base + '/mailchimp-signup', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, format: 'web-mix', platform: 'web' })
+                    });
+                } catch (e) { console.warn('Mailchimp signup', e); }
+            }
+            performMixDownload();
+            closePreviewMixDownloadModal();
+        });
+    }
+    if (previewMixDownloadNo) {
+        previewMixDownloadNo.addEventListener('click', function () {
+            performMixDownload();
+            closePreviewMixDownloadModal();
+        });
+    }
+    if (previewMixDownloadFreeTrial) {
+        previewMixDownloadFreeTrial.addEventListener('click', function () {
+            if (window.MegaMixAuth && typeof window.MegaMixAuth.doFreeTrial === 'function') window.MegaMixAuth.doFreeTrial();
+            closePreviewMixDownloadModal();
         });
     }
 
