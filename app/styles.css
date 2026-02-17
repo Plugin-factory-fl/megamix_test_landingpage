@@ -411,7 +411,6 @@ body {
     transition: width 0.15s linear;
 }
 
-.loading-block.hidden { display: none !important; }
 .mix-it-loading {
     display: flex;
     flex-direction: column;
@@ -423,7 +422,6 @@ body {
     border-radius: 10px;
     border: 1px solid rgba(139, 92, 246, 0.3);
 }
-.mix-it-loading.hidden { display: none !important; }
 .mix-it-loading-row {
     display: flex;
     align-items: center;
@@ -1112,9 +1110,6 @@ body {
     background: #1a1a1a;
     box-shadow: 0 6px 20px rgba(0,0,0,0.5);
 }
-.mixer-fx-mini-panel.hidden {
-    display: none !important;
-}
 .mixer-fx-mini-bg {
     width: 100%;
     height: 60px;
@@ -1190,7 +1185,6 @@ body {
     border: 1px solid rgba(255,255,255,0.1);
     font-size: 0.7rem;
 }
-.mixer-automation-panel.hidden { display: none !important; }
 .automation-curve-header {
     margin-bottom: 4px;
     font-weight: 600;
@@ -1235,13 +1229,11 @@ body {
     padding-top: 12px;
     border-top: 1px solid rgba(255,255,255,0.1);
 }
-.mastered-section.hidden { display: none !important; }
 .mastering-status {
     margin: 8px 0 12px;
     font-size: 0.95rem;
     opacity: 0.9;
 }
-.mastering-status.hidden { display: none !important; }
 
 /* Mastering view */
 .mastering-workspace { padding: 0; }
@@ -1404,7 +1396,6 @@ body {
 .footer a:hover { color: #8b5cf6; }
 
 /* Contact Support modal (app) */
-.contact-modal-app.hidden { display: none !important; }
 .contact-modal-app {
     display: flex;
     align-items: center;
@@ -1529,7 +1520,6 @@ body {
     justify-content: center;
     padding: 20px;
 }
-.auth-overlay.hidden { display: none !important; }
 
 .login-modal {
     background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
@@ -1566,7 +1556,6 @@ body {
     text-align: center;
     margin-top: 20px;
 }
-.login-preview-wrap.hidden { display: none !important; }
 .login-preview-link {
     background: none;
     border: none;
@@ -1615,7 +1604,6 @@ body {
     justify-content: center;
     padding: 20px;
 }
-.email-modal-app.hidden { display: none !important; }
 .email-modal-app-content {
     background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
     border-radius: 16px;

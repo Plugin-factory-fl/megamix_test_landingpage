@@ -269,12 +269,6 @@ const PRICE_ID_1MO = process.env.STRIPE_PRICE_ID_1MO;
 const PRICE_ID = process.env.STRIPE_PRICE_ID;   // 3-month plan only
 const PRICE_ID_1YR = process.env.STRIPE_PRICE_ID_1YR;
 
-// Debug logging
-console.log('=== STRIPE PRICE ID DEBUG ===');
-console.log('STRIPE_PRICE_ID_1MO:', PRICE_ID_1MO ? '(set)' : '(not set)');
-console.log('STRIPE_PRICE_ID (3mo):', PRICE_ID ? '(set)' : '(not set)');
-console.log('STRIPE_PRICE_ID_1YR:', PRICE_ID_1YR ? '(set)' : '(not set)');
-
 // Create checkout session endpoint
 app.post('/create-checkout-session', async (req, res) => {
   try {

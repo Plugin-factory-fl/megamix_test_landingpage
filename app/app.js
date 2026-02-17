@@ -18,8 +18,6 @@
     const presetSelect = document.getElementById('preset-select');
     const guidanceForJosh = document.getElementById('guidance-for-josh');
     const btnMixIt = document.getElementById('btn-mix-it');
-    const progressWrap = document.getElementById('progress-wrap');
-    const progressBar = document.getElementById('progress-bar');
     const chatMessages = document.getElementById('chat-messages');
     const chatInput = document.getElementById('chat-input');
     const chatSend = document.getElementById('chat-send');
@@ -46,8 +44,6 @@
     const btnRedo = document.getElementById('btn-redo');
     const toggleFileListBtn = document.getElementById('toggle-file-list');
     const uploadAndFilesBody = document.getElementById('upload-and-files-body');
-    const beforeAfterCard = document.getElementById('before-after-card');
-    const playbackSection = document.getElementById('playback-section');
     const masteringStatusEl = document.getElementById('mastering-status');
 
     let masteringGraphInited = false;
@@ -79,7 +75,7 @@
     function updatePlaybackInstruction() {
         if (!playbackInstruction) return;
         if (!state.mixReady) {
-            playbackInstruction.textContent = 'Upload your state.tracks, then click Mix it to create your mix. After that, use Before/After to compare.';
+            playbackInstruction.textContent = 'Upload your tracks, then click Mix it to create your mix. After that, use Before/After to compare.';
             if (playBtn) playBtn.disabled = true;
         } else {
             playbackInstruction.textContent = 'Before = flat mix; After = your mix. Refine with Josh below.';
@@ -870,7 +866,7 @@
             }).catch(() => {});
             setTimeout(() => addChatMessage('bot', "I've applied those changes. Check the After tab and have a listen."), 400);
         } else {
-            setTimeout(() => addChatMessage('bot', "I didn't catch which state.tracks to change. Try something like \"make the kick and snare more prominent\" or \"bring up the vocals\"."), 400);
+            setTimeout(() => addChatMessage('bot', "I didn't catch which tracks to change. Try something like \"make the kick and snare more prominent\" or \"bring up the vocals\"."), 400);
         }
     }
 
