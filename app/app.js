@@ -1267,6 +1267,53 @@
             updateMasteringParam('mastering-attack', 'mastering-attack-value', function (v) { return 0.001 + (v / 100) * 0.499; }, function (val) { if (masterCompressor) masterCompressor.attack.value = val; });
             updateMasteringParam('mastering-release', 'mastering-release-value', function (v) { return 0.01 + (v / 100) * 1.99; }, function (val) { if (masterCompressor) masterCompressor.release.value = val; });
             updateMasteringParam('mastering-output', 'mastering-output-value', function (v) { return 0.5 + (v / 100) * 1.5; }, null);
+            function getMasteringParamsFromSliders() {
+                const thrEl = document.getElementById('mastering-threshold');
+                const ratioEl = document.getElementById('mastering-ratio');
+                const attackEl = document.getElementById('mastering-attack');
+                const releaseEl = document.getElementById('mastering-release');
+                const outputEl = document.getElementById('mastering-output');
+                const v = (el) => (el && el.value !== undefined) ? Number(el.value) : 50;
+                return {
+                    threshold: -30 + (v(thrEl) / 100) * 30,
+                    ratio: 1 + (v(ratioEl) / 100) * 19,
+                    attack: 0.001 + (v(attackEl) / 100) * 0.499,
+                    release: 0.01 + (v(releaseEl) / 100) * 1.99,
+                    knee: 6,
+                    outputGain: 0.5 + (v(outputEl) / 100) * 1.5
+                };
+            }
+            const btnApplyMasteringToFile = document.getElementById('btn-apply-mastering-to-file');
+            if (btnApplyMasteringToFile) {
+                btnApplyMasteringToFile.addEventListener('click', async function () {
+                    if (!state.mixReady || state.stemBuffers.length === 0) return;
+                    btnApplyMasteringToFile.disabled = true;
+                    try {
+                        const afterMix = await window.MegaMix.buildAfterMixWithFX();
+                        if (!afterMix) {
+                            btnApplyMasteringToFile.disabled = false;
+                            return;
+                        }
+                        const params = getMasteringParamsFromSliders();
+                        const mastered = await window.MegaMix.runMasteringChain(afterMix, params);
+                        if (!mastered) {
+                            btnApplyMasteringToFile.disabled = false;
+                            return;
+                        }
+                        if (state.masteredUrl) URL.revokeObjectURL(state.masteredUrl);
+                        state.masteredUrl = URL.createObjectURL(window.MegaMix.encodeWav(mastered.left, mastered.right, mastered.sampleRate));
+                        audioMastering.src = state.masteredUrl;
+                        audioMastering.onloadedmetadata = function () {
+                            if (audioMastering.duration && isFinite(audioMastering.duration) && durationMastering)
+                                durationMastering.textContent = formatTime(audioMastering.duration);
+                        };
+                        fillWaveformFromUrl(state.masteredUrl);
+                    } catch (e) {
+                        console.error('Apply mastering to file', e);
+                    }
+                    btnApplyMasteringToFile.disabled = false;
+                });
+            }
             function addMasteringChatMessage(who, text) {
                 if (!chatMessagesMastering) return;
                 const div = document.createElement('div');

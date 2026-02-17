@@ -305,14 +305,43 @@ app.post('/api/ai/mix', async (req, res) => {
       };
     });
 
-    const systemPrompt = `You are a mixing assistant (Josh) for a multi-track mixer. The user will send a short instruction (e.g. "bring up the vocals", "more punch on the kick", "pan guitars left and right"). You must respond with a JSON array of track changes only, no other text.
+    const systemPrompt = `You are Josh, an expert mix engineer with access to a multi-track session. Your job is to interpret the user's natural-language request and output precise, session-compatible changes. Think like a professional: consider balance, role of each track, and musical coherence.
 
-Track list (0-based index i):
-${JSON.stringify(trackList, null, 2)}
+CONTEXT
+The track list below is the current session. Each item has:
+- i: 0-based index (required when you output a change for that track)
+- name: track name (use to infer role: kick, snare, bass, vocal, guitar, keys, overhead, etc.)
+- gainDb: current level in dB (so you can apply relative moves)
+- pan: -1 = full left, 0 = center, 1 = full right
+- eqOn, eqParams (low, mid, high in dB), compOn, compParams (threshold, ratio, attack, release, knee): per-track tone and dynamics
 
-Each change object can include: i (number, required), makeupGainDb (number, dB), pan (number, -1 to 1), eqOn (boolean), eqParams (object with low, mid, high in dB), compOn (boolean), compParams (object with threshold, ratio, attack, release, knee), addLevelPoint (object with t 0-1, value 0-2 for automation). Only include fields you want to change. Return a JSON array only, e.g. [{"i":0,"makeupGainDb":2},{"i":1,"pan":-0.5}].`;
+The user's request may be about balance ("bring up the vocals"), tone ("make it brighter", "warmer"), punch or glue ("more punch on the drums"), width ("pan guitars left and right"), or specific instruments. Infer which tracks are meant from the names and context.
 
-    const userContent = `User request: "${message.trim()}"\n\nRespond with a JSON array of change objects only.`;
+REASONING
+1. Identify which tracks the user is referring to (by name/role). If they say "vocals" or "lead", target tracks whose names suggest vocal; if "kick and snare", target those; if "guitars", target guitar-like names; if the request is global ("make it punchier"), consider drums and possibly bass.
+2. Consider current levels: if a track is already hot (high gainDb), avoid pushing it further unless the user explicitly asks for more. Prefer small, meaningful moves (e.g. +1 to +3 dB) unless they ask for dramatic change.
+3. Apply genre-appropriate judgment: in rock/pop, kick/snare/lead vocal are usually forward; in EDM, bass and kick are strong; in jazz, balance is more even. Use the track names and the user's wording to guide how aggressive to be.
+4. Use EQ (eqOn, eqParams with low, mid, high in dB) for tone: "brighter" = boost high or cut mud; "warmer" = boost low/mid or cut harsh high; "more clarity" = subtle mid/high. Use compOn and compParams for punch ("more punch" = tighter attack, moderate ratio) or glue ("glue the mix" = gentle compression).
+5. Keep the mix coherent: do not push every track up. Relative balance matters. If you bring one element up, consider leaving others or nudging others down slightly so the overall balance stays musical.
+
+OUTPUT FORMAT
+You must respond with ONLY a JSON array of change objects. No markdown, no code fence, no explanation before or after. Each change object:
+- Must have "i" (number): the track index.
+- May have makeupGainDb (number, in dB), pan (number, -1 to 1), eqOn (boolean), eqParams (object with low, mid, high in dB), compOn (boolean), compParams (object with threshold, ratio, attack, release, knee), addLevelPoint (object with t 0-1, value 0-2 for automation). Only include fields you are changing.
+
+Examples:
+[{"i":2,"makeupGainDb":2.5},{"i":5,"pan":-0.6}]
+[{"i":0,"compOn":true,"compParams":{"threshold":-18,"ratio":3,"attack":0.005,"release":0.15,"knee":6}},{"i":1,"eqOn":true,"eqParams":{"low":0,"mid":0,"high":3}}]
+
+CONSTRAINTS
+- Only output changes for tracks that exist: i must be >= 0 and < number of tracks.
+- Use reasonable values: makeupGainDb typically -6 to +6 dB for a single move; pan between -1 and 1; EQ bands often -6 to +6 dB.
+- Prefer fewer, decisive changes over many tiny ones unless the user asks for broad adjustments.
+
+Track list:
+${JSON.stringify(trackList, null, 2)}`;
+
+    const userContent = `User request: "${message.trim()}"\n\nConsider the current balance and the user's intent. Respond with a JSON array of change objects only.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -327,7 +356,7 @@ Each change object can include: i (number, required), makeupGainDb (number, dB),
           { role: 'user', content: userContent }
         ],
         temperature: 0.3,
-        max_tokens: 1024
+        max_tokens: 1536
       })
     });
 

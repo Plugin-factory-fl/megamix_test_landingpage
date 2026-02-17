@@ -654,6 +654,23 @@ body {
     font-size: 0.9rem;
 }
 
+/* Content card: single container for iterate (transport + mixer + chat) or mastering */
+.content-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+}
+.iterate-card .before-after-card,
+.iterate-card .mixer-collapsible,
+.iterate-card .undo-redo-above-chat,
+.iterate-card .chat-wrap {
+    margin-top: 20px;
+}
+.iterate-card .before-after-card { margin-top: 0; }
+
 /* Before/After playback card – shared in both Simple and Advanced */
 .playback-section { margin-bottom: 24px; }
 .josh-section .josh-section-title {
@@ -1175,11 +1192,12 @@ body {
 
 /* Mastering view */
 .mastering-workspace { padding: 0; }
-.mastering-intro { margin-bottom: 24px; }
-.mastering-intro h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 8px; }
+.mastering-card.content-card .mastering-sub { margin-bottom: 20px; }
 .mastering-sub { font-size: 1rem; opacity: 0.9; }
 .mastering-player-section { margin-bottom: 24px; }
 .mastering-card { margin-bottom: 0; }
+.mastering-card.content-card .mastering-player-section { margin-top: 0; }
+#btn-apply-mastering-to-file { margin-top: 16px; }
 .mastering-controls-collapsible {
     margin-bottom: 24px;
     border: 1px solid rgba(255,255,255,0.08);
