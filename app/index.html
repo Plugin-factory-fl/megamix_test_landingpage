@@ -188,10 +188,10 @@
                     <audio id="audio-before" preload="metadata"></audio>
                     <audio id="audio-after" preload="metadata"></audio>
                 </div>
-                <div class="josh-avatar-wrap" aria-hidden="true">
+                <div class="josh-avatar-wrap" id="josh-avatar-mixing" aria-hidden="true">
+                    <span class="josh-avatar-thought">I'm Josh!</span>
                     <div class="josh-avatar-bubble">
                         <img src="/assets/Joshpropic.png" alt="Josh" class="josh-avatar-img">
-                        <span class="josh-avatar-toast">I'm Josh!</span>
                     </div>
                 </div>
                 <div class="chat-wrap chat-card">
@@ -225,6 +225,10 @@
                 <button type="button" class="btn btn-primary btn-ai-mastering-sparkle" id="btn-ai-mastering" title="Run AI mastering on the current mix">AI Mastering</button>
                 <div class="loading-block hidden" id="mastering-loading-block">
                     <p id="mastering-status" class="mastering-status" aria-live="polite"></p>
+                    <p id="mastering-loading-estimate" class="mastering-loading-estimate">Usually 10–30 seconds.</p>
+                    <div class="mastering-progress-track" aria-hidden="true">
+                        <div class="mastering-progress-fill" id="mastering-progress-fill"></div>
+                    </div>
                     <div class="loading-block-inner">
                         <div class="loading-spinner" aria-hidden="true"></div>
                     </div>
@@ -318,6 +322,12 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+            <div class="josh-avatar-wrap" id="josh-avatar-mastering" aria-hidden="true">
+                <span class="josh-avatar-thought">I'm Josh!</span>
+                <div class="josh-avatar-bubble">
+                    <img src="/assets/Joshpropic.png" alt="Josh" class="josh-avatar-img">
                 </div>
             </div>
             <section class="chat-section chat-attached">

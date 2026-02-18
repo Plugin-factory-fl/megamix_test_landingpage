@@ -59,6 +59,10 @@
             views[k].classList.toggle('hidden', !isTarget);
             views[k].classList.toggle('view-visible', isTarget);
         });
+        var joshMixing = document.getElementById('josh-avatar-mixing');
+        var joshMastering = document.getElementById('josh-avatar-mastering');
+        if (joshMixing) joshMixing.classList.toggle('hidden', name !== 'app');
+        if (joshMastering) joshMastering.classList.toggle('hidden', name !== 'mastering');
         const active = views[name];
         if (active) {
             void active.offsetHeight; // force reflow so fade-in animation runs
@@ -191,7 +195,10 @@
         });
     }
 
-    function renderMixerStrips() {
+    var _lastRenderStrips = 0;
+    var _renderStripsTimer = null;
+    var RENDER_STRIPS_THROTTLE_MS = 120;
+    function doRenderMixerStrips() {
         mixerStripsEl.innerHTML = '';
         state.tracks.forEach((track, i) => {
             const strip = document.createElement('div');
@@ -546,6 +553,21 @@
             strip.appendChild(autoPanel);
             mixerStripsEl.appendChild(strip);
         });
+    }
+    function renderMixerStrips() {
+        var now = Date.now();
+        if (_renderStripsTimer) clearTimeout(_renderStripsTimer);
+        if (now - _lastRenderStrips >= RENDER_STRIPS_THROTTLE_MS || _lastRenderStrips === 0) {
+            _lastRenderStrips = now;
+            doRenderMixerStrips();
+        } else {
+            var delay = RENDER_STRIPS_THROTTLE_MS - (now - _lastRenderStrips);
+            _renderStripsTimer = setTimeout(function () {
+                _renderStripsTimer = null;
+                _lastRenderStrips = Date.now();
+                doRenderMixerStrips();
+            }, delay);
+        }
     }
 
     function initPlaybackCard() {
@@ -993,6 +1015,40 @@
     }
     updateStep3QuickPrompts();
     if (presetSelect) presetSelect.addEventListener('change', updateStep3QuickPrompts);
+
+    function initJoshAvatarDrag(wrapEl) {
+        if (!wrapEl) return;
+        var startX = 0, startY = 0, startLeft = 0, startTop = 0;
+        function getRect() { return wrapEl.getBoundingClientRect(); }
+        function clamp(x, min, max) { return Math.max(min, Math.min(max, x)); }
+        wrapEl.addEventListener('mousedown', function (e) {
+            if (e.button !== 0) return;
+            e.preventDefault();
+            var r = getRect();
+            startX = e.clientX;
+            startY = e.clientY;
+            startLeft = r.left;
+            startTop = r.top;
+            function onMove(e2) {
+                var dx = e2.clientX - startX;
+                var dy = e2.clientY - startY;
+                var newLeft = clamp(startLeft + dx, 0, window.innerWidth - r.width);
+                var newTop = clamp(startTop + dy, 0, window.innerHeight - r.height);
+                wrapEl.style.left = newLeft + 'px';
+                wrapEl.style.top = newTop + 'px';
+                wrapEl.style.transform = 'none';
+            }
+            function onUp() {
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onUp);
+            }
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
+        });
+    }
+    initJoshAvatarDrag(document.getElementById('josh-avatar-mixing'));
+    initJoshAvatarDrag(document.getElementById('josh-avatar-mastering'));
+
     function sendChat() {
         const text = chatInput.value.trim();
         if (!text) return;
@@ -1193,9 +1249,11 @@
 
     const btnAiMastering = document.getElementById('btn-ai-mastering');
 
-    function showMasteringStatus(text) {
+    var masteringProgressFill = document.getElementById('mastering-progress-fill');
+    function showMasteringStatus(text, progressPct) {
         if (masteringStatusEl) masteringStatusEl.textContent = text || '';
         if (masteringLoadingBlock) masteringLoadingBlock.classList.toggle('hidden', !text);
+        if (masteringProgressFill) masteringProgressFill.style.width = (progressPct != null ? progressPct : 0) + '%';
     }
     if (btnAiMastering) {
         btnAiMastering.addEventListener('click', async () => {
@@ -1206,20 +1264,20 @@
             try {
                 window.MegaMix.revokeMasteredUrl();
                 btnAiMastering.disabled = true;
-                showMasteringStatus('Rendering mix…');
+                showMasteringStatus('Rendering mix… (step 1 of 2)', 10);
                 const afterMix = await window.MegaMix.buildAfterMixWithFX();
                 if (!afterMix) {
-                    showMasteringStatus('');
+                    showMasteringStatus('', 0);
                     btnAiMastering.disabled = false;
                     addChatMessage('bot', 'Could not render the mix. Try again.');
                     return;
                 }
                 if (state.unmasteredMixUrl) URL.revokeObjectURL(state.unmasteredMixUrl);
                 state.unmasteredMixUrl = URL.createObjectURL(window.MegaMix.encodeWav(afterMix.left, afterMix.right, afterMix.sampleRate));
-                showMasteringStatus('Applying AI mastering…');
+                showMasteringStatus('Applying AI mastering… (step 2 of 2)', 50);
                 state.masteringOptions = state.masteringOptions || { punch: 0, loudness: 0, compression: 1 };
                 const mastered = await window.MegaMix.runMasteringChain(afterMix, state.masteringOptions);
-                showMasteringStatus('');
+                showMasteringStatus('', 0);
                 btnAiMastering.disabled = false;
                 if (mastered) {
                     state.masteredUrl = URL.createObjectURL(window.MegaMix.encodeWav(mastered.left, mastered.right, mastered.sampleRate));
@@ -1230,7 +1288,7 @@
                 }
             } catch (e) {
                 console.error('AI Mastering', e);
-                showMasteringStatus('');
+                showMasteringStatus('', 0);
                 btnAiMastering.disabled = false;
                 addChatMessage('bot', 'Mastering failed. Please try again.');
             }
@@ -1695,8 +1753,20 @@
                     }
                     const sendBtn = chatSendMastering;
                     sendBtn.disabled = true;
+                    function removeThinking() {
+                        var el = chatMessagesMastering && chatMessagesMastering.querySelector('.mastering-thinking');
+                        if (el) el.remove();
+                    }
+                    var thinkingEl = document.createElement('div');
+                    thinkingEl.className = 'msg bot mastering-thinking';
+                    thinkingEl.textContent = 'Josh: Thinking…';
+                    if (chatMessagesMastering) {
+                        chatMessagesMastering.appendChild(thinkingEl);
+                        chatMessagesMastering.scrollTop = chatMessagesMastering.scrollHeight;
+                    }
                     try {
                         const afterMix = await window.MegaMix.buildAfterMixWithFX();
+                        removeThinking();
                         if (!afterMix) {
                             addMasteringChatMessage('bot', 'Could not render the mix. Try again.');
                             sendBtn.disabled = false;
@@ -1720,6 +1790,7 @@
                         addMasteringChatMessage('bot', masteringReplyForDelta(delta));
                     } catch (e) {
                         console.error('Mastering chat', e);
+                        removeThinking();
                         addMasteringChatMessage('bot', 'Something went wrong. Please try again.');
                     }
                     sendBtn.disabled = false;

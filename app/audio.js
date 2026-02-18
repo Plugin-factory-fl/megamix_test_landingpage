@@ -358,7 +358,7 @@
                 if (window.MegaMix.syncAllTracksToLiveGraph) window.MegaMix.syncAllTracksToLiveGraph();
                 if (typeof window.MegaMix.onAfterMixBuilt === 'function') window.MegaMix.onAfterMixBuilt();
             });
-        }, 300);
+        }, 500);
     }
 
     async function buildAfterOnly() {
