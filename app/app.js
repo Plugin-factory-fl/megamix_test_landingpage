@@ -1949,7 +1949,11 @@
     if (emailModalAppNo) emailModalAppNo.addEventListener('click', function () { handleEmailSignup(false); });
     if (emailModalApp) {
         emailModalApp.addEventListener('click', function (e) {
-            if (e.target === emailModalApp) { closeEmailModal(); pendingDownload = null; }
+            var content = emailModalApp.querySelector('.email-modal-app-content');
+            if (content && !content.contains(e.target)) {
+                closeEmailModal();
+                pendingDownload = null;
+            }
         });
     }
 

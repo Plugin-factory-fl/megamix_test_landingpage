@@ -1976,6 +1976,10 @@ body {
     font-size: 1.75rem;
     color: #94a3b8;
     cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0 4px;
+    line-height: 1;
     line-height: 1;
 }
 .email-modal-app-close:hover { color: #fff; }
