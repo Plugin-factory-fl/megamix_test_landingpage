@@ -533,6 +533,9 @@
     }
 
     function initPlaybackCard() {
+        window.MegaMix.onAfterMixBuilt = function () {
+            if (audioAfter && state.mixedAfterUrl) audioAfter.src = state.mixedAfterUrl;
+        };
         const tabs = document.querySelectorAll('.before-after-tab');
         const playbackPositionLabel = document.getElementById('playback-position-label');
         function getActiveMode() {
@@ -542,7 +545,7 @@
         function setMutedFromTab() {
             const mode = getActiveMode();
             audioBefore.muted = (mode !== 'before');
-            if (audioAfter) audioAfter.muted = true;
+            if (audioAfter) audioAfter.muted = (mode !== 'after');
         }
         function formatTime(s) {
             if (!isFinite(s) || s < 0) return '0:00';
@@ -567,6 +570,8 @@
                 }
             } else if (mode === 'before') {
                 t = audioBefore.currentTime || 0;
+            } else if (mode === 'after' && audioAfter && !audioAfter.paused && isFinite(audioAfter.duration)) {
+                t = audioAfter.currentTime || 0;
             } else {
                 t = window.MegaMix.transportOffset();
             }
@@ -595,12 +600,13 @@
                 tabs.forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
                 this.classList.add('active');
                 this.setAttribute('aria-selected', 'true');
+                stopBoth();
                 setMutedFromTab();
             });
         });
         playBtn.addEventListener('click', function () {
             const mode = getActiveMode();
-            const playing = (mode === 'before' && !audioBefore.paused) || (mode === 'after' && window.MegaMix.livePlaybackSources().length > 0);
+            const playing = (mode === 'before' && !audioBefore.paused) || (mode === 'after' && (window.MegaMix.livePlaybackSources().length > 0 || (audioAfter && !audioAfter.paused)));
             if (playing) {
                 stopBoth();
             } else {
@@ -636,6 +642,13 @@
             if (mode === 'before') {
                 audioBefore.currentTime = t;
                 playbackTime.textContent = formatTime(t);
+            } else if (mode === 'after' && audioAfter && state.mixedAfterUrl) {
+                window.MegaMix.setTransportOffset(t);
+                audioAfter.currentTime = t;
+                playbackTime.textContent = formatTime(t);
+                if (window.MegaMix.livePlaybackSources().length > 0) {
+                    window.MegaMix.startLivePlayback(t);
+                }
             } else {
                 window.MegaMix.setTransportOffset(t);
                 playbackTime.textContent = formatTime(t);
@@ -655,6 +668,9 @@
         audioBefore.addEventListener('ended', stopBoth);
         if (audioAfter) {
             audioAfter.addEventListener('ended', stopBoth);
+            audioAfter.addEventListener('timeupdate', function () {
+                if (getActiveMode() === 'after') updateProgress();
+            });
         }
         setMutedFromTab();
     }

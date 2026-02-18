@@ -353,8 +353,10 @@
         if (buildAfterTimer) clearTimeout(buildAfterTimer);
         buildAfterTimer = setTimeout(() => {
             buildAfterTimer = null;
-            buildAfterOnly();
-            if (window.MegaMix.syncAllTracksToLiveGraph) window.MegaMix.syncAllTracksToLiveGraph();
+            buildAfterOnly().then(() => {
+                if (window.MegaMix.syncAllTracksToLiveGraph) window.MegaMix.syncAllTracksToLiveGraph();
+                if (typeof window.MegaMix.onAfterMixBuilt === 'function') window.MegaMix.onAfterMixBuilt();
+            });
         }, 300);
     }
 
