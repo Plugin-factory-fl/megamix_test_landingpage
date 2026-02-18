@@ -269,6 +269,12 @@ const PRICE_ID_1MO = process.env.STRIPE_PRICE_ID_1MO;
 const PRICE_ID = process.env.STRIPE_PRICE_ID;   // 3-month plan only
 const PRICE_ID_1YR = process.env.STRIPE_PRICE_ID_1YR;
 
+// Debug logging
+console.log('=== STRIPE PRICE ID DEBUG ===');
+console.log('STRIPE_PRICE_ID_1MO:', PRICE_ID_1MO ? '(set)' : '(not set)');
+console.log('STRIPE_PRICE_ID (3mo):', PRICE_ID ? '(set)' : '(not set)');
+console.log('STRIPE_PRICE_ID_1YR:', PRICE_ID_1YR ? '(set)' : '(not set)');
+
 // Create checkout session endpoint
 app.post('/create-checkout-session', async (req, res) => {
   try {
@@ -1047,15 +1053,22 @@ app.get('/plugin', (req, res) => {
   res.sendFile(path.join(__dirname, 'plugin.html'));
 });
 
-// Start server immediately so Render (and health checks) don't SIGTERM during DB init.
-// DB init runs in background; app works for static/health even if DB isn't ready.
-const HOST = process.env.HOST || '0.0.0.0';
-app.listen(PORT, HOST, () => {
-  console.log(`Server running on ${HOST}:${PORT}`);
-  console.log(`Health check: http://localhost:${PORT}/health`);
-  console.log(`License validation: POST http://localhost:${PORT}/verify-license`);
-  // Non-blocking: init DB so deploy doesn't time out waiting for Postgres
-  initializeDatabase().catch((err) => {
-    console.error('Database init failed (app still running):', err.message);
-  });
-});
+// Initialize database and start server
+async function startServer() {
+  try {
+    // Initialize database schema
+    await initializeDatabase();
+    
+    // Start the server
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+      console.log(`Health check: http://localhost:${PORT}/health`);
+      console.log(`License validation: POST http://localhost:${PORT}/verify-license`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+startServer();

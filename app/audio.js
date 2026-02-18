@@ -26,7 +26,6 @@
     }
     function revokeMasteredUrl() {
         if (state.masteredUrl) { URL.revokeObjectURL(state.masteredUrl); state.masteredUrl = null; }
-        if (state.unmasteredMixUrl) { URL.revokeObjectURL(state.unmasteredMixUrl); state.unmasteredMixUrl = null; }
     }
 
     function encodeWav(left, right, sampleRate) {
@@ -354,10 +353,8 @@
         if (buildAfterTimer) clearTimeout(buildAfterTimer);
         buildAfterTimer = setTimeout(() => {
             buildAfterTimer = null;
-            buildAfterOnly().then(() => {
-                if (window.MegaMix.syncAllTracksToLiveGraph) window.MegaMix.syncAllTracksToLiveGraph();
-                if (typeof window.MegaMix.onAfterMixBuilt === 'function') window.MegaMix.onAfterMixBuilt();
-            });
+            buildAfterOnly();
+            if (window.MegaMix.syncAllTracksToLiveGraph) window.MegaMix.syncAllTracksToLiveGraph();
         }, 300);
     }
 
