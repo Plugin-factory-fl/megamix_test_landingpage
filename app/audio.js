@@ -9,6 +9,7 @@
     if (!state) return;
 
     let buildAfterTimer = null;
+    let buildAfterGen = 0;
     let liveGraph = null;
     let livePlaybackSources = [];
     let transportOffset = 0;
@@ -78,19 +79,26 @@
         return buffer;
     }
 
+    const DECODE_PARALLEL = 6;
+
     async function decodeStemsToBuffers() {
         if (state.uploadedFiles.length === 0) { state.stemBuffers = []; state.trackAnalyses = []; return; }
-        console.log('[MegaMix perf] decodeStemsToBuffers: start, files=' + state.uploadedFiles.length);
+        console.log('[MegaMix perf] decodeStemsToBuffers: start, files=' + state.uploadedFiles.length + ', parallel=' + DECODE_PARALLEL);
         const t0 = performance.now();
         const ctx = getAudioContext();
-        const buffers = [];
-        for (let i = 0; i < state.uploadedFiles.length; i++) {
+        const buffers = new Array(state.uploadedFiles.length);
+        async function decodeOne(i) {
             const entry = state.uploadedFiles[i];
             const tFile = performance.now();
             const ab = await entry.file.arrayBuffer();
             const buf = await ctx.decodeAudioData(ab.slice(0));
-            buffers.push(buf);
+            buffers[i] = buf;
             console.log('[MegaMix perf]   decode file ' + (i + 1) + '/' + state.uploadedFiles.length + ' "' + (entry.name || '') + '": ' + (performance.now() - tFile).toFixed(2) + ' ms');
+        }
+        for (let c = 0; c < state.uploadedFiles.length; c += DECODE_PARALLEL) {
+            const chunk = [];
+            for (let i = c; i < Math.min(c + DECODE_PARALLEL, state.uploadedFiles.length); i++) chunk.push(decodeOne(i));
+            await Promise.all(chunk);
         }
         state.stemBuffers = buffers;
         analyzeStems();
@@ -291,10 +299,15 @@
 
     const BUILD_AFTER_PARALLEL_CHUNK = 4;
 
+    function yieldToMain() {
+        return new Promise(function (resolve) { setTimeout(resolve, 0); });
+    }
+
     async function buildAfterMixWithFX() {
         if (state.stemBuffers.length === 0) return null;
+        const myGen = ++buildAfterGen;
         const t0 = performance.now();
-        console.log('[MegaMix perf] buildAfterMixWithFX: start (tracks=' + state.stemBuffers.length + ', parallel chunk=' + BUILD_AFTER_PARALLEL_CHUNK + ')');
+        console.log('[MegaMix perf] buildAfterMixWithFX: start (tracks=' + state.stemBuffers.length + ', gen=' + myGen + ')');
         let maxLen = 0;
         const sampleRate = state.stemBuffers[0].sampleRate;
         for (const b of state.stemBuffers) {
@@ -304,19 +317,26 @@
         const right = new Float32Array(maxLen);
 
         for (let c = 0; c < state.stemBuffers.length; c += BUILD_AFTER_PARALLEL_CHUNK) {
+            if (myGen !== buildAfterGen) {
+                console.log('[MegaMix perf] buildAfterMixWithFX: cancelled (gen ' + myGen + ')');
+                return null;
+            }
             const chunk = [];
             for (let ti = c; ti < Math.min(c + BUILD_AFTER_PARALLEL_CHUNK, state.stemBuffers.length); ti++) {
                 chunk.push(renderOneTrackWithFX(ti, maxLen, sampleRate));
             }
             const results = await Promise.all(chunk);
+            if (myGen !== buildAfterGen) return null;
             for (const r of results) {
                 for (let i = 0; i < maxLen; i++) {
                     left[i] += r.leftContrib[i];
                     right[i] += r.rightContrib[i];
                 }
             }
+            await yieldToMain();
         }
 
+        if (myGen !== buildAfterGen) return null;
         let peak = 0;
         for (let i = 0; i < maxLen; i++) {
             peak = Math.max(peak, Math.abs(left[i]), Math.abs(right[i]));

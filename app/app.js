@@ -267,7 +267,7 @@
                     track.automation.level[track.automation.level.length - 1].value = track.gain;
                 }
                 window.MegaMix.syncTrackToLiveGraph(i);
-                window.MegaMix.scheduleBuildAfter();
+                window.MegaMix.syncAllTracksToLiveGraph();
             });
             faderWrap.appendChild(fader);
             const panWrap = document.createElement('div');
@@ -292,7 +292,7 @@
                     track.automation.pan[track.automation.pan.length - 1].value = track.pan;
                 }
                 window.MegaMix.syncTrackToLiveGraph(i);
-                window.MegaMix.scheduleBuildAfter();
+                window.MegaMix.syncAllTracksToLiveGraph();
             });
             panWrap.appendChild(panLabel);
             panWrap.appendChild(pan);
@@ -314,7 +314,7 @@
                     powerBtn.setAttribute('aria-pressed', track[fxType === 'eq' ? 'eqOn' : 'compOn']);
                     powerBtn.textContent = track[fxType === 'eq' ? 'eqOn' : 'compOn'] ? '\u25CF' : '\u25CB';
                     window.MegaMix.syncTrackToLiveGraph(i);
-                    window.MegaMix.scheduleBuildAfter();
+                    window.MegaMix.syncAllTracksToLiveGraph();
                 });
                 const nameBtn = document.createElement('button');
                 nameBtn.type = 'button';
@@ -350,7 +350,7 @@
                     setAdjust(parseFloat(adjustInput.value));
                     setMix(parseFloat(mixInput.value) / 100);
                     window.MegaMix.syncTrackToLiveGraph(i);
-                    window.MegaMix.scheduleBuildAfter();
+                    window.MegaMix.syncAllTracksToLiveGraph();
                 };
                 adjustInput.addEventListener('input', updateFromKnobs);
                 mixInput.addEventListener('input', updateFromKnobs);
@@ -403,7 +403,7 @@
                 track.reverbOn = !track.reverbOn;
                 verbBtn.classList.toggle('on', track.reverbOn);
                 window.MegaMix.syncTrackToLiveGraph(i);
-                window.MegaMix.scheduleBuildAfter();
+                window.MegaMix.syncAllTracksToLiveGraph();
             });
             const retroBtn = document.createElement('button');
             retroBtn.type = 'button';
@@ -460,7 +460,7 @@
                         point.t = t;
                         point.value = v;
                         track.automation.level.sort((a, b) => a.t - b.t);
-                        window.MegaMix.scheduleBuildAfter();
+                        window.MegaMix.syncAllTracksToLiveGraph();
                     };
                     tInput.addEventListener('input', update);
                     vInput.addEventListener('input', update);
@@ -470,7 +470,7 @@
                         const realIdx = track.automation.level.indexOf(point);
                         if (realIdx >= 0) track.automation.level.splice(realIdx, 1);
                         renderMixerStrips();
-                        window.MegaMix.scheduleBuildAfter();
+                        window.MegaMix.syncAllTracksToLiveGraph();
                     });
                     row.appendChild(tInput);
                     row.appendChild(vInput);
@@ -488,7 +488,7 @@
                         track.automation.level.push({ t: 0.5, value: 1 });
                         track.automation.level.sort((a, b) => a.t - b.t);
                         renderMixerStrips();
-                        window.MegaMix.scheduleBuildAfter();
+                        window.MegaMix.syncAllTracksToLiveGraph();
                     });
                     autoPanel.appendChild(addLevel);
                 }
@@ -524,7 +524,7 @@
                         point.t = t;
                         point.value = v;
                         track.automation.pan.sort((a, b) => a.t - b.t);
-                        window.MegaMix.scheduleBuildAfter();
+                        window.MegaMix.syncAllTracksToLiveGraph();
                     };
                     tInput.addEventListener('input', update);
                     vInput.addEventListener('input', update);
@@ -534,7 +534,7 @@
                         const realIdx = track.automation.pan.indexOf(point);
                         if (realIdx >= 0) track.automation.pan.splice(realIdx, 1);
                         renderMixerStrips();
-                        window.MegaMix.scheduleBuildAfter();
+                        window.MegaMix.syncAllTracksToLiveGraph();
                     });
                     row.appendChild(tInput);
                     row.appendChild(vInput);
@@ -552,7 +552,7 @@
                         track.automation.pan.push({ t: 0.5, value: 0 });
                         track.automation.pan.sort((a, b) => a.t - b.t);
                         renderMixerStrips();
-                        window.MegaMix.scheduleBuildAfter();
+                        window.MegaMix.syncAllTracksToLiveGraph();
                     });
                     autoPanel.appendChild(addPan);
                 }
@@ -853,14 +853,8 @@
             return;
         }
         if (state.mixReady && state.hasInitialMix) {
-            try {
-                window.MegaMix.syncAllTracksToLiveGraph();
-                await window.MegaMix.buildAfterOnly();
-                if (audioAfter && state.mixedAfterUrl) audioAfter.src = state.mixedAfterUrl;
-                addChatMessage('bot', 'Mix updated from your current settings.');
-            } catch (e) {
-                console.error(e);
-            }
+            window.MegaMix.syncAllTracksToLiveGraph();
+            addChatMessage('bot', 'Mix updated from your current settings. Use the live transport to hear changes.');
             return;
         }
         console.log('[MegaMix perf] runMixIt: start (files=' + state.uploadedFiles.length + ')');
@@ -1162,12 +1156,7 @@
             console.log('[MegaMix perf] Josh chat: applyJoshResponse ' + (performance.now() - tJosh).toFixed(2) + ' ms');
             renderMixerStrips();
             window.MegaMix.syncAllTracksToLiveGraph();
-            setTimeout(function () {
-                window.MegaMix.buildAfterOnly().then(function () {
-                    if (audioAfter && state.mixedAfterUrl) audioAfter.src = state.mixedAfterUrl;
-                }).catch(function () {});
-            }, 0);
-            setTimeout(() => addChatMessage('bot', "I've applied those changes. Check the After tab and have a listen."), 400);
+            setTimeout(() => addChatMessage('bot', "I've applied those changes. Hit play on the After tab to hear them."), 400);
         } else {
             setTimeout(() => addChatMessage('bot', "I didn't catch which tracks to change. Try something like \"make the kick and snare more prominent\" or \"bring up the vocals\"."), 400);
         }
@@ -1214,11 +1203,7 @@
             while (state.tracks.length > state.uploadedFiles.length) state.tracks.pop();
             while (state.tracks.length < state.uploadedFiles.length) state.tracks.push(window.MegaMix.defaultTrack(state.uploadedFiles[state.tracks.length].name));
             renderMixerStrips();
-            setTimeout(function () {
-                window.MegaMix.buildAfterOnly().then(function () {
-                    if (audioAfter && state.mixedAfterUrl) audioAfter.src = state.mixedAfterUrl;
-                }).catch(function () {});
-            }, 0);
+            window.MegaMix.syncAllTracksToLiveGraph();
         }
     });
 
@@ -1242,11 +1227,6 @@
             window.MegaMix.restoreMixerState(s);
             renderMixerStrips();
             window.MegaMix.syncAllTracksToLiveGraph();
-            setTimeout(function () {
-                window.MegaMix.buildAfterOnly().then(function () {
-                    if (audioAfter && state.mixedAfterUrl) audioAfter.src = state.mixedAfterUrl;
-                }).catch(function () {});
-            }, 0);
         } catch (_) {}
     }
     btnUndo.addEventListener('click', () => {
