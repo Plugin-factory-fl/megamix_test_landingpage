@@ -80,21 +80,28 @@
 
     async function decodeStemsToBuffers() {
         if (state.uploadedFiles.length === 0) { state.stemBuffers = []; state.trackAnalyses = []; return; }
+        console.log('[MegaMix perf] decodeStemsToBuffers: start, files=' + state.uploadedFiles.length);
+        const t0 = performance.now();
         const ctx = getAudioContext();
         const buffers = [];
-        for (const entry of state.uploadedFiles) {
+        for (let i = 0; i < state.uploadedFiles.length; i++) {
+            const entry = state.uploadedFiles[i];
+            const tFile = performance.now();
             const ab = await entry.file.arrayBuffer();
             const buf = await ctx.decodeAudioData(ab.slice(0));
             buffers.push(buf);
+            console.log('[MegaMix perf]   decode file ' + (i + 1) + '/' + state.uploadedFiles.length + ' "' + (entry.name || '') + '": ' + (performance.now() - tFile).toFixed(2) + ' ms');
         }
         state.stemBuffers = buffers;
         analyzeStems();
+        console.log('[MegaMix perf] decodeStemsToBuffers: total ' + (performance.now() - t0).toFixed(2) + ' ms');
     }
 
     /** ARA-style: analyze each stem for dynamics, loudest/softest blocks, and inferred role. Fills state.trackAnalyses. */
     function analyzeStems() {
         state.trackAnalyses = [];
         if (!state.stemBuffers.length || !state.uploadedFiles.length) return;
+        const t0 = performance.now();
         const inferRole = window.MegaMix && window.MegaMix.inferRole;
         const total = state.stemBuffers.length;
         for (let i = 0; i < state.stemBuffers.length; i++) {
@@ -144,10 +151,12 @@
                 inferredRole: inferRole ? inferRole(entry.name, i, total) : 'other'
             });
         }
+        console.log('[MegaMix perf] analyzeStems: ' + (performance.now() - t0).toFixed(2) + ' ms (stems=' + state.stemBuffers.length + ')');
     }
 
     function buildMixedBuffer(useBefore) {
         if (state.stemBuffers.length === 0) return null;
+        const t0 = performance.now();
         let maxLen = 0;
         let sampleRate = state.stemBuffers[0].sampleRate;
         for (const b of state.stemBuffers) {
@@ -182,11 +191,14 @@
                 right[i] *= scale;
             }
         }
+        console.log('[MegaMix perf] buildMixedBuffer(' + (useBefore ? 'before' : 'after') + '): ' + (performance.now() - t0).toFixed(2) + ' ms (len=' + maxLen + ')');
         return { left, right, sampleRate, length: maxLen };
     }
 
     async function buildAfterMixWithFX() {
         if (state.stemBuffers.length === 0) return null;
+        const t0 = performance.now();
+        console.log('[MegaMix perf] buildAfterMixWithFX: start (tracks=' + state.stemBuffers.length + ')');
         const interpolateAutomation = window.MegaMix.interpolateAutomation;
         const tracks = state.tracks;
         let maxLen = 0;
@@ -198,6 +210,7 @@
         const right = new Float32Array(maxLen);
 
         for (let ti = 0; ti < state.stemBuffers.length; ti++) {
+            const tTrack = performance.now();
             const buf = state.stemBuffers[ti];
             const track = tracks[ti];
             const ctx = new OfflineAudioContext({ length: maxLen, numberOfChannels: 2, sampleRate });
@@ -269,6 +282,7 @@
 
             src.start(0);
             const rendered = await ctx.startRendering();
+            console.log('[MegaMix perf]   track ' + (ti + 1) + '/' + state.stemBuffers.length + ' OfflineAudioContext.startRendering: ' + (performance.now() - tTrack).toFixed(2) + ' ms');
             const ch0 = rendered.getChannelData(0);
             const ch1 = rendered.getChannelData(1);
 
@@ -298,11 +312,14 @@
                 right[i] *= scale;
             }
         }
+        console.log('[MegaMix perf] buildAfterMixWithFX: total ' + (performance.now() - t0).toFixed(2) + ' ms');
         return { left, right, sampleRate, length: maxLen };
     }
 
     async function runMasteringChain(mix, options) {
         if (!mix || !mix.left || !mix.right) return null;
+        const t0 = performance.now();
+        console.log('[MegaMix perf] runMasteringChain: start (samples=' + (mix.left && mix.left.length) + ')');
         const opts = options || {};
         const punch = Math.max(0, Math.min(2, Number(opts.punch) || 0));
         const loudness = Math.max(0, Math.min(2, Number(opts.loudness) || 0));
@@ -327,6 +344,7 @@
         comp.connect(ctx.destination);
         src.start(0);
         const rendered = await ctx.startRendering();
+        console.log('[MegaMix perf] runMasteringChain: OfflineAudioContext.startRendering ' + (performance.now() - t0).toFixed(2) + ' ms');
         const left = rendered.getChannelData(0);
         const right = rendered.getChannelData(1);
         let peak = 0;
@@ -339,6 +357,7 @@
             left[i] = Math.max(-1, Math.min(1, left[i] * scale));
             right[i] = Math.max(-1, Math.min(1, right[i] * scale));
         }
+        console.log('[MegaMix perf] runMasteringChain: total ' + (performance.now() - t0).toFixed(2) + ' ms');
         return { left, right, sampleRate: sr, length: len };
     }
 
@@ -352,8 +371,10 @@
 
     function scheduleBuildAfter() {
         if (buildAfterTimer) clearTimeout(buildAfterTimer);
+        console.log('[MegaMix perf] scheduleBuildAfter: debounce 500ms');
         buildAfterTimer = setTimeout(() => {
             buildAfterTimer = null;
+            console.log('[MegaMix perf] scheduleBuildAfter: firing buildAfterOnly');
             buildAfterOnly().then(() => {
                 if (window.MegaMix.syncAllTracksToLiveGraph) window.MegaMix.syncAllTracksToLiveGraph();
                 if (typeof window.MegaMix.onAfterMixBuilt === 'function') window.MegaMix.onAfterMixBuilt();
@@ -363,12 +384,17 @@
 
     async function buildAfterOnly() {
         if (state.stemBuffers.length === 0 || state.uploadedFiles.length === 0) return;
+        const t0 = performance.now();
+        console.log('[MegaMix perf] buildAfterOnly: start');
         try {
             const afterMix = await buildAfterMixWithFX();
             if (afterMix) {
+                const tEncode = performance.now();
                 if (state.mixedAfterUrl) URL.revokeObjectURL(state.mixedAfterUrl);
                 state.mixedAfterUrl = URL.createObjectURL(encodeWav(afterMix.left, afterMix.right, afterMix.sampleRate));
+                console.log('[MegaMix perf] buildAfterOnly: encodeWav + createObjectURL ' + (performance.now() - tEncode).toFixed(2) + ' ms');
             }
+            console.log('[MegaMix perf] buildAfterOnly: total ' + (performance.now() - t0).toFixed(2) + ' ms');
         } catch (e) {
             console.error('buildAfterOnly', e);
         }
@@ -376,6 +402,8 @@
 
     function createLiveGraph() {
         if (state.stemBuffers.length === 0 || !state.tracks.length) return;
+        const t0 = performance.now();
+        console.log('[MegaMix perf] createLiveGraph: start (tracks=' + state.tracks.length + ')');
         const ctx = getAudioContext();
         if (liveGraph) {
             try {
@@ -407,6 +435,7 @@
             comp.connect(liveGraph.masterGain);
             liveGraph.tracks.push({ gainNode, pannerNode: panner, lowShelf, midPeak, highShelf, compNode: comp });
         }
+        console.log('[MegaMix perf] createLiveGraph: ' + (performance.now() - t0).toFixed(2) + ' ms');
         if (window.MegaMix.syncAllTracksToLiveGraph) window.MegaMix.syncAllTracksToLiveGraph();
     }
 
@@ -435,7 +464,9 @@
 
     function syncAllTracksToLiveGraph() {
         if (!liveGraph) return;
+        const t0 = performance.now();
         for (let i = 0; i < liveGraph.tracks.length && i < state.tracks.length; i++) syncTrackToLiveGraph(i);
+        console.log('[MegaMix perf] syncAllTracksToLiveGraph: ' + (performance.now() - t0).toFixed(2) + ' ms (tracks=' + liveGraph.tracks.length + ')');
     }
 
     function stopLivePlayback() {

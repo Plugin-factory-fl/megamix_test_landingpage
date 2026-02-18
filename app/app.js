@@ -199,6 +199,7 @@
     var _renderStripsTimer = null;
     var RENDER_STRIPS_THROTTLE_MS = 120;
     function doRenderMixerStrips() {
+        var t0 = performance.now();
         mixerStripsEl.innerHTML = '';
         state.tracks.forEach((track, i) => {
             const strip = document.createElement('div');
@@ -553,15 +554,18 @@
             strip.appendChild(autoPanel);
             mixerStripsEl.appendChild(strip);
         });
+        console.log('[MegaMix perf] doRenderMixerStrips: ' + (performance.now() - t0).toFixed(2) + ' ms (tracks=' + state.tracks.length + ')');
     }
     function renderMixerStrips() {
         var now = Date.now();
         if (_renderStripsTimer) clearTimeout(_renderStripsTimer);
         if (now - _lastRenderStrips >= RENDER_STRIPS_THROTTLE_MS || _lastRenderStrips === 0) {
             _lastRenderStrips = now;
+            console.log('[MegaMix perf] renderMixerStrips: run immediately (throttle ok)');
             doRenderMixerStrips();
         } else {
             var delay = RENDER_STRIPS_THROTTLE_MS - (now - _lastRenderStrips);
+            console.log('[MegaMix perf] renderMixerStrips: throttled, defer ' + delay + ' ms');
             _renderStripsTimer = setTimeout(function () {
                 _renderStripsTimer = null;
                 _lastRenderStrips = Date.now();
@@ -822,6 +826,8 @@
             }
             return;
         }
+        console.log('[MegaMix perf] runMixIt: start (files=' + state.uploadedFiles.length + ')');
+        var tRunMixIt = performance.now();
         setMixItLoading(true);
         setMixItProgress(0, 'Decoding stems…');
         playbackInstruction.classList.add('hidden');
@@ -907,7 +913,9 @@
                 audioAfter.muted = false;
             }
             addChatMessage('bot', 'Mix ready. Listen in Before/After or refine with Josh.');
+            console.log('[MegaMix perf] runMixIt: createLiveGraph');
             window.MegaMix.createLiveGraph();
+            console.log('[MegaMix perf] runMixIt: total ' + (performance.now() - tRunMixIt).toFixed(2) + ' ms');
             const d = window.MegaMix.getTransportDuration();
             if (playbackDuration && d > 0) {
                 const m = Math.floor(d / 60);
@@ -1019,6 +1027,7 @@
     function initJoshAvatarDrag(wrapEl) {
         if (!wrapEl) return;
         var startX = 0, startY = 0, startLeft = 0, startTop = 0;
+        var wrapWidth = 0, wrapHeight = 0;
         function getRect() { return wrapEl.getBoundingClientRect(); }
         function clamp(x, min, max) { return Math.max(min, Math.min(max, x)); }
         wrapEl.addEventListener('mousedown', function (e) {
@@ -1029,14 +1038,19 @@
             startY = e.clientY;
             startLeft = r.left;
             startTop = r.top;
+            wrapWidth = r.width;
+            wrapHeight = r.height;
+            wrapEl.style.bottom = '';
+            wrapEl.style.left = startLeft + 'px';
+            wrapEl.style.top = startTop + 'px';
+            wrapEl.style.transform = 'none';
             function onMove(e2) {
                 var dx = e2.clientX - startX;
                 var dy = e2.clientY - startY;
-                var newLeft = clamp(startLeft + dx, 0, window.innerWidth - r.width);
-                var newTop = clamp(startTop + dy, 0, window.innerHeight - r.height);
+                var newLeft = clamp(startLeft + dx, 0, window.innerWidth - wrapWidth);
+                var newTop = clamp(startTop + dy, 0, window.innerHeight - wrapHeight);
                 wrapEl.style.left = newLeft + 'px';
                 wrapEl.style.top = newTop + 'px';
-                wrapEl.style.transform = 'none';
             }
             function onUp() {
                 document.removeEventListener('mousemove', onMove);
@@ -1060,11 +1074,16 @@
         }
         const changes = window.MegaMix.interpretChatMessage(text, state.tracks, state.trackAnalyses);
         if (changes && changes.length > 0) {
+            var tJosh = performance.now();
+            console.log('[MegaMix perf] Josh chat: applying ' + changes.length + ' changes');
             pushUndo();
             window.MegaMix.applyJoshResponse(state.tracks, changes);
+            console.log('[MegaMix perf] Josh chat: applyJoshResponse ' + (performance.now() - tJosh).toFixed(2) + ' ms');
             renderMixerStrips();
             window.MegaMix.syncAllTracksToLiveGraph();
+            console.log('[MegaMix perf] Josh chat: renderMixerStrips + syncAllTracksToLiveGraph done, starting buildAfterOnly (async)');
             window.MegaMix.buildAfterOnly().then(() => {
+                console.log('[MegaMix perf] Josh chat: buildAfterOnly finished, total since send ' + (performance.now() - tJosh).toFixed(2) + ' ms');
                 if (audioAfter && state.mixedAfterUrl) audioAfter.src = state.mixedAfterUrl;
             }).catch(() => {});
             setTimeout(() => addChatMessage('bot', "I've applied those changes. Check the After tab and have a listen."), 400);
@@ -1262,6 +1281,8 @@
                 return;
             }
             try {
+                var tMastering = performance.now();
+                console.log('[MegaMix perf] AI Mastering: start (step 1 buildAfterMixWithFX, step 2 runMasteringChain)');
                 window.MegaMix.revokeMasteredUrl();
                 btnAiMastering.disabled = true;
                 showMasteringStatus('Rendering mix… (step 1 of 2)', 10);
@@ -1279,6 +1300,7 @@
                 const mastered = await window.MegaMix.runMasteringChain(afterMix, state.masteringOptions);
                 showMasteringStatus('', 0);
                 btnAiMastering.disabled = false;
+                console.log('[MegaMix perf] AI Mastering: total ' + (performance.now() - tMastering).toFixed(2) + ' ms');
                 if (mastered) {
                     state.masteredUrl = URL.createObjectURL(window.MegaMix.encodeWav(mastered.left, mastered.right, mastered.sampleRate));
                     addChatMessage('bot', 'Mastering complete. Taking you to the Mastering page.');
