@@ -222,11 +222,11 @@ app.post('/api/auth/login', async (req, res) => {
       [normalizedKey]
     );
     if (result.rows.length === 0) {
-      return res.status(401).json({ error: 'Invalid license key. Use the exact key from your plugin or the .txt file you received. You can leave the email field blank and enter only the license key.' });
+      return res.status(401).json({ error: 'Invalid license key. Use the exact key from your plugin or the .txt file you received.' });
     }
     const license = result.rows[0];
     if (trimEmail && license.customer_email && license.customer_email.toLowerCase() !== trimEmail.toLowerCase()) {
-      return res.status(401).json({ error: 'Email does not match this license. Try logging in with only your license key (leave email blank), or use the email from your purchase receipt.' });
+      return res.status(401).json({ error: 'Email does not match this license. Use the license key from your plugin or purchase receipt.' });
     }
     if (new Date() > new Date(license.expires_at)) {
       return res.status(403).json({ error: 'License has expired' });

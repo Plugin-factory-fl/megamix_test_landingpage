@@ -71,6 +71,10 @@
                 toast.style.top = (rect.top - toastRect.height - pad) + 'px';
                 toast.style.left = Math.max(pad, Math.min(rect.left, (window.innerWidth || document.documentElement.clientWidth) - toastRect.width - pad)) + 'px';
             }
+        } else {
+            toast.style.bottom = '24px';
+            toast.style.left = '50%';
+            toast.style.transform = 'translateX(-50%)';
         }
         setTimeout(function () {
             if (toast.parentNode) toast.parentNode.removeChild(toast);
@@ -1258,20 +1262,47 @@
         pendingDownload = null;
         document.body.style.overflow = '';
     }
+
+    var loginOrTrialModalApp = document.getElementById('loginOrTrialModalApp');
+    function openLoginOrTrialModal() {
+        if (loginOrTrialModalApp) {
+            loginOrTrialModalApp.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+    function closeLoginOrTrialModal() {
+        if (loginOrTrialModalApp) {
+            loginOrTrialModalApp.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+        pendingDownload = null;
+    }
     function performMixDownload() {
         if (!state.mixReady || state.stemBuffers.length === 0) return;
+        showToast('<p>Preparing your mix download…</p>', null);
         try {
             window.MegaMix.buildAfterMixWithFX().then(function (afterMix) {
                 if (afterMix) {
                     const blob = window.MegaMix.encodeWav(afterMix.left, afterMix.right, afterMix.sampleRate);
+                    const filename = (state.uploadedFiles[0].name.replace(/\.[^.]+$/, '') || 'mix') + '-mix.wav';
+                    const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
-                    a.href = URL.createObjectURL(blob);
-                    a.download = (state.uploadedFiles[0].name.replace(/\.[^.]+$/, '') || 'mix') + '-mix.wav';
+                    a.href = url;
+                    a.download = filename;
                     a.click();
-                    URL.revokeObjectURL(a.href);
+                    var readyToast = document.createElement('div');
+                    readyToast.className = 'toast toast-anchored';
+                    readyToast.setAttribute('role', 'alert');
+                    readyToast.style.bottom = '24px';
+                    readyToast.style.left = '50%';
+                    readyToast.style.transform = 'translateX(-50%)';
+                    readyToast.innerHTML = '<p>If the download didn\'t start, <a href="' + url + '" download="' + filename + '" style="color:#a78bfa;text-decoration:underline;font-weight:600;">click here to download your mix</a>.</p>';
+                    document.body.appendChild(readyToast);
+                    setTimeout(function () { if (readyToast.parentNode) readyToast.parentNode.removeChild(readyToast); }, 15000);
+                    setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
                 }
-            }).catch(function (e) { console.error('Export', e); });
-        } catch (e) { console.error('Export', e); }
+            }).catch(function (e) { console.error('Export', e); showToast('<p>Download failed. Please try again.</p>', null); });
+        } catch (e) { console.error('Export', e); showToast('<p>Download failed. Please try again.</p>', null); }
     }
     function performMasteredDownload() {
         if (!state.masteredUrl) return;
@@ -1320,12 +1351,19 @@
     function isPreviewMode() {
         return window.MegaMixAuth && window.MegaMixAuth.isPreviewMode && window.MegaMixAuth.isPreviewMode();
     }
+    function isSubscribedUser() {
+        return document.body && document.body.classList.contains('logged-in');
+    }
 
     btnExport.addEventListener('click', function () {
         if (!state.mixReady || state.stemBuffers.length === 0) return;
         if (isPreviewMode()) {
             pendingDownload = { type: 'mix' };
-            if (window.MegaMixAuth && window.MegaMixAuth.showLoginRequired) window.MegaMixAuth.showLoginRequired();
+            openLoginOrTrialModal();
+            return;
+        }
+        if (isSubscribedUser()) {
+            performMixDownload();
             return;
         }
         openEmailModal('mix');
@@ -1889,7 +1927,7 @@
                 btnDownloadMasteredFinal.addEventListener('click', async function () {
                     if (isPreviewMode()) {
                         pendingDownload = { type: 'mastered' };
-                        if (window.MegaMixAuth && window.MegaMixAuth.showLoginRequired) window.MegaMixAuth.showLoginRequired();
+                        openLoginOrTrialModal();
                         return;
                     }
                     if (!state.mixReady || state.stemBuffers.length === 0) return;
@@ -1911,7 +1949,11 @@
                         btn.textContent = origText;
                         btn.disabled = false;
                     }
-                    openEmailModal('mastered');
+                    if (document.body && document.body.classList.contains('logged-in')) {
+                        performMasteredDownload();
+                    } else {
+                        openEmailModal('mastered');
+                    }
                 });
             }
         }
@@ -1933,6 +1975,34 @@
             if (content && !content.contains(e.target)) {
                 closeEmailModal();
                 pendingDownload = null;
+            }
+        });
+    }
+
+    var loginOrTrialModalAppClose = document.getElementById('loginOrTrialModalAppClose');
+    var loginOrTrialModalAppLogin = document.getElementById('loginOrTrialModalAppLogin');
+    var loginOrTrialModalAppTrial = document.getElementById('loginOrTrialModalAppTrial');
+    if (loginOrTrialModalAppClose) loginOrTrialModalAppClose.addEventListener('click', closeLoginOrTrialModal);
+    if (loginOrTrialModalAppLogin) {
+        loginOrTrialModalAppLogin.addEventListener('click', function () {
+            if (loginOrTrialModalApp) {
+                loginOrTrialModalApp.classList.add('hidden');
+                document.body.style.overflow = '';
+            }
+            if (window.MegaMixAuth && window.MegaMixAuth.showLoginRequired) window.MegaMixAuth.showLoginRequired();
+        });
+    }
+    if (loginOrTrialModalAppTrial) {
+        loginOrTrialModalAppTrial.addEventListener('click', function () {
+            closeLoginOrTrialModal();
+            if (window.MegaMixAuth && window.MegaMixAuth.doFreeTrial) window.MegaMixAuth.doFreeTrial();
+        });
+    }
+    if (loginOrTrialModalApp) {
+        loginOrTrialModalApp.addEventListener('click', function (e) {
+            var content = loginOrTrialModalApp.querySelector('.login-or-trial-content');
+            if (content && !content.contains(e.target)) {
+                closeLoginOrTrialModal();
             }
         });
     }
