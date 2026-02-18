@@ -590,6 +590,38 @@
             playBtn.textContent = '\u25B6';
             updateProgress();
         }
+        function getCurrentPlaybackTime() {
+            const d = duration();
+            if (d <= 0) return 0;
+            if (!audioBefore.paused) return audioBefore.currentTime || 0;
+            if (audioAfter && !audioAfter.paused && isFinite(audioAfter.duration)) return audioAfter.currentTime || 0;
+            if (window.MegaMix.livePlaybackSources().length > 0 && window.MegaMix.liveGraph()) {
+                const lg = window.MegaMix.liveGraph();
+                return window.MegaMix.transportOffset() + (lg.ctx.currentTime - window.MegaMix.playbackStartTime());
+            }
+            return (playbackProgress.value / 100) * d;
+        }
+        function startPlaybackAt(mode, pos) {
+            const d = duration();
+            if (d <= 0) return;
+            if (mode === 'before') {
+                audioBefore.currentTime = Math.min(pos, (audioBefore.duration || d) - 0.01);
+                audioBefore.play();
+                playBtn.classList.add('playing');
+                playBtn.textContent = '\u23F8';
+            } else if (mode === 'after' && window.MegaMix.liveGraph()) {
+                window.MegaMix.startLivePlayback(pos);
+                playBtn.classList.add('playing');
+                playBtn.textContent = '\u23F8';
+                window.MegaMix.setLivePlaybackRaf(requestAnimationFrame(tickLiveProgress));
+            } else if (mode === 'after' && audioAfter && state.mixedAfterUrl) {
+                audioAfter.muted = false;
+                audioAfter.currentTime = Math.min(pos, (audioAfter.duration || d) - 0.01);
+                audioAfter.play();
+                playBtn.classList.add('playing');
+                playBtn.textContent = '\u23F8';
+            }
+        }
         function tickLiveProgress() {
             if (window.MegaMix.livePlaybackSources().length === 0) return;
             updateProgress();
@@ -600,8 +632,17 @@
                 tabs.forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
                 this.classList.add('active');
                 this.setAttribute('aria-selected', 'true');
-                stopBoth();
-                setMutedFromTab();
+                const playing = !audioBefore.paused || (audioAfter && !audioAfter.paused) || window.MegaMix.livePlaybackSources().length > 0;
+                if (playing) {
+                    const pos = getCurrentPlaybackTime();
+                    audioBefore.pause();
+                    if (audioAfter) audioAfter.pause();
+                    window.MegaMix.stopLivePlayback();
+                    setMutedFromTab();
+                    startPlaybackAt(getActiveMode(), pos);
+                } else {
+                    setMutedFromTab();
+                }
             });
         });
         playBtn.addEventListener('click', function () {
