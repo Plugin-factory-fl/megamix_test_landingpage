@@ -398,6 +398,18 @@ body {
     color: #fff;
     margin-bottom: 16px;
 }
+.preset-prompts-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+}
+.preset-prompts-grid .preset-prompt-btn {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+}
 .panel .guidance-input {
     width: 100%;
     max-width: 400px;
@@ -1349,6 +1361,23 @@ body {
 .mastering-controls-row label { min-width: 110px; font-size: 0.9rem; }
 .mastering-controls-row input[type="range"] { flex: 1; max-width: 200px; accent-color: #8b5cf6; }
 .mastering-controls-value { min-width: 44px; font-size: 0.85rem; color: #a78bfa; }
+.mastering-knobs-row {
+    display: flex;
+    gap: 24px;
+    align-items: flex-end;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
+.mastering-knob-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+.mastering-knob-wrap label { font-size: 0.9rem; font-weight: 600; }
+.mastering-knob { width: 64px; accent-color: #8b5cf6; }
+.mastering-knob-label { font-size: 0.8rem; color: #a78bfa; min-width: 3em; text-align: center; }
 .waveform-wrap-mastering {
     width: 100%;
     margin-bottom: 12px;

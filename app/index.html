@@ -109,7 +109,16 @@
                     <option value="country">Country</option>
                     <option value="custom">Custom</option>
                 </select>
-                <label for="guidance-for-josh">Words of guidance for the mix</label>
+                <label>Words of guidance for the mix</label>
+                <div class="preset-prompts-grid" id="preset-prompts-grid" role="group" aria-label="Preset mix guidance">
+                    <button type="button" class="btn btn-ghost btn-small preset-prompt-btn" data-prompt="" data-index="0">Clean and present</button>
+                    <button type="button" class="btn btn-ghost btn-small preset-prompt-btn" data-prompt="" data-index="1">Vocal forward</button>
+                    <button type="button" class="btn btn-ghost btn-small preset-prompt-btn" data-prompt="" data-index="2">Punchy drums</button>
+                    <button type="button" class="btn btn-ghost btn-small preset-prompt-btn" data-prompt="" data-index="3">Warm low end</button>
+                    <button type="button" class="btn btn-ghost btn-small preset-prompt-btn" data-prompt="" data-index="4">Bright and open</button>
+                    <button type="button" class="btn btn-ghost btn-small preset-prompt-btn" data-prompt="" data-index="5">More glue</button>
+                </div>
+                <label for="guidance-for-josh">Or type your own</label>
                 <input type="text" id="guidance-for-josh" placeholder="e.g. punchy drums, vocal forward, warm low end" class="guidance-input">
                 <button type="button" class="btn btn-primary" id="btn-mix-it">Mix it</button>
                 <div class="progress-wrap hidden" id="progress-wrap">
@@ -216,7 +225,14 @@
             </section>
             <section class="mastering-player-section">
                 <div class="before-after-card mastering-card">
-                    <h3 class="before-after-card-title">Mastered preview</h3>
+                    <div class="before-after-card-header">
+                        <h3 class="before-after-card-title">Mastered preview</h3>
+                        <div class="before-after-tabs" role="tablist">
+                            <button type="button" role="tab" aria-selected="false" class="before-after-tab mastering-tab" data-mode="before">Before</button>
+                            <button type="button" role="tab" aria-selected="true" class="before-after-tab mastering-tab active" data-mode="after">After</button>
+                        </div>
+                    </div>
+                    <p class="before-after-instruction">Before = unmastered mix; After = mastered. Switch tabs to A/B at the same position.</p>
                     <div class="before-after-play-wrap">
                         <button type="button" class="before-after-play-btn" id="play-mastering" aria-label="Play" title="Play">&#9658;</button>
                     </div>
@@ -228,6 +244,7 @@
                         <input type="range" class="before-after-progress" id="progress-mastering" min="0" max="100" value="0" step="0.1" aria-label="Seek">
                         <span class="before-after-duration" id="duration-mastering">0:00</span>
                     </div>
+                    <audio id="audio-mastering-before" preload="metadata"></audio>
                     <audio id="audio-mastering" preload="metadata"></audio>
                 </div>
             </section>
@@ -259,6 +276,18 @@
                         <label for="mastering-output">Output level</label>
                         <input type="range" id="mastering-output" min="0" max="100" value="33" step="1" aria-label="Output level">
                         <span class="mastering-controls-value" id="mastering-output-value">1</span>
+                    </div>
+                    <div class="mastering-knobs-row">
+                        <div class="mastering-knob-wrap">
+                            <label for="mastering-adjust">Adjust</label>
+                            <input type="range" id="mastering-adjust" class="mastering-knob" min="0" max="100" value="50" step="1" aria-label="Adjust mastering params ±25%">
+                            <span class="mastering-knob-label">12:00</span>
+                        </div>
+                        <div class="mastering-knob-wrap">
+                            <label for="mastering-mix">Mix</label>
+                            <input type="range" id="mastering-mix" class="mastering-knob" min="0" max="100" value="100" step="1" aria-label="Dry/wet mastering">
+                            <span class="mastering-knob-label" id="mastering-mix-value">100%</span>
+                        </div>
                     </div>
                 </div>
             </div>

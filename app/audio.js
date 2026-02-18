@@ -26,6 +26,7 @@
     }
     function revokeMasteredUrl() {
         if (state.masteredUrl) { URL.revokeObjectURL(state.masteredUrl); state.masteredUrl = null; }
+        if (state.unmasteredMixUrl) { URL.revokeObjectURL(state.unmasteredMixUrl); state.unmasteredMixUrl = null; }
     }
 
     function encodeWav(left, right, sampleRate) {

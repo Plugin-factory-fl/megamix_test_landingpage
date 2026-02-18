@@ -49,6 +49,8 @@
     let masteringGraphInited = false;
     let masterCompressor = null;
     let masterGain = null;
+    let masterDryGain = null;
+    let masterWetGain = null;
 
     function showView(name) {
         Object.keys(views).forEach(k => {
@@ -224,6 +226,10 @@
             fader.addEventListener('mousedown', () => pushUndo());
             fader.addEventListener('input', () => {
                 track.gain = parseFloat(fader.value);
+                if (track.automation && track.automation.level && track.automation.level.length >= 2) {
+                    track.automation.level[0].value = track.gain;
+                    track.automation.level[track.automation.level.length - 1].value = track.gain;
+                }
                 window.MegaMix.syncTrackToLiveGraph(i);
                 window.MegaMix.scheduleBuildAfter();
             });
@@ -245,6 +251,10 @@
             pan.addEventListener('mousedown', () => pushUndo());
             pan.addEventListener('input', () => {
                 track.pan = parseFloat(pan.value);
+                if (track.automation && track.automation.pan && track.automation.pan.length >= 2) {
+                    track.automation.pan[0].value = track.pan;
+                    track.automation.pan[track.automation.pan.length - 1].value = track.pan;
+                }
                 window.MegaMix.syncTrackToLiveGraph(i);
                 window.MegaMix.scheduleBuildAfter();
             });
@@ -859,6 +869,31 @@
     }
     btnMixIt.addEventListener('click', runMixIt);
 
+    (function initStep2PresetPrompts() {
+        const grid = document.getElementById('preset-prompts-grid');
+        const promptsByGenre = window.MegaMix.GENRE_PROMPTS || {};
+        function updatePresetPromptButtons() {
+            const genre = presetSelect && presetSelect.value ? presetSelect.value : 'custom';
+            const prompts = promptsByGenre[genre] || promptsByGenre.custom || [];
+            if (!grid) return;
+            grid.querySelectorAll('.preset-prompt-btn').forEach((btn, idx) => {
+                const text = prompts[idx] || '';
+                btn.textContent = text;
+                btn.setAttribute('data-prompt', text);
+            });
+        }
+        if (presetSelect) presetSelect.addEventListener('change', updatePresetPromptButtons);
+        if (grid) {
+            grid.querySelectorAll('.preset-prompt-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const prompt = this.getAttribute('data-prompt') || '';
+                    if (guidanceForJosh) guidanceForJosh.value = prompt;
+                });
+            });
+        }
+        updatePresetPromptButtons();
+    })();
+
     function appendBotMessageAnimated(containerEl, label, text) {
         const div = document.createElement('div');
         div.className = 'msg bot';
@@ -974,7 +1009,13 @@
         }
     });
 
+    const MAX_UNDO_STACK = 50;
+    let lastPushUndoTime = 0;
+    const PUSH_UNDO_COOLDOWN_MS = 500;
     function pushUndo() {
+        if (Date.now() - lastPushUndoTime < PUSH_UNDO_COOLDOWN_MS) return;
+        lastPushUndoTime = Date.now();
+        if (state.undoStack.length >= MAX_UNDO_STACK) state.undoStack.shift();
         state.undoStack.push(JSON.stringify(window.MegaMix.snapshotMixerState()));
         state.redoStack = [];
         updateUndoRedoButtons();
@@ -988,7 +1029,6 @@
             window.MegaMix.restoreMixerState(s);
             renderMixerStrips();
             window.MegaMix.syncAllTracksToLiveGraph();
-            window.MegaMix.scheduleBuildAfter();
             window.MegaMix.buildAfterOnly().then(() => {
                 if (audioAfter && state.mixedAfterUrl) audioAfter.src = state.mixedAfterUrl;
             }).catch(() => {});
@@ -996,6 +1036,7 @@
     }
     btnUndo.addEventListener('click', () => {
         if (state.undoStack.length === 0) return;
+        if (state.redoStack.length >= MAX_UNDO_STACK) state.redoStack.shift();
         state.redoStack.push(JSON.stringify(window.MegaMix.snapshotMixerState()));
         restoreTracks(state.undoStack.pop());
         updateUndoRedoButtons();
@@ -1003,6 +1044,7 @@
     });
     btnRedo.addEventListener('click', () => {
         if (state.redoStack.length === 0) return;
+        if (state.undoStack.length >= MAX_UNDO_STACK) state.undoStack.shift();
         state.undoStack.push(JSON.stringify(window.MegaMix.snapshotMixerState()));
         restoreTracks(state.redoStack.pop());
         updateUndoRedoButtons();
@@ -1117,6 +1159,8 @@
                     addChatMessage('bot', 'Could not render the mix. Try again.');
                     return;
                 }
+                if (state.unmasteredMixUrl) URL.revokeObjectURL(state.unmasteredMixUrl);
+                state.unmasteredMixUrl = URL.createObjectURL(window.MegaMix.encodeWav(afterMix.left, afterMix.right, afterMix.sampleRate));
                 showMasteringStatus('Applying AI mastering…');
                 state.masteringOptions = state.masteringOptions || { punch: 0, loudness: 0, compression: 1 };
                 const mastered = await window.MegaMix.runMasteringChain(afterMix, state.masteringOptions);
@@ -1139,6 +1183,7 @@
     }
     let masteringPageInited = false;
     function initMasteringPageWhenShown() {
+        const audioMasteringBefore = document.getElementById('audio-mastering-before');
         const audioMastering = document.getElementById('audio-mastering');
         const playMastering = document.getElementById('play-mastering');
         const progressMastering = document.getElementById('progress-mastering');
@@ -1148,6 +1193,7 @@
         const chatInputMastering = document.getElementById('chat-input-mastering');
         const chatSendMastering = document.getElementById('chat-send-mastering');
         const btnDownloadMasteredFinal = document.getElementById('btn-download-mastered-final');
+        const masteringTabs = document.querySelectorAll('.mastering-tab');
         if (!audioMastering || !playMastering || !progressMastering) return;
 
         function formatTime(s) {
@@ -1156,10 +1202,26 @@
             const sec = Math.floor(s % 60);
             return m + ':' + (sec < 10 ? '0' : '') + sec;
         }
+        function getActiveMasteringMode() {
+            const active = document.querySelector('.mastering-tab.active');
+            return active ? active.getAttribute('data-mode') : 'after';
+        }
+        function setMasteringMutedFromTab() {
+            const mode = getActiveMasteringMode();
+            if (audioMasteringBefore) audioMasteringBefore.muted = (mode !== 'before');
+            audioMastering.muted = (mode !== 'after');
+        }
+        function masteringDuration() {
+            const mode = getActiveMasteringMode();
+            const el = mode === 'before' && audioMasteringBefore ? audioMasteringBefore : audioMastering;
+            return (el && el.duration && isFinite(el.duration)) ? el.duration : 0;
+        }
         function updateMasteringProgress() {
-            const d = audioMastering.duration;
-            const t = audioMastering.currentTime || 0;
-            if (d && isFinite(d)) {
+            const mode = getActiveMasteringMode();
+            const el = mode === 'before' && audioMasteringBefore ? audioMasteringBefore : audioMastering;
+            const d = masteringDuration();
+            const t = (el && el.currentTime != null) ? el.currentTime : 0;
+            if (d > 0) {
                 progressMastering.value = (t / d) * 100;
                 if (durationMastering) durationMastering.textContent = formatTime(d);
             }
@@ -1171,8 +1233,10 @@
         const canvasWaveform = document.getElementById('waveform-mastering');
         function drawMasteringWaveform() {
             if (!canvasWaveform || !waveformBins || waveformBins.length === 0) return;
-            const d = audioMastering.duration;
-            const t = audioMastering.currentTime || 0;
+            const mode = getActiveMasteringMode();
+            const el = mode === 'before' && audioMasteringBefore ? audioMasteringBefore : audioMastering;
+            const d = (el && el.duration && isFinite(el.duration)) ? el.duration : 0;
+            const t = (el && el.currentTime != null) ? el.currentTime : 0;
             const w = canvasWaveform.width;
             const h = canvasWaveform.height;
             const ctx = canvasWaveform.getContext('2d');
@@ -1226,33 +1290,57 @@
                 drawMasteringWaveform();
             }).catch(() => {});
         }
+        const masteringBaseValues = { threshold: -18, ratio: 2.5, attack: 0.01, release: 0.2, output: 1 };
         function ensureMasteringGraph() {
             if (masteringGraphInited || !window.MegaMix || !window.MegaMix.getAudioContext) return;
             const ctx = window.MegaMix.getAudioContext();
+            if (audioMasteringBefore) {
+                const sourceBefore = ctx.createMediaElementSource(audioMasteringBefore);
+                sourceBefore.connect(ctx.destination);
+            }
             const source = ctx.createMediaElementSource(audioMastering);
+            const dryGain = ctx.createGain();
             const compressor = ctx.createDynamicsCompressor();
-            const gainNode = ctx.createGain();
-            compressor.threshold.value = -18;
+            const wetGainNode = ctx.createGain();
+            const wetGain = ctx.createGain();
+            const sumNode = ctx.createGain();
+            compressor.threshold.value = masteringBaseValues.threshold;
             compressor.knee.value = 6;
-            compressor.ratio.value = 2.5;
-            compressor.attack.value = 0.01;
-            compressor.release.value = 0.2;
-            gainNode.gain.value = 1;
+            compressor.ratio.value = masteringBaseValues.ratio;
+            compressor.attack.value = masteringBaseValues.attack;
+            compressor.release.value = masteringBaseValues.release;
+            wetGainNode.gain.value = masteringBaseValues.output;
+            source.connect(dryGain);
             source.connect(compressor);
-            compressor.connect(gainNode);
-            gainNode.connect(ctx.destination);
+            compressor.connect(wetGainNode);
+            wetGainNode.connect(wetGain);
+            dryGain.connect(sumNode);
+            wetGain.connect(sumNode);
+            sumNode.connect(ctx.destination);
+            const mixEl = document.getElementById('mastering-mix');
+            const mixPct = mixEl ? Math.max(0, Math.min(100, Number(mixEl.value) || 100)) : 100;
+            dryGain.gain.value = 1 - mixPct / 100;
+            wetGain.gain.value = mixPct / 100;
             masterCompressor = compressor;
-            masterGain = gainNode;
+            masterGain = wetGainNode;
+            masterDryGain = dryGain;
+            masterWetGain = wetGain;
             masteringGraphInited = true;
         }
         if (state.masteredUrl) {
             ensureMasteringGraph();
             audioMastering.src = state.masteredUrl;
+            if (state.unmasteredMixUrl && audioMasteringBefore) audioMasteringBefore.src = state.unmasteredMixUrl;
             audioMastering.onloadedmetadata = function () {
                 if (audioMastering.duration && isFinite(audioMastering.duration) && durationMastering)
                     durationMastering.textContent = formatTime(audioMastering.duration);
             };
+            if (audioMasteringBefore) audioMasteringBefore.onloadedmetadata = function () {
+                if (getActiveMasteringMode() === 'before' && durationMastering && audioMasteringBefore.duration && isFinite(audioMasteringBefore.duration))
+                    durationMastering.textContent = formatTime(audioMasteringBefore.duration);
+            };
             fillWaveformFromUrl(state.masteredUrl);
+            setMasteringMutedFromTab();
         } else if (chatMessagesMastering) {
             const msg = document.createElement('div');
             msg.className = 'msg bot';
@@ -1260,35 +1348,85 @@
             chatMessagesMastering.appendChild(msg);
         }
 
+        function stopBothMastering() {
+            if (audioMasteringBefore) audioMasteringBefore.pause();
+            audioMastering.pause();
+            playMastering.classList.remove('playing');
+            playMastering.textContent = '\u25B6';
+            updateMasteringProgress();
+        }
+        function getCurrentMasteringTime() {
+            const mode = getActiveMasteringMode();
+            if (mode === 'before' && audioMasteringBefore && !audioMasteringBefore.paused)
+                return audioMasteringBefore.currentTime || 0;
+            if (!audioMastering.paused) return audioMastering.currentTime || 0;
+            const d = masteringDuration();
+            return d > 0 ? (progressMastering.value / 100) * d : 0;
+        }
+        function startMasteringPlaybackAt(mode, pos) {
+            const d = masteringDuration();
+            if (d <= 0) return;
+            if (mode === 'before' && audioMasteringBefore && state.unmasteredMixUrl) {
+                audioMasteringBefore.currentTime = Math.min(pos, (audioMasteringBefore.duration || d) - 0.01);
+                audioMasteringBefore.muted = false;
+                audioMasteringBefore.play();
+            } else if (mode === 'after' && state.masteredUrl) {
+                audioMastering.currentTime = Math.min(pos, (audioMastering.duration || d) - 0.01);
+                audioMastering.muted = false;
+                audioMastering.play();
+            }
+            playMastering.classList.add('playing');
+            playMastering.textContent = '\u23F8';
+        }
         if (!masteringPageInited) {
             masteringPageInited = true;
+            masteringTabs.forEach(function (tab) {
+                tab.addEventListener('click', function () {
+                    masteringTabs.forEach(function (t) { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
+                    this.classList.add('active');
+                    this.setAttribute('aria-selected', 'true');
+                    const playing = (audioMasteringBefore && !audioMasteringBefore.paused) || !audioMastering.paused;
+                    if (playing) {
+                        const pos = getCurrentMasteringTime();
+                        if (audioMasteringBefore) audioMasteringBefore.pause();
+                        audioMastering.pause();
+                        setMasteringMutedFromTab();
+                        startMasteringPlaybackAt(getActiveMasteringMode(), pos);
+                    } else {
+                        setMasteringMutedFromTab();
+                    }
+                });
+            });
             playMastering.addEventListener('click', function () {
-                if (audioMastering.paused) {
-                    audioMastering.play();
-                    playMastering.classList.add('playing');
-                    playMastering.textContent = '\u23F8';
+                const mode = getActiveMasteringMode();
+                const playing = (audioMasteringBefore && !audioMasteringBefore.paused) || !audioMastering.paused;
+                if (playing) {
+                    stopBothMastering();
                 } else {
-                    audioMastering.pause();
-                    playMastering.classList.remove('playing');
-                    playMastering.textContent = '\u25B6';
+                    const d = masteringDuration();
+                    if (d <= 0) return;
+                    const pos = getCurrentMasteringTime();
+                    setMasteringMutedFromTab();
+                    startMasteringPlaybackAt(mode, pos);
                 }
             });
-            audioMastering.addEventListener('timeupdate', updateMasteringProgress);
-            audioMastering.addEventListener('ended', function () {
-                playMastering.classList.remove('playing');
-                playMastering.textContent = '\u25B6';
-                updateMasteringProgress();
-            });
+            audioMastering.addEventListener('timeupdate', function () { if (getActiveMasteringMode() === 'after') updateMasteringProgress(); });
+            if (audioMasteringBefore) audioMasteringBefore.addEventListener('timeupdate', function () { if (getActiveMasteringMode() === 'before') updateMasteringProgress(); });
+            audioMastering.addEventListener('ended', stopBothMastering);
+            if (audioMasteringBefore) audioMasteringBefore.addEventListener('ended', stopBothMastering);
             progressMastering.addEventListener('input', function () {
-                const d = audioMastering.duration;
-                if (d && isFinite(d)) {
+                const d = masteringDuration();
+                if (d && isFinite(d) && d > 0) {
                     const t = (progressMastering.value / 100) * d;
-                    audioMastering.currentTime = t;
+                    const mode = getActiveMasteringMode();
+                    if (mode === 'before' && audioMasteringBefore) audioMasteringBefore.currentTime = t;
+                    else audioMastering.currentTime = t;
                     if (timeMastering) timeMastering.textContent = formatTime(t);
                     drawMasteringWaveform();
                 }
             });
             if (audioMastering) audioMastering.addEventListener('seeked', drawMasteringWaveform);
+            if (audioMasteringBefore) audioMasteringBefore.addEventListener('seeked', drawMasteringWaveform);
             const masteringControlsCollapsible = document.getElementById('mastering-controls-collapsible');
             const masteringControlsToggle = document.getElementById('mastering-controls-toggle');
             if (masteringControlsCollapsible && masteringControlsToggle) {
@@ -1297,24 +1435,60 @@
                     masteringControlsToggle.setAttribute('aria-expanded', !collapsed);
                 });
             }
-            function updateMasteringParam(sliderId, valueId, mapFn, setParam) {
+            function getAdjustScale() {
+                const adjEl = document.getElementById('mastering-adjust');
+                const pct = adjEl ? Math.max(0, Math.min(100, Number(adjEl.value) || 50)) : 50;
+                return 0.75 + (pct / 100) * 0.5;
+            }
+            function applyMasteringFromSlidersAndAdjust() {
+                const scale = getAdjustScale();
+                if (masterCompressor) {
+                    masterCompressor.threshold.value = masteringBaseValues.threshold * scale;
+                    masterCompressor.ratio.value = masteringBaseValues.ratio * scale;
+                    masterCompressor.attack.value = Math.max(0.001, masteringBaseValues.attack * scale);
+                    masterCompressor.release.value = Math.max(0.01, masteringBaseValues.release * scale);
+                }
+                if (masterGain) masterGain.gain.value = Math.max(0.01, masteringBaseValues.output * scale);
+            }
+            function updateMasteringParam(sliderId, valueId, mapFn, baseKey) {
                 const slider = document.getElementById(sliderId);
                 const valueEl = document.getElementById(valueId);
                 if (!slider || !valueEl) return;
                 function update() {
                     const val = mapFn(Number(slider.value));
+                    if (baseKey) masteringBaseValues[baseKey] = val;
                     valueEl.textContent = typeof val === 'number' && val % 1 !== 0 ? val.toFixed(2) : String(val);
-                    if (setParam && masterCompressor !== null) setParam(val);
-                    if (sliderId === 'mastering-output' && masterGain !== null) masterGain.gain.value = val;
+                    applyMasteringFromSlidersAndAdjust();
                 }
                 slider.addEventListener('input', update);
                 update();
             }
-            updateMasteringParam('mastering-threshold', 'mastering-threshold-value', function (v) { return -30 + (v / 100) * 30; }, function (val) { if (masterCompressor) masterCompressor.threshold.value = val; });
-            updateMasteringParam('mastering-ratio', 'mastering-ratio-value', function (v) { return 1 + (v / 100) * 19; }, function (val) { if (masterCompressor) masterCompressor.ratio.value = val; });
-            updateMasteringParam('mastering-attack', 'mastering-attack-value', function (v) { return 0.001 + (v / 100) * 0.499; }, function (val) { if (masterCompressor) masterCompressor.attack.value = val; });
-            updateMasteringParam('mastering-release', 'mastering-release-value', function (v) { return 0.01 + (v / 100) * 1.99; }, function (val) { if (masterCompressor) masterCompressor.release.value = val; });
-            updateMasteringParam('mastering-output', 'mastering-output-value', function (v) { return 0.5 + (v / 100) * 1.5; }, null);
+            updateMasteringParam('mastering-threshold', 'mastering-threshold-value', function (v) { return -30 + (v / 100) * 30; }, 'threshold');
+            updateMasteringParam('mastering-ratio', 'mastering-ratio-value', function (v) { return 1 + (v / 100) * 19; }, 'ratio');
+            updateMasteringParam('mastering-attack', 'mastering-attack-value', function (v) { return 0.001 + (v / 100) * 0.499; }, 'attack');
+            updateMasteringParam('mastering-release', 'mastering-release-value', function (v) { return 0.01 + (v / 100) * 1.99; }, 'release');
+            updateMasteringParam('mastering-output', 'mastering-output-value', function (v) { return 0.5 + (v / 100) * 1.5; }, 'output');
+            const adjustKnob = document.getElementById('mastering-adjust');
+            if (adjustKnob) {
+                adjustKnob.addEventListener('input', function () {
+                    const v = Number(this.value);
+                    const label = this.parentElement && this.parentElement.querySelector('.mastering-knob-label');
+                    if (label) label.textContent = v === 50 ? '12:00' : (v < 50 ? '-' + (50 - v) + '%' : '+' + (v - 50) + '%');
+                    applyMasteringFromSlidersAndAdjust();
+                });
+            }
+            const mixKnob = document.getElementById('mastering-mix');
+            const mixValueEl = document.getElementById('mastering-mix-value');
+            if (mixKnob && masterDryGain !== undefined && masterWetGain !== undefined) {
+                function applyMixKnob() {
+                    const pct = Math.max(0, Math.min(100, Number(mixKnob.value) || 100));
+                    if (masterDryGain) masterDryGain.gain.value = 1 - pct / 100;
+                    if (masterWetGain) masterWetGain.gain.value = pct / 100;
+                    if (mixValueEl) mixValueEl.textContent = pct + '%';
+                }
+                mixKnob.addEventListener('input', applyMixKnob);
+                if (mixValueEl) mixValueEl.textContent = (Number(mixKnob.value) || 100) + '%';
+            }
             function addMasteringChatMessage(who, text) {
                 if (!chatMessagesMastering) return;
                 if (who === 'user') {
