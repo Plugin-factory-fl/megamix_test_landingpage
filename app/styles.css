@@ -588,14 +588,18 @@ body {
     display: inline-block;
     padding: 6px 12px;
     margin-bottom: 6px;
+    min-width: 240px;
+    max-width: 240px;
+    text-align: center;
     background: rgba(30, 30, 30, 0.98);
     border: 2px solid rgba(139, 92, 246, 0.4);
     border-radius: 12px;
     font-size: 0.75rem;
     font-weight: 600;
     color: #a78bfa;
-    white-space: nowrap;
+    white-space: normal;
     box-shadow: 0 2px 12px rgba(0,0,0,0.35);
+    box-sizing: border-box;
 }
 .josh-avatar-thought::after {
     content: '';
@@ -996,19 +1000,46 @@ body {
     background: rgba(255,255,255,0.2);
     border-color: rgba(255,255,255,0.5);
 }
-.before-after-info-panel {
-    margin-top: 12px;
-    padding: 12px 14px;
-    background: rgba(0,0,0,0.25);
-    border-radius: 10px;
-    border: 1px solid rgba(255,255,255,0.1);
+/* Toast notifications (used for transport + mixer info) */
+.toast-container {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+}
+.toast {
+    pointer-events: auto;
+    padding: 14px 18px;
+    max-width: min(420px, calc(100vw - 32px));
+    background: rgba(20, 20, 25, 0.97);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 12px;
     font-size: 0.85rem;
     line-height: 1.5;
-    color: rgba(255,255,255,0.9);
+    color: rgba(255,255,255,0.95);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    animation: toast-in 0.25s ease-out;
 }
-.before-after-info-panel p { margin: 0 0 8px 0; }
-.before-after-info-panel p:last-child { margin-bottom: 0; }
-.before-after-info-panel.hidden { display: none; }
+.toast p { margin: 0 0 8px 0; }
+.toast p:last-child { margin-bottom: 0; }
+@keyframes toast-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.mixer-collapsible-header-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+.mixer-collapsible-header-wrap .mixer-collapsible-header { flex: 1; }
+.mixer-info-btn { flex-shrink: 0; }
 .before-after-instruction,
 .before-after-building {
     font-size: 0.8rem;

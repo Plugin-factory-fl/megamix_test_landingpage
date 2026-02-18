@@ -52,6 +52,24 @@
     let masterDryGain = null;
     let masterWetGain = null;
 
+    function showToast(html) {
+        var container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            container.className = 'toast-container';
+            document.body.appendChild(container);
+        }
+        var toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.setAttribute('role', 'alert');
+        toast.innerHTML = html;
+        container.appendChild(toast);
+        setTimeout(function () {
+            if (toast.parentNode) toast.parentNode.removeChild(toast);
+        }, 5500);
+    }
+
     function showView(name) {
         Object.keys(views).forEach(k => {
             if (!views[k]) return;
@@ -151,7 +169,8 @@
         updatePlaybackInstruction();
         if (state.uploadedFiles.length > existingLen) {
             const panel = document.getElementById('panel-simple');
-            if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            const step2 = panel ? panel.previousElementSibling : null;
+            if (step2) step2.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     }
 
@@ -195,7 +214,7 @@
 
     var _lastRenderStrips = 0;
     var _renderStripsTimer = null;
-    var RENDER_STRIPS_THROTTLE_MS = 120;
+    var RENDER_STRIPS_THROTTLE_MS = 200;
     function doRenderMixerStrips() {
         var t0 = performance.now();
         mixerStripsEl.innerHTML = '';
@@ -692,11 +711,16 @@
             });
         });
         var beforeAfterInfoBtn = document.getElementById('before-after-info-btn');
-        var beforeAfterInfoPanel = document.getElementById('before-after-info-panel');
-        if (beforeAfterInfoBtn && beforeAfterInfoPanel) {
+        if (beforeAfterInfoBtn) {
             beforeAfterInfoBtn.addEventListener('click', function () {
-                var hidden = beforeAfterInfoPanel.classList.toggle('hidden');
-                beforeAfterInfoPanel.setAttribute('aria-hidden', hidden ? 'true' : 'false');
+                showToast('<p><strong>A/B testing:</strong> Switch between Before (flat mix) and After (your mix with preset and fader/FX changes) to compare. Use the transport to play, pause, and seek.</p><p><strong>Refine with Josh:</strong> Use the quick prompt buttons or type in the chat (e.g. &quot;bring up the vocals&quot;, &quot;more punch&quot;). Josh applies changes to the After mix; listen and iterate.</p>');
+            });
+        }
+        var mixerInfoBtn = document.getElementById('mixer-info-btn');
+        if (mixerInfoBtn) {
+            mixerInfoBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                showToast('<p>Use the mixer to <strong>manually adjust</strong> each track: drag the faders for level, pan left/right, and turn on EQ, compression, or reverb per track. Changes are reflected in the After playback and when you refine with Josh.</p>');
             });
         }
         playBtn.addEventListener('click', function () {
@@ -1131,11 +1155,11 @@
             console.log('[MegaMix perf] Josh chat: applyJoshResponse ' + (performance.now() - tJosh).toFixed(2) + ' ms');
             renderMixerStrips();
             window.MegaMix.syncAllTracksToLiveGraph();
-            console.log('[MegaMix perf] Josh chat: renderMixerStrips + syncAllTracksToLiveGraph done, starting buildAfterOnly (async)');
-            window.MegaMix.buildAfterOnly().then(() => {
-                console.log('[MegaMix perf] Josh chat: buildAfterOnly finished, total since send ' + (performance.now() - tJosh).toFixed(2) + ' ms');
-                if (audioAfter && state.mixedAfterUrl) audioAfter.src = state.mixedAfterUrl;
-            }).catch(() => {});
+            setTimeout(function () {
+                window.MegaMix.buildAfterOnly().then(function () {
+                    if (audioAfter && state.mixedAfterUrl) audioAfter.src = state.mixedAfterUrl;
+                }).catch(function () {});
+            }, 0);
             setTimeout(() => addChatMessage('bot', "I've applied those changes. Check the After tab and have a listen."), 400);
         } else {
             setTimeout(() => addChatMessage('bot', "I didn't catch which tracks to change. Try something like \"make the kick and snare more prominent\" or \"bring up the vocals\"."), 400);
@@ -1183,9 +1207,11 @@
             while (state.tracks.length > state.uploadedFiles.length) state.tracks.pop();
             while (state.tracks.length < state.uploadedFiles.length) state.tracks.push(window.MegaMix.defaultTrack(state.uploadedFiles[state.tracks.length].name));
             renderMixerStrips();
-            window.MegaMix.buildAfterOnly().then(() => {
-                if (audioAfter && state.mixedAfterUrl) audioAfter.src = state.mixedAfterUrl;
-            }).catch(() => {});
+            setTimeout(function () {
+                window.MegaMix.buildAfterOnly().then(function () {
+                    if (audioAfter && state.mixedAfterUrl) audioAfter.src = state.mixedAfterUrl;
+                }).catch(function () {});
+            }, 0);
         }
     });
 
@@ -1209,9 +1235,11 @@
             window.MegaMix.restoreMixerState(s);
             renderMixerStrips();
             window.MegaMix.syncAllTracksToLiveGraph();
-            window.MegaMix.buildAfterOnly().then(() => {
-                if (audioAfter && state.mixedAfterUrl) audioAfter.src = state.mixedAfterUrl;
-            }).catch(() => {});
+            setTimeout(function () {
+                window.MegaMix.buildAfterOnly().then(function () {
+                    if (audioAfter && state.mixedAfterUrl) audioAfter.src = state.mixedAfterUrl;
+                }).catch(function () {});
+            }, 0);
         } catch (_) {}
     }
     btnUndo.addEventListener('click', () => {

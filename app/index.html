@@ -157,7 +157,10 @@
                 </div>
                 <div class="step3-unified-card iterate-card">
                 <div class="mixer-collapsible collapsed" id="mixer-collapsible">
-                    <button type="button" class="mixer-collapsible-header" id="mixer-collapsible-toggle" aria-expanded="false" aria-controls="mixer-collapsible-body">Mixer</button>
+                    <div class="mixer-collapsible-header-wrap">
+                        <button type="button" class="mixer-collapsible-header" id="mixer-collapsible-toggle" aria-expanded="false" aria-controls="mixer-collapsible-body">Mixer</button>
+                        <button type="button" class="btn-icon-info mixer-info-btn" id="mixer-info-btn" aria-label="Mixer help" title="How to use the mixer">&#8505;</button>
+                    </div>
                     <div class="mixer-collapsible-body" id="mixer-collapsible-body">
                         <p class="mixer-hint">Per-track level, pan, and FX. Reverb available; Retro coming soon.</p>
                         <p class="mixer-hint mixer-hint-live">Changes in the mixer are reflected live in the transport player.</p>
@@ -172,10 +175,6 @@
                                 <button type="button" role="tab" aria-selected="true" class="before-after-tab active" data-mode="after">After</button>
                             </div>
                             <button type="button" class="btn-icon-info" id="before-after-info-btn" aria-label="How to use A/B and chat" title="How to use A/B and chat">&#8505;</button>
-                        </div>
-                        <div class="before-after-info-panel hidden" id="before-after-info-panel" aria-hidden="true">
-                            <p><strong>A/B testing:</strong> Switch between Before (flat mix) and After (your mix with preset and fader/FX changes) to compare. Use the transport to play, pause, and seek.</p>
-                            <p><strong>Refine with Josh:</strong> Use the quick prompt buttons or type in the chat (e.g. &quot;bring up the vocals&quot;, &quot;more punch&quot;). Josh applies changes to the After mix; listen and iterate.</p>
                         </div>
                     </div>
                     <p class="before-after-instruction" id="playback-instruction">Upload stems, then press Play. Before = flat mix; After = your mix (preset + faders + FX).</p>
@@ -197,7 +196,7 @@
                     <audio id="audio-before" preload="metadata"></audio>
                     <audio id="audio-after" preload="metadata"></audio>
                 </div>
-                <div class="josh-avatar-wrap hidden" id="josh-avatar" aria-hidden="true">
+                <div class="josh-avatar-wrap" id="josh-avatar" aria-hidden="false">
                     <span class="josh-avatar-thought" id="josh-avatar-thought">I'm Josh!</span>
                     <div class="josh-avatar-bubble">
                         <img src="/assets/Joshpropic.png" alt="Josh" class="josh-avatar-img">

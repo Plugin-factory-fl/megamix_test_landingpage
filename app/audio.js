@@ -387,15 +387,13 @@
 
     function scheduleBuildAfter() {
         if (buildAfterTimer) clearTimeout(buildAfterTimer);
-        console.log('[MegaMix perf] scheduleBuildAfter: debounce 500ms');
         buildAfterTimer = setTimeout(() => {
             buildAfterTimer = null;
-            console.log('[MegaMix perf] scheduleBuildAfter: firing buildAfterOnly');
             buildAfterOnly().then(() => {
                 if (window.MegaMix.syncAllTracksToLiveGraph) window.MegaMix.syncAllTracksToLiveGraph();
                 if (typeof window.MegaMix.onAfterMixBuilt === 'function') window.MegaMix.onAfterMixBuilt();
             });
-        }, 500);
+        }, 1000);
     }
 
     async function buildAfterOnly() {
