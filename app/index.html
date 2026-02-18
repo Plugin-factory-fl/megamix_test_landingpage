@@ -32,8 +32,8 @@
     <div class="app-announcement-bar">
         <div class="app-announcement-inner">
             <div class="app-announcement-track">
-                <span>AMAZING CUSTOMER SUPPORT | MIX AND MASTER ON ANY COMPUTER | ONE ACTIVE SUBSCRIPTION = ACCESS TO ALL MEGAMIX PRODUCTS | MADE BY AN INDIE DEVELOPER WHO CARES</span>
-                <span>AMAZING CUSTOMER SUPPORT | MIX AND MASTER ON ANY COMPUTER | ONE ACTIVE SUBSCRIPTION = ACCESS TO ALL MEGAMIX PRODUCTS | MADE BY AN INDIE DEVELOPER WHO CARES</span>
+                <span>AMAZING CUSTOMER SUPPORT | MIX YOUR SONG ON ANY BROWSER | 7-DAY FREE TRIAL | MADE BY AN INDIE DEVELOPER WHO CARES</span>
+                <span>AMAZING CUSTOMER SUPPORT | MIX YOUR SONG ON ANY BROWSER | 7-DAY FREE TRIAL | MADE BY AN INDIE DEVELOPER WHO CARES</span>
             </div>
         </div>
     </div>
@@ -58,7 +58,6 @@
             <h2>Welcome to MegaMix AI</h2>
             <p class="login-welcome">Mix and master your tracks in the browser with AI. No install required—upload stems, chat with Josh to refine, and get a pro sound in minutes.</p>
             <p class="login-hint">Enter the email and license key from your free trial or subscription.</p>
-            <p class="login-context-mastered hidden" id="login-context-mastered">To download your mastered WAV, sign in with your email and license key below or get a free trial.</p>
             <form id="login-form">
                 <label for="login-email">Email</label>
                 <input type="email" id="login-email" name="email" placeholder="your@email.com" autocomplete="email">
@@ -110,7 +109,16 @@
                     <option value="country">Country</option>
                     <option value="custom">Custom</option>
                 </select>
-                <label for="guidance-for-josh">Words of guidance for the mix</label>
+                <label>Words of guidance for the mix</label>
+                <div class="preset-prompts-grid" id="preset-prompts-grid" role="group" aria-label="Preset mix guidance">
+                    <button type="button" class="btn btn-ghost btn-small preset-prompt-btn" data-prompt="" data-index="0">Clean and present</button>
+                    <button type="button" class="btn btn-ghost btn-small preset-prompt-btn" data-prompt="" data-index="1">Vocal forward</button>
+                    <button type="button" class="btn btn-ghost btn-small preset-prompt-btn" data-prompt="" data-index="2">Punchy drums</button>
+                    <button type="button" class="btn btn-ghost btn-small preset-prompt-btn" data-prompt="" data-index="3">Warm low end</button>
+                    <button type="button" class="btn btn-ghost btn-small preset-prompt-btn" data-prompt="" data-index="4">Bright and open</button>
+                    <button type="button" class="btn btn-ghost btn-small preset-prompt-btn" data-prompt="" data-index="5">More glue</button>
+                </div>
+                <label for="guidance-for-josh">Or type your own</label>
                 <input type="text" id="guidance-for-josh" placeholder="e.g. punchy drums, vocal forward, warm low end" class="guidance-input">
                 <button type="button" class="btn btn-primary" id="btn-mix-it">Mix it</button>
                 <div class="progress-wrap hidden" id="progress-wrap">
@@ -120,13 +128,21 @@
 
             <p class="flow-step">Step 3: Adjust and iterate</p>
             <section class="playback-section shared-playback josh-section" id="playback-section" aria-label="Listen and refine with Josh">
-                <div class="iterate-card content-card">
                 <h3 class="josh-section-title">Listen & refine with Josh</h3>
                 <p class="josh-section-position" id="playback-position-label" aria-live="polite">Playback at 0:00</p>
                 <div class="mix-it-loading hidden" id="mix-it-loading" aria-live="polite">
-                    <div class="loading-spinner" aria-hidden="true"></div>
-                    <span class="mix-it-loading-text">Mixing…</span>
+                    <div class="mix-it-loading-row">
+                        <div class="loading-spinner" aria-hidden="true"></div>
+                        <div class="mix-it-loading-status">
+                            <span class="mix-it-loading-text" id="mix-it-loading-text">Mixing…</span>
+                            <span class="mix-it-loading-estimate" id="mix-it-loading-estimate">Usually 20–60 sec depending on track count</span>
+                        </div>
+                    </div>
+                    <div class="mix-it-progress-track" aria-hidden="true">
+                        <div class="mix-it-progress-fill" id="mix-it-progress-fill"></div>
+                    </div>
                 </div>
+                <div class="step3-unified-card iterate-card">
                 <div class="mixer-collapsible collapsed" id="mixer-collapsible">
                     <button type="button" class="mixer-collapsible-header" id="mixer-collapsible-toggle" aria-expanded="false" aria-controls="mixer-collapsible-body">Mixer</button>
                     <div class="mixer-collapsible-body" id="mixer-collapsible-body">
@@ -137,7 +153,6 @@
                 </div>
                 <div class="before-after-card" id="before-after-card">
                     <div class="before-after-card-header">
-                        <h4 class="before-after-card-title">Before / After</h4>
                         <div class="before-after-tabs" role="tablist">
                             <button type="button" role="tab" aria-selected="false" class="before-after-tab" data-mode="before">Before</button>
                             <button type="button" role="tab" aria-selected="true" class="before-after-tab active" data-mode="after">After</button>
@@ -163,13 +178,12 @@
                     <audio id="audio-after" preload="metadata"></audio>
                 </div>
                 <div class="chat-wrap chat-card">
-                    <div class="chat-header-right">
+                    <div class="step3-chat-header-row">
                         <h4>Refine your sound with Josh</h4>
-                        <p class="chat-purpose">Use this chat to iterate on your mix. Changes appear in the Mixer above and in the After playback.</p>
-                    </div>
-                    <div class="undo-redo undo-redo-above-chat">
-                        <button type="button" class="btn btn-ghost btn-small" id="btn-undo">Undo</button>
-                        <button type="button" class="btn btn-ghost btn-small" id="btn-redo">Redo</button>
+                        <div class="undo-redo undo-redo-above-chat">
+                            <button type="button" class="btn btn-ghost btn-small" id="btn-undo">Undo</button>
+                            <button type="button" class="btn btn-ghost btn-small" id="btn-redo">Redo</button>
+                        </div>
                     </div>
                     <div class="chat-messages" id="chat-messages"></div>
                     <div class="quick-prompts" id="quick-prompts">
@@ -205,11 +219,20 @@
     <!-- Mastering view -->
     <main id="view-mastering" class="view hidden">
         <div class="workspace mastering-workspace">
-            <div class="mastering-card content-card">
-            <p class="mastering-sub">Your mix has been mastered. Adjust below and download when ready.</p>
+            <section class="mastering-intro">
+                <h2>Mastering</h2>
+                <p class="mastering-sub">Your mix has been mastered. Preview below and download when ready.</p>
+            </section>
             <section class="mastering-player-section">
-                <div class="before-after-card mastering-preview-card">
-                    <h3 class="before-after-card-title">Mastered preview</h3>
+                <div class="before-after-card mastering-card">
+                    <div class="before-after-card-header">
+                        <h3 class="before-after-card-title">Mastered preview</h3>
+                        <div class="before-after-tabs" role="tablist">
+                            <button type="button" role="tab" aria-selected="false" class="before-after-tab mastering-tab" data-mode="before">Before</button>
+                            <button type="button" role="tab" aria-selected="true" class="before-after-tab mastering-tab active" data-mode="after">After</button>
+                        </div>
+                    </div>
+                    <p class="before-after-instruction">Before = unmastered mix; After = mastered. Switch tabs to A/B at the same position.</p>
                     <div class="before-after-play-wrap">
                         <button type="button" class="before-after-play-btn" id="play-mastering" aria-label="Play" title="Play">&#9658;</button>
                     </div>
@@ -221,13 +244,14 @@
                         <input type="range" class="before-after-progress" id="progress-mastering" min="0" max="100" value="0" step="0.1" aria-label="Seek">
                         <span class="before-after-duration" id="duration-mastering">0:00</span>
                     </div>
+                    <audio id="audio-mastering-before" preload="metadata"></audio>
                     <audio id="audio-mastering" preload="metadata"></audio>
                 </div>
             </section>
             <div class="mastering-controls-collapsible collapsed" id="mastering-controls-collapsible">
                 <button type="button" class="mastering-controls-header" id="mastering-controls-toggle" aria-expanded="false" aria-controls="mastering-controls-body">Mastering controls</button>
                 <div class="mastering-controls-body" id="mastering-controls-body">
-                    <p class="mastering-controls-hint">Playback updates in real time. Click &quot;Apply to file&quot; so your download uses these settings.</p>
+                    <p class="mastering-controls-hint">Real-time compression and output. Affects playback only; download uses the rendered master.</p>
                     <div class="mastering-controls-row">
                         <label for="mastering-threshold">Threshold (dB)</label>
                         <input type="range" id="mastering-threshold" min="0" max="100" value="40" step="1" aria-label="Threshold">
@@ -253,7 +277,18 @@
                         <input type="range" id="mastering-output" min="0" max="100" value="33" step="1" aria-label="Output level">
                         <span class="mastering-controls-value" id="mastering-output-value">1</span>
                     </div>
-                    <button type="button" class="btn btn-secondary" id="btn-apply-mastering-to-file">Apply to file</button>
+                    <div class="mastering-knobs-row">
+                        <div class="mastering-knob-wrap">
+                            <label for="mastering-adjust">Adjust</label>
+                            <input type="range" id="mastering-adjust" class="mastering-knob" min="0" max="100" value="50" step="1" aria-label="Adjust mastering params ±25%">
+                            <span class="mastering-knob-label">12:00</span>
+                        </div>
+                        <div class="mastering-knob-wrap">
+                            <label for="mastering-mix">Mix</label>
+                            <input type="range" id="mastering-mix" class="mastering-knob" min="0" max="100" value="100" step="1" aria-label="Dry/wet mastering">
+                            <span class="mastering-knob-label" id="mastering-mix-value">100%</span>
+                        </div>
+                    </div>
                 </div>
             </div>
             <section class="chat-section chat-attached">
@@ -280,7 +315,6 @@
                 <p class="mastering-download-sub">Ready for Spotify, Apple Music, and more.</p>
                 <button type="button" class="btn btn-primary" id="btn-download-mastered-final">Download WAV</button>
             </section>
-            </div>
         </div>
     </main>
 
@@ -383,27 +417,6 @@
                     <button type="button" class="btn btn-ghost" id="emailModalAppNo">No Thanks</button>
                 </div>
                 <p class="email-modal-app-note">*You don't have to sign up to get your download. Click "No Thanks" and your download will begin.</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Preview user: download mix (no mastering) – newsletter optional -->
-    <div id="previewMixDownloadModal" class="email-modal-app hidden">
-        <div class="email-modal-app-content">
-            <div class="email-modal-app-header">
-                <h3>Download your mix</h3>
-                <span class="email-modal-app-close" id="previewMixDownloadModalClose">&times;</span>
-            </div>
-            <div class="email-modal-app-body">
-                <p class="email-modal-app-p">We're glad you're trying out MegaMix! To download your non-mastered mix, we just ask you to sign up for our newsletter in return so we can offer you more stuff in the future. If not, you can totally click "No" below and download the non-mastered mix of your song. No hard feelings.</p>
-                <label for="previewMixDownloadEmail">Your email (optional, for newsletter):</label>
-                <input type="email" id="previewMixDownloadEmail" placeholder="your.email@example.com">
-                <div class="email-modal-app-buttons">
-                    <button type="button" class="btn btn-primary" id="previewMixDownloadSignup">Sign me up &amp; Download</button>
-                    <button type="button" class="btn btn-ghost" id="previewMixDownloadNo">No thanks, just download</button>
-                </div>
-                <p class="login-trial-copy" style="margin-top: 1rem;">Ready to unlock the full experience?</p>
-                <button type="button" class="buy-button buy-button-trial" id="previewMixDownloadFreeTrial">GET FREE TRIAL</button>
             </div>
         </div>
     </div>

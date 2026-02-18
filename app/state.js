@@ -63,7 +63,8 @@
         fileListVisible: true,
         mixReady: false,
         hasInitialMix: false,
-        masteredUrl: null
+        masteredUrl: null,
+        unmasteredMixUrl: null
     };
 
     /** Snapshot for undo: deep clone of tracks. */
@@ -115,6 +116,20 @@
         funk:     { kick: { db: 2, pan: 0 }, snare: { db: 2.5, pan: 0 }, bass: { db: 2, pan: 0 }, leadVocal: { db: 2, pan: 0 }, backingVocal: { db: -0.5, pan: 0.45 }, guitar: { db: 0, pan: -0.4 }, overhead: { db: -4, pan: 0.6 }, tom: { db: -1, pan: 0.35 }, keys: { db: 0, pan: 0.2 }, drums: { db: -1, pan: 0 }, other: { db: -1, pan: 0 } },
         country:  { kick: { db: 1.5, pan: 0 }, snare: { db: 2, pan: 0 }, bass: { db: 1, pan: 0 }, leadVocal: { db: 2.5, pan: 0 }, backingVocal: { db: 0, pan: 0.4 }, guitar: { db: 0, pan: -0.5 }, overhead: { db: -5, pan: 0.65 }, tom: { db: -1, pan: 0.3 }, keys: { db: -1, pan: 0 }, drums: { db: -1, pan: 0 }, other: { db: -1, pan: 0 } },
         custom:   null
+    };
+
+    /** Genre-specific preset prompts for Step 2 "Words of guidance". Keys match GENRE_BALANCE. */
+    const GENRE_PROMPTS = {
+        rock:     ['Clean and present', 'Punchy drums', 'Vocal forward', 'Warm low end', 'Bright and open', 'Glue and punch'],
+        metal:    ['Aggressive and tight', 'Kick and snare punch', 'Guitars forward', 'Dark and heavy', 'Clear vocals', 'Room and width'],
+        hiphop:   ['Clean and present', 'Kick and 808 up', 'Vocal crisp', 'Warm low end', 'Punchy drums', 'Thick and present'],
+        pop:      ['Clean and present', 'Vocal forward', 'Bright airy', 'Warm intimate', 'Punchy modern', 'Radio ready'],
+        edm:      ['Punchy compress', 'Kick and bass locked', 'Bright and wide', 'Thick chorus', 'Atmospheric', 'Club ready'],
+        rnb:      ['Warm intimate', 'Vocal forward', 'Smooth low end', 'Bright airy', 'Punchy snare', 'Thick and present'],
+        jazz:     ['Warm intimate', 'Natural balance', 'Open and airy', 'Bass present', 'Brush and room', 'Organic'],
+        funk:     ['Punchy drums', 'Bass forward', 'Guitar bite', 'Tight and groovy', 'Bright and open', 'Thick chorus'],
+        country:  ['Vocal forward', 'Acoustic present', 'Warm and natural', 'Bright and open', 'Punchy kick', 'Clean and present'],
+        custom:   ['Clean and present', 'Vocal forward', 'Punchy drums', 'Warm low end', 'Bright and open', 'More glue']
     };
 
     function applyJoshResponse(tracksArr, response) {
@@ -272,6 +287,7 @@
     window.MegaMix.dbToGain = dbToGain;
     window.MegaMix.inferRole = inferRole;
     window.MegaMix.GENRE_BALANCE = GENRE_BALANCE;
+    window.MegaMix.GENRE_PROMPTS = GENRE_PROMPTS;
     window.MegaMix.applyJoshResponse = applyJoshResponse;
     window.MegaMix.interpretChatMessage = interpretChatMessage;
     window.MegaMix.applyMusicalBalance = applyMusicalBalance;
