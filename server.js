@@ -472,10 +472,10 @@ app.get('/success', async (req, res) => {
         <body>
           <div class="container">
             <h1>🎉 Payment Successful!</h1>
-            <div class="subtitle">Chat your way to pro-level audio for the first time in human history.</div>
+            <div class="subtitle">Your license key is ready.</div>
             
             <div class="info">
-              <p>Here's your license key for access to the MegaMixAI Chat Suite:</p>
+              <p>Here's your license key:</p>
             </div>
             
             <div class="license-key">
@@ -484,15 +484,18 @@ app.get('/success', async (req, res) => {
             </div>
             
             <div class="info">
-              <p>This license provides you access to the JoshSquash™ Chat Compressor and all upcoming plugins that will soon be available in the MegaMixAI Chat Suite.</p>
+              <p><strong>This license key works for all MegaMix AI products.</strong> Use it to sign in to the web app, authorize the plugin, and access everything in your subscription.</p>
               
-              <p>Your license key document will automatically download now. If it doesn't start automatically, <a href="/download-license/${licenseKey}" class="download-btn" style="color: white; text-decoration: none;">click HERE</a>.</p>
+              <p>Head back to the website to sign in with your new license key and get started.</p>
+              
+              <p style="font-size: 0.95rem; opacity: 0.85;">Your license key document will download automatically. If it doesn't, <a href="/download-license/${licenseKey}" class="download-btn" style="color: white; text-decoration: none;">download it here</a>.</p>
             </div>
             
             <div class="download-redirect" style="text-align: center; margin: 40px 0; padding: 30px; background: rgba(139, 92, 246, 0.1); border-radius: 15px; border: 2px solid rgba(139, 92, 246, 0.3);">
-              <h3 style="color: #8b5cf6; margin: 0 0 20px 0; font-size: 1.8rem; font-weight: bold;">Download JoshSquash™ on the home page.</h3>
+              <h3 style="color: #8b5cf6; margin: 0 0 20px 0; font-size: 1.8rem; font-weight: bold;">Back to MegaMix AI</h3>
+              <p style="margin: 0 0 20px 0; opacity: 0.9;">Sign in at the website to access the app, plugin, and more.</p>
               <button class="redirect-btn" onclick="goToHomePage()" style="background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%); color: white; border: none; padding: 15px 30px; border-radius: 10px; font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 5px 15px rgba(139, 92, 246, 0.3);">
-                Take me there
+                Go to website
               </button>
             </div>
           </div>
@@ -527,8 +530,7 @@ app.get('/success', async (req, res) => {
             }
             
             function goToHomePage() {
-              // Redirect to home page and scroll to download section
-              window.location.href = '/#plugin-downloads';
+              window.location.href = '/';
             }
           </script>
         </body>
@@ -544,21 +546,17 @@ app.get('/success', async (req, res) => {
 app.get('/download-license/:licenseKey', (req, res) => {
   const licenseKey = req.params.licenseKey;
   
-  const licenseContent = `MegaMixAI Chat Suite - License Key
+  const licenseContent = `MegaMix AI - License Key
 
 Your License Key: ${licenseKey}
 
-This license provides you access to:
-- JoshSquash Chat Compressor
-- All upcoming plugins in the MegaMixAI Chat Suite
+This license key works for all MegaMix AI products. Use it to:
+- Sign in to the MegaMix AI web app (megamixai.com)
+- Authorize the MegaMix AI plugin in your DAW
+
+Head to the website to sign in and access your products.
 
 IMPORTANT: Keep this license key safe and don't share it with others.
-
-To use your license:
-1. Download the MegaMixAI plugin
-2. Open the plugin in your DAW
-3. Enter this license key when prompted
-4. Enjoy your new audio tools!
 
 For support, contact: support@megamixai.com
 
