@@ -16,7 +16,7 @@
     function defaultTrack(name) {
         return {
             name,
-            gain: 1,
+            gain: 0.8,
             pan: 0,
             eqOn: false,
             compOn: false,
@@ -26,7 +26,7 @@
             retroOn: false,
             reverbParams: { mix: 0.25, decaySeconds: 0.4 },
             automation: {
-                level: [{ t: 0, value: 1 }, { t: 1, value: 1 }],
+                level: [{ t: 0, value: 0.8 }, { t: 1, value: 0.8 }],
                 pan: [{ t: 0, value: 0 }, { t: 1, value: 0 }]
             }
         };
@@ -275,7 +275,7 @@
         tracksArr.forEach((track, i) => {
             const role = inferRole(track.name, i, n);
             const cfg = balance[role] || balance.other;
-            track.gain = Math.max(0.01, Math.min(3, dbToGain(cfg.db)));
+            track.gain = Math.max(0.01, Math.min(2, dbToGain(cfg.db) * 0.85));
             track.pan = Math.max(-1, Math.min(1, cfg.pan));
             if (track.automation) {
                 if (track.automation.level && track.automation.level.length >= 2) {

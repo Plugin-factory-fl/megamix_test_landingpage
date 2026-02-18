@@ -166,9 +166,16 @@
                 </div>
                 <div class="before-after-card" id="before-after-card">
                     <div class="before-after-card-header">
-                        <div class="before-after-tabs" role="tablist">
-                            <button type="button" role="tab" aria-selected="false" class="before-after-tab" data-mode="before">Before</button>
-                            <button type="button" role="tab" aria-selected="true" class="before-after-tab active" data-mode="after">After</button>
+                        <div class="before-after-tabs-wrap">
+                            <div class="before-after-tabs" role="tablist">
+                                <button type="button" role="tab" aria-selected="false" class="before-after-tab" data-mode="before">Before</button>
+                                <button type="button" role="tab" aria-selected="true" class="before-after-tab active" data-mode="after">After</button>
+                            </div>
+                            <button type="button" class="btn-icon-info" id="before-after-info-btn" aria-label="How to use A/B and chat" title="How to use A/B and chat">&#8505;</button>
+                        </div>
+                        <div class="before-after-info-panel hidden" id="before-after-info-panel" aria-hidden="true">
+                            <p><strong>A/B testing:</strong> Switch between Before (flat mix) and After (your mix with preset and fader/FX changes) to compare. Use the transport to play, pause, and seek.</p>
+                            <p><strong>Refine with Josh:</strong> Use the quick prompt buttons or type in the chat (e.g. &quot;bring up the vocals&quot;, &quot;more punch&quot;). Josh applies changes to the After mix; listen and iterate.</p>
                         </div>
                     </div>
                     <p class="before-after-instruction" id="playback-instruction">Upload stems, then press Play. Before = flat mix; After = your mix (preset + faders + FX).</p>
@@ -190,8 +197,8 @@
                     <audio id="audio-before" preload="metadata"></audio>
                     <audio id="audio-after" preload="metadata"></audio>
                 </div>
-                <div class="josh-avatar-wrap" id="josh-avatar-mixing" aria-hidden="true">
-                    <span class="josh-avatar-thought">I'm Josh!</span>
+                <div class="josh-avatar-wrap hidden" id="josh-avatar" aria-hidden="true">
+                    <span class="josh-avatar-thought" id="josh-avatar-thought">I'm Josh!</span>
                     <div class="josh-avatar-bubble">
                         <img src="/assets/Joshpropic.png" alt="Josh" class="josh-avatar-img">
                     </div>
@@ -324,12 +331,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-            <div class="josh-avatar-wrap" id="josh-avatar-mastering" aria-hidden="true">
-                <span class="josh-avatar-thought">I'm Josh!</span>
-                <div class="josh-avatar-bubble">
-                    <img src="/assets/Joshpropic.png" alt="Josh" class="josh-avatar-img">
                 </div>
             </div>
             <section class="chat-section chat-attached">

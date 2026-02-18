@@ -971,6 +971,44 @@ body {
     color: #111;
 }
 .before-after-tabs button:not(.active):hover { color: #fff; }
+.before-after-tabs-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.btn-icon-info {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.35);
+    background: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.9);
+    font-size: 1rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+.btn-icon-info:hover {
+    background: rgba(255,255,255,0.2);
+    border-color: rgba(255,255,255,0.5);
+}
+.before-after-info-panel {
+    margin-top: 12px;
+    padding: 12px 14px;
+    background: rgba(0,0,0,0.25);
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.1);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: rgba(255,255,255,0.9);
+}
+.before-after-info-panel p { margin: 0 0 8px 0; }
+.before-after-info-panel p:last-child { margin-bottom: 0; }
+.before-after-info-panel.hidden { display: none; }
 .before-after-instruction,
 .before-after-building {
     font-size: 0.8rem;

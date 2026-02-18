@@ -195,12 +195,106 @@
         return { left, right, sampleRate, length: maxLen };
     }
 
+    async function renderOneTrackWithFX(ti, maxLen, sampleRate) {
+        const interpolateAutomation = window.MegaMix.interpolateAutomation;
+        const buf = state.stemBuffers[ti];
+        const track = state.tracks[ti];
+        const ctx = new OfflineAudioContext({ length: maxLen, numberOfChannels: 2, sampleRate });
+        const src = ctx.createBufferSource();
+        src.buffer = buf;
+        let last = src;
+
+        if (track && track.eqOn && track.eqParams) {
+            const eq = track.eqParams;
+            const lowShelf = ctx.createBiquadFilter();
+            lowShelf.type = 'lowshelf';
+            lowShelf.frequency.value = 320;
+            lowShelf.gain.value = typeof eq.low === 'number' ? eq.low : 0;
+            const midPeak = ctx.createBiquadFilter();
+            midPeak.type = 'peaking';
+            midPeak.frequency.value = 1000;
+            midPeak.Q.value = 1;
+            midPeak.gain.value = typeof eq.mid === 'number' ? eq.mid : 0;
+            const highShelf = ctx.createBiquadFilter();
+            highShelf.type = 'highshelf';
+            highShelf.frequency.value = 3200;
+            highShelf.gain.value = typeof eq.high === 'number' ? eq.high : 0;
+            last.connect(lowShelf);
+            lowShelf.connect(midPeak);
+            midPeak.connect(highShelf);
+            last = highShelf;
+        }
+
+        if (track && track.compOn && track.compParams) {
+            const c = track.compParams;
+            const comp = ctx.createDynamicsCompressor();
+            comp.threshold.value = typeof c.threshold === 'number' ? c.threshold : -20;
+            comp.knee.value = typeof c.knee === 'number' ? c.knee : 6;
+            comp.ratio.value = typeof c.ratio === 'number' ? c.ratio : 2;
+            comp.attack.value = typeof c.attack === 'number' ? c.attack : 0.003;
+            comp.release.value = typeof c.release === 'number' ? c.release : 0.25;
+            last.connect(comp);
+            last = comp;
+        }
+
+        if (track && track.reverbOn) {
+            const rp = track.reverbParams || { mix: 0.25, decaySeconds: 0.4 };
+            const mix = typeof rp.mix === 'number' ? Math.max(0, Math.min(1, rp.mix)) : 0.25;
+            const decaySeconds = typeof rp.decaySeconds === 'number' ? rp.decaySeconds : 0.4;
+            const dryGain = ctx.createGain();
+            dryGain.gain.value = 1 - mix;
+            const wetGain = ctx.createGain();
+            wetGain.gain.value = mix;
+            const convolver = ctx.createConvolver();
+            convolver.buffer = createPlateIR(ctx, decaySeconds);
+            convolver.normalize = true;
+            last.connect(dryGain);
+            last.connect(convolver);
+            convolver.connect(wetGain);
+            const sumGain = ctx.createGain();
+            sumGain.gain.value = 1;
+            dryGain.connect(sumGain);
+            wetGain.connect(sumGain);
+            last = sumGain;
+        }
+
+        const gainNode = ctx.createGain();
+        gainNode.gain.value = 1;
+        last.connect(gainNode);
+        const panner = ctx.createStereoPanner();
+        panner.pan.value = 0;
+        gainNode.connect(panner);
+        panner.connect(ctx.destination);
+
+        src.start(0);
+        const rendered = await ctx.startRendering();
+        const ch0 = rendered.getChannelData(0);
+        const ch1 = rendered.getChannelData(1);
+
+        const levelPoints = (track && track.automation && track.automation.level && track.automation.level.length) ? track.automation.level : [{ t: 0, value: track ? track.gain : 1 }, { t: 1, value: track ? track.gain : 1 }];
+        const panPoints = (track && track.automation && track.automation.pan && track.automation.pan.length) ? track.automation.pan : [{ t: 0, value: track ? track.pan : 0 }, { t: 1, value: track ? track.pan : 0 }];
+
+        const leftContrib = new Float32Array(maxLen);
+        const rightContrib = new Float32Array(maxLen);
+        for (let i = 0; i < maxLen; i++) {
+            const t = i / maxLen;
+            const g = interpolateAutomation(levelPoints, t);
+            const p = interpolateAutomation(panPoints, t);
+            const { left: gL, right: gR } = panGain(p);
+            const volL = g * gL;
+            const volR = g * gR;
+            leftContrib[i] = ch0[i] * volL + ch1[i] * volL;
+            rightContrib[i] = ch0[i] * volR + ch1[i] * volR;
+        }
+        return { leftContrib, rightContrib };
+    }
+
+    const BUILD_AFTER_PARALLEL_CHUNK = 4;
+
     async function buildAfterMixWithFX() {
         if (state.stemBuffers.length === 0) return null;
         const t0 = performance.now();
-        console.log('[MegaMix perf] buildAfterMixWithFX: start (tracks=' + state.stemBuffers.length + ')');
-        const interpolateAutomation = window.MegaMix.interpolateAutomation;
-        const tracks = state.tracks;
+        console.log('[MegaMix perf] buildAfterMixWithFX: start (tracks=' + state.stemBuffers.length + ', parallel chunk=' + BUILD_AFTER_PARALLEL_CHUNK + ')');
         let maxLen = 0;
         const sampleRate = state.stemBuffers[0].sampleRate;
         for (const b of state.stemBuffers) {
@@ -209,95 +303,17 @@
         const left = new Float32Array(maxLen);
         const right = new Float32Array(maxLen);
 
-        for (let ti = 0; ti < state.stemBuffers.length; ti++) {
-            const tTrack = performance.now();
-            const buf = state.stemBuffers[ti];
-            const track = tracks[ti];
-            const ctx = new OfflineAudioContext({ length: maxLen, numberOfChannels: 2, sampleRate });
-            const src = ctx.createBufferSource();
-            src.buffer = buf;
-            let last = src;
-
-            if (track && track.eqOn && track.eqParams) {
-                const eq = track.eqParams;
-                const lowShelf = ctx.createBiquadFilter();
-                lowShelf.type = 'lowshelf';
-                lowShelf.frequency.value = 320;
-                lowShelf.gain.value = typeof eq.low === 'number' ? eq.low : 0;
-                const midPeak = ctx.createBiquadFilter();
-                midPeak.type = 'peaking';
-                midPeak.frequency.value = 1000;
-                midPeak.Q.value = 1;
-                midPeak.gain.value = typeof eq.mid === 'number' ? eq.mid : 0;
-                const highShelf = ctx.createBiquadFilter();
-                highShelf.type = 'highshelf';
-                highShelf.frequency.value = 3200;
-                highShelf.gain.value = typeof eq.high === 'number' ? eq.high : 0;
-                last.connect(lowShelf);
-                lowShelf.connect(midPeak);
-                midPeak.connect(highShelf);
-                last = highShelf;
+        for (let c = 0; c < state.stemBuffers.length; c += BUILD_AFTER_PARALLEL_CHUNK) {
+            const chunk = [];
+            for (let ti = c; ti < Math.min(c + BUILD_AFTER_PARALLEL_CHUNK, state.stemBuffers.length); ti++) {
+                chunk.push(renderOneTrackWithFX(ti, maxLen, sampleRate));
             }
-
-            if (track && track.compOn && track.compParams) {
-                const c = track.compParams;
-                const comp = ctx.createDynamicsCompressor();
-                comp.threshold.value = typeof c.threshold === 'number' ? c.threshold : -20;
-                comp.knee.value = typeof c.knee === 'number' ? c.knee : 6;
-                comp.ratio.value = typeof c.ratio === 'number' ? c.ratio : 2;
-                comp.attack.value = typeof c.attack === 'number' ? c.attack : 0.003;
-                comp.release.value = typeof c.release === 'number' ? c.release : 0.25;
-                last.connect(comp);
-                last = comp;
-            }
-
-            if (track && track.reverbOn) {
-                const rp = track.reverbParams || { mix: 0.25, decaySeconds: 0.4 };
-                const mix = typeof rp.mix === 'number' ? Math.max(0, Math.min(1, rp.mix)) : 0.25;
-                const decaySeconds = typeof rp.decaySeconds === 'number' ? rp.decaySeconds : 0.4;
-                const dryGain = ctx.createGain();
-                dryGain.gain.value = 1 - mix;
-                const wetGain = ctx.createGain();
-                wetGain.gain.value = mix;
-                const convolver = ctx.createConvolver();
-                convolver.buffer = createPlateIR(ctx, decaySeconds);
-                convolver.normalize = true;
-                last.connect(dryGain);
-                last.connect(convolver);
-                convolver.connect(wetGain);
-                const sumGain = ctx.createGain();
-                sumGain.gain.value = 1;
-                dryGain.connect(sumGain);
-                wetGain.connect(sumGain);
-                last = sumGain;
-            }
-
-            const gainNode = ctx.createGain();
-            gainNode.gain.value = 1;
-            last.connect(gainNode);
-            const panner = ctx.createStereoPanner();
-            panner.pan.value = 0;
-            gainNode.connect(panner);
-            panner.connect(ctx.destination);
-
-            src.start(0);
-            const rendered = await ctx.startRendering();
-            console.log('[MegaMix perf]   track ' + (ti + 1) + '/' + state.stemBuffers.length + ' OfflineAudioContext.startRendering: ' + (performance.now() - tTrack).toFixed(2) + ' ms');
-            const ch0 = rendered.getChannelData(0);
-            const ch1 = rendered.getChannelData(1);
-
-            const levelPoints = (track && track.automation && track.automation.level && track.automation.level.length) ? track.automation.level : [{ t: 0, value: track ? track.gain : 1 }, { t: 1, value: track ? track.gain : 1 }];
-            const panPoints = (track && track.automation && track.automation.pan && track.automation.pan.length) ? track.automation.pan : [{ t: 0, value: track ? track.pan : 0 }, { t: 1, value: track ? track.pan : 0 }];
-
-            for (let i = 0; i < rendered.length; i++) {
-                const t = i / maxLen;
-                const g = interpolateAutomation(levelPoints, t);
-                const p = interpolateAutomation(panPoints, t);
-                const { left: gL, right: gR } = panGain(p);
-                const volL = g * gL;
-                const volR = g * gR;
-                left[i] += ch0[i] * volL + ch1[i] * volL;
-                right[i] += ch0[i] * volR + ch1[i] * volR;
+            const results = await Promise.all(chunk);
+            for (const r of results) {
+                for (let i = 0; i < maxLen; i++) {
+                    left[i] += r.leftContrib[i];
+                    right[i] += r.rightContrib[i];
+                }
             }
         }
 

@@ -59,10 +59,8 @@
             views[k].classList.toggle('hidden', !isTarget);
             views[k].classList.toggle('view-visible', isTarget);
         });
-        var joshMixing = document.getElementById('josh-avatar-mixing');
-        var joshMastering = document.getElementById('josh-avatar-mastering');
-        if (joshMixing) joshMixing.classList.toggle('hidden', name !== 'app');
-        if (joshMastering) joshMastering.classList.toggle('hidden', name !== 'mastering');
+        var joshAvatar = document.getElementById('josh-avatar');
+        if (joshAvatar) joshAvatar.classList.toggle('hidden', name !== 'app' && name !== 'mastering');
         const active = views[name];
         if (active) {
             void active.offsetHeight; // force reflow so fade-in animation runs
@@ -231,9 +229,9 @@
             const fader = document.createElement('input');
             fader.type = 'range';
             fader.min = 0;
-            fader.max = 1;
+            fader.max = 2;
             fader.step = 0.01;
-            fader.value = track.gain;
+            fader.value = Math.min(2, Math.max(0, track.gain));
             fader.title = 'Level';
             fader.addEventListener('mousedown', () => pushUndo());
             fader.addEventListener('input', () => {
@@ -693,6 +691,14 @@
                 }
             });
         });
+        var beforeAfterInfoBtn = document.getElementById('before-after-info-btn');
+        var beforeAfterInfoPanel = document.getElementById('before-after-info-panel');
+        if (beforeAfterInfoBtn && beforeAfterInfoPanel) {
+            beforeAfterInfoBtn.addEventListener('click', function () {
+                var hidden = beforeAfterInfoPanel.classList.toggle('hidden');
+                beforeAfterInfoPanel.setAttribute('aria-hidden', hidden ? 'true' : 'false');
+            });
+        }
         playBtn.addEventListener('click', function () {
             const mode = getActiveMode();
             const playing = (mode === 'before' && !audioBefore.paused) || (mode === 'after' && (window.MegaMix.livePlaybackSources().length > 0 || (audioAfter && !audioAfter.paused)));
@@ -1093,12 +1099,18 @@
         }, { passive: false });
     }
     (function () {
-        var mixingWrap = document.getElementById('josh-avatar-mixing');
-        var masteringWrap = document.getElementById('josh-avatar-mastering');
-        if (mixingWrap && mixingWrap.parentNode !== document.body) document.body.appendChild(mixingWrap);
-        if (masteringWrap && masteringWrap.parentNode !== document.body) document.body.appendChild(masteringWrap);
-        initJoshAvatarDrag(mixingWrap);
-        initJoshAvatarDrag(masteringWrap);
+        var joshWrap = document.getElementById('josh-avatar');
+        if (joshWrap && joshWrap.parentNode !== document.body) document.body.appendChild(joshWrap);
+        initJoshAvatarDrag(joshWrap);
+        var thoughtEl = document.getElementById('josh-avatar-thought');
+        var joshMessages = ["I'm Josh!", "Drag me anywhere!", "Use the chat to refine your sound!"];
+        var joshMsgIndex = 0;
+        if (thoughtEl) {
+            setInterval(function () {
+                joshMsgIndex = (joshMsgIndex + 1) % joshMessages.length;
+                thoughtEl.textContent = joshMessages[joshMsgIndex];
+            }, 4000);
+        }
     })();
 
     function sendChat() {
