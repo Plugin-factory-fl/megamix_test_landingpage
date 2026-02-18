@@ -37,6 +37,10 @@
         if (btnSignin) {
             btnSignin.textContent = loggedIn ? 'Sign out' : 'Sign in';
         }
+        if (document.body) {
+            if (loggedIn) document.body.classList.add('logged-in');
+            else document.body.classList.remove('logged-in');
+        }
     }
 
     function setRequiredMode(required) {

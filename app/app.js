@@ -147,6 +147,10 @@
         renderFileList();
         renderMixerStrips();
         updatePlaybackInstruction();
+        if (state.uploadedFiles.length > existingLen) {
+            const panel = document.getElementById('panel-simple');
+            if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
     }
 
     function removeFile(index) {
@@ -358,9 +362,10 @@
             fxRow.appendChild(compSlot);
             const verbBtn = document.createElement('button');
             verbBtn.type = 'button';
-            verbBtn.className = 'mixer-fx-btn' + (track.reverbOn ? ' on' : '');
+            verbBtn.className = 'mixer-fx-btn disabled' + (track.reverbOn ? ' on' : '');
             verbBtn.textContent = 'Reverb';
-            verbBtn.title = 'Plate reverb';
+            verbBtn.title = 'Plate reverb (coming soon)';
+            verbBtn.disabled = true;
             verbBtn.addEventListener('click', () => {
                 pushUndo();
                 track.reverbOn = !track.reverbOn;
@@ -378,9 +383,10 @@
             }
             const autoBtn = document.createElement('button');
             autoBtn.type = 'button';
-            autoBtn.className = 'mixer-fx-btn';
+            autoBtn.className = 'mixer-fx-btn disabled';
             autoBtn.textContent = 'Auto';
-            autoBtn.title = 'Level and pan automation';
+            autoBtn.title = 'Level and pan automation (coming soon)';
+            autoBtn.disabled = true;
             const autoPanel = document.createElement('div');
             autoPanel.className = 'mixer-automation-panel hidden';
             autoPanel.setAttribute('aria-hidden', 'true');
@@ -564,6 +570,8 @@
             return m + ':' + (sec < 10 ? '0' : '') + sec;
         }
         const duration = () => window.MegaMix.liveGraph() ? window.MegaMix.getTransportDuration() : (audioBefore.duration && isFinite(audioBefore.duration) ? audioBefore.duration : 0);
+        var PROGRESS_UI_THROTTLE_MS = 120;
+        var lastProgressUIUpdate = 0;
         function updateProgress() {
             const mode = getActiveMode();
             const d = duration();
@@ -580,17 +588,21 @@
                 }
             } else if (mode === 'before') {
                 t = audioBefore.currentTime || 0;
-            } else if (mode === 'after' && audioAfter && !audioAfter.paused && isFinite(audioAfter.duration)) {
+            } else if (mode === 'after' && audioAfter && isFinite(audioAfter.duration)) {
                 t = audioAfter.currentTime || 0;
             } else {
                 t = window.MegaMix.transportOffset();
             }
-            if (d > 0) {
-                playbackProgress.value = (t / d) * 100;
-                playbackDuration.textContent = formatTime(d);
+            var now = Date.now();
+            if (now - lastProgressUIUpdate >= PROGRESS_UI_THROTTLE_MS) {
+                lastProgressUIUpdate = now;
+                if (d > 0) {
+                    playbackProgress.value = (t / d) * 100;
+                    playbackDuration.textContent = formatTime(d);
+                }
+                playbackTime.textContent = formatTime(t);
+                if (playbackPositionLabel) playbackPositionLabel.textContent = 'Playback at ' + formatTime(t);
             }
-            playbackTime.textContent = formatTime(t);
-            if (playbackPositionLabel) playbackPositionLabel.textContent = 'Playback at ' + formatTime(t);
         }
         function stopBoth() {
             audioBefore.pause();
@@ -839,7 +851,29 @@
             state.fileListVisible = false;
             updateFileListVisibility();
             updateMasteringUI();
-            setMixItLoading(false);
+            var mixLoadingRow = document.getElementById('mix-it-loading-row');
+            var mixProgressTrack = mixItLoading && mixItLoading.querySelector('.mix-it-progress-track');
+            var mixDoneCheck = document.getElementById('mix-done-check');
+            if (mixLoadingRow) mixLoadingRow.classList.add('hidden');
+            if (mixProgressTrack) mixProgressTrack.classList.add('hidden');
+            if (mixDoneCheck) {
+                mixDoneCheck.classList.remove('hidden');
+                mixDoneCheck.setAttribute('aria-hidden', 'false');
+            }
+            btnMixIt.disabled = false;
+            setTimeout(function () {
+                if (mixDoneCheck) mixDoneCheck.classList.add('mix-done-fade');
+                setTimeout(function () {
+                    setMixItLoading(false);
+                    if (mixDoneCheck) {
+                        mixDoneCheck.classList.add('hidden');
+                        mixDoneCheck.classList.remove('mix-done-fade');
+                        mixDoneCheck.setAttribute('aria-hidden', 'true');
+                    }
+                    if (mixLoadingRow) mixLoadingRow.classList.remove('hidden');
+                    if (mixProgressTrack) mixProgressTrack.classList.remove('hidden');
+                }, 500);
+            }, 2000);
             if (mixLoadingBlock) mixLoadingBlock.classList.add('hidden');
             updatePlaybackInstruction();
             const afterTab = document.querySelector('.before-after-tab[data-mode="after"]');
@@ -929,15 +963,36 @@
     }
     chatSend.addEventListener('click', sendChat);
     chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChat(); });
-    document.querySelectorAll('.quick-prompt').forEach(btn => {
-        btn.addEventListener('click', () => {
+    function updateStep3QuickPrompts() {
+        const container = document.getElementById('quick-prompts');
+        const genre = (presetSelect && presetSelect.value) ? presetSelect.value : 'rock';
+        const prompts = window.MegaMix.GENRE_QUICK_PROMPTS && window.MegaMix.GENRE_QUICK_PROMPTS[genre];
+        if (!container) return;
+        container.innerHTML = '';
+        const list = Array.isArray(prompts) ? prompts : (window.MegaMix.GENRE_QUICK_PROMPTS && window.MegaMix.GENRE_QUICK_PROMPTS.custom) || [];
+        list.forEach(function (item) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn btn-ghost btn-small quick-prompt';
+            btn.setAttribute('data-prompt', item.prompt || item);
+            btn.textContent = item.label || item;
+            container.appendChild(btn);
+        });
+    }
+    const quickPromptsEl = document.getElementById('quick-prompts');
+    if (quickPromptsEl) {
+        quickPromptsEl.addEventListener('click', function (e) {
+            const btn = e.target && e.target.closest('.quick-prompt');
+            if (!btn) return;
             const prompt = btn.getAttribute('data-prompt');
             if (prompt) {
                 chatInput.value = prompt;
                 sendChat();
             }
         });
-    });
+    }
+    updateStep3QuickPrompts();
+    if (presetSelect) presetSelect.addEventListener('change', updateStep3QuickPrompts);
     function sendChat() {
         const text = chatInput.value.trim();
         if (!text) return;
@@ -1216,17 +1271,23 @@
             const el = mode === 'before' && audioMasteringBefore ? audioMasteringBefore : audioMastering;
             return (el && el.duration && isFinite(el.duration)) ? el.duration : 0;
         }
+        var MASTERING_PROGRESS_THROTTLE_MS = 120;
+        var lastMasteringProgressUIUpdate = 0;
         function updateMasteringProgress() {
             const mode = getActiveMasteringMode();
             const el = mode === 'before' && audioMasteringBefore ? audioMasteringBefore : audioMastering;
             const d = masteringDuration();
             const t = (el && el.currentTime != null) ? el.currentTime : 0;
-            if (d > 0) {
-                progressMastering.value = (t / d) * 100;
-                if (durationMastering) durationMastering.textContent = formatTime(d);
+            var now = Date.now();
+            if (now - lastMasteringProgressUIUpdate >= MASTERING_PROGRESS_THROTTLE_MS) {
+                lastMasteringProgressUIUpdate = now;
+                if (d > 0) {
+                    progressMastering.value = (t / d) * 100;
+                    if (durationMastering) durationMastering.textContent = formatTime(d);
+                }
+                if (timeMastering) timeMastering.textContent = formatTime(t);
+                drawMasteringWaveform();
             }
-            if (timeMastering) timeMastering.textContent = formatTime(t);
-            drawMasteringWaveform();
         }
 
         let waveformBins = null;
@@ -1339,8 +1400,17 @@
                 if (getActiveMasteringMode() === 'before' && durationMastering && audioMasteringBefore.duration && isFinite(audioMasteringBefore.duration))
                     durationMastering.textContent = formatTime(audioMasteringBefore.duration);
             };
-            fillWaveformFromUrl(state.masteredUrl);
+            masteringTabs.forEach(function (t) {
+                t.classList.remove('active');
+                t.setAttribute('aria-selected', 'false');
+            });
+            var afterTab = document.querySelector('.mastering-tab[data-mode="after"]');
+            if (afterTab) {
+                afterTab.classList.add('active');
+                afterTab.setAttribute('aria-selected', 'true');
+            }
             setMasteringMutedFromTab();
+            fillWaveformFromUrl(state.masteredUrl);
         } else if (chatMessagesMastering) {
             const msg = document.createElement('div');
             msg.className = 'msg bot';
@@ -1435,29 +1505,45 @@
                     masteringControlsToggle.setAttribute('aria-expanded', !collapsed);
                 });
             }
-            function getAdjustScale() {
+            function getAdjustDelta() {
                 const adjEl = document.getElementById('mastering-adjust');
                 const pct = adjEl ? Math.max(0, Math.min(100, Number(adjEl.value) || 50)) : 50;
-                return 0.75 + (pct / 100) * 0.5;
+                return (pct - 50) / 50;
             }
             function applyMasteringFromSlidersAndAdjust() {
-                const scale = getAdjustScale();
+                const delta = getAdjustDelta();
+                const threshRange = 3;
+                const ratioRange = 2.5;
+                const attackRange = 0.2;
+                const releaseRange = 0.5;
+                const thresholdEffective = masteringBaseValues.threshold - delta * threshRange;
+                const ratioEffective = Math.max(1, Math.min(20, masteringBaseValues.ratio + delta * ratioRange));
+                const attackEffective = Math.max(0.001, Math.min(0.5, masteringBaseValues.attack + delta * attackRange));
+                const releaseEffective = Math.max(0.01, Math.min(2, masteringBaseValues.release - delta * releaseRange));
                 if (masterCompressor) {
-                    masterCompressor.threshold.value = masteringBaseValues.threshold * scale;
-                    masterCompressor.ratio.value = masteringBaseValues.ratio * scale;
-                    masterCompressor.attack.value = Math.max(0.001, masteringBaseValues.attack * scale);
-                    masterCompressor.release.value = Math.max(0.01, masteringBaseValues.release * scale);
+                    masterCompressor.threshold.value = thresholdEffective;
+                    masterCompressor.ratio.value = ratioEffective;
+                    masterCompressor.attack.value = attackEffective;
+                    masterCompressor.release.value = releaseEffective;
                 }
-                if (masterGain) masterGain.gain.value = Math.max(0.01, masteringBaseValues.output * scale);
+                if (masterGain) masterGain.gain.value = Math.max(0.01, masteringBaseValues.output);
+                const thresholdValEl = document.getElementById('mastering-threshold-value');
+                const ratioValEl = document.getElementById('mastering-ratio-value');
+                const attackValEl = document.getElementById('mastering-attack-value');
+                const releaseValEl = document.getElementById('mastering-release-value');
+                const outputValEl = document.getElementById('mastering-output-value');
+                if (thresholdValEl) thresholdValEl.textContent = typeof thresholdEffective === 'number' && thresholdEffective % 1 !== 0 ? thresholdEffective.toFixed(2) : String(thresholdEffective);
+                if (ratioValEl) ratioValEl.textContent = typeof ratioEffective === 'number' && ratioEffective % 1 !== 0 ? ratioEffective.toFixed(2) : String(ratioEffective);
+                if (attackValEl) attackValEl.textContent = typeof attackEffective === 'number' ? attackEffective.toFixed(3) : String(attackEffective);
+                if (releaseValEl) releaseValEl.textContent = typeof releaseEffective === 'number' && releaseEffective % 1 !== 0 ? releaseEffective.toFixed(2) : String(releaseEffective);
+                if (outputValEl) outputValEl.textContent = typeof masteringBaseValues.output === 'number' && masteringBaseValues.output % 1 !== 0 ? masteringBaseValues.output.toFixed(2) : String(masteringBaseValues.output);
             }
             function updateMasteringParam(sliderId, valueId, mapFn, baseKey) {
                 const slider = document.getElementById(sliderId);
-                const valueEl = document.getElementById(valueId);
-                if (!slider || !valueEl) return;
+                if (!slider) return;
                 function update() {
                     const val = mapFn(Number(slider.value));
                     if (baseKey) masteringBaseValues[baseKey] = val;
-                    valueEl.textContent = typeof val === 'number' && val % 1 !== 0 ? val.toFixed(2) : String(val);
                     applyMasteringFromSlidersAndAdjust();
                 }
                 slider.addEventListener('input', update);
@@ -1468,17 +1554,67 @@
             updateMasteringParam('mastering-attack', 'mastering-attack-value', function (v) { return 0.001 + (v / 100) * 0.499; }, 'attack');
             updateMasteringParam('mastering-release', 'mastering-release-value', function (v) { return 0.01 + (v / 100) * 1.99; }, 'release');
             updateMasteringParam('mastering-output', 'mastering-output-value', function (v) { return 0.5 + (v / 100) * 1.5; }, 'output');
-            const adjustKnob = document.getElementById('mastering-adjust');
-            if (adjustKnob) {
-                adjustKnob.addEventListener('input', function () {
-                    const v = Number(this.value);
-                    const label = this.parentElement && this.parentElement.querySelector('.mastering-knob-label');
-                    if (label) label.textContent = v === 50 ? '12:00' : (v < 50 ? '-' + (50 - v) + '%' : '+' + (v - 50) + '%');
+            const adjustInput = document.getElementById('mastering-adjust');
+            const knobAdjustEl = document.getElementById('knob-adjust');
+            function setAdjustKnobUI(value) {
+                const v = Math.max(0, Math.min(100, Number(value) || 50));
+                if (adjustInput) adjustInput.value = v;
+                if (knobAdjustEl) {
+                    const needle = knobAdjustEl.querySelector('.rotary-knob-needle');
+                    if (needle) needle.style.transform = 'rotate(' + ((v / 100) * 270 - 135) + 'deg)';
+                    knobAdjustEl.setAttribute('aria-valuenow', v);
+                }
+                const label = document.getElementById('adjust-knob-label');
+                if (label) label.textContent = v === 50 ? '12:00' : (v < 50 ? '-' + (50 - v) + '%' : '+' + (v - 50) + '%');
+            }
+            if (adjustInput) {
+                adjustInput.addEventListener('input', function () {
+                    setAdjustKnobUI(this.value);
                     applyMasteringFromSlidersAndAdjust();
                 });
             }
+            function initRotaryKnob(knobEl, initialValue, minVal, maxVal, onChange) {
+                var value = Math.max(minVal, Math.min(maxVal, initialValue));
+                var startY = 0;
+                var startVal = 0;
+                knobEl.addEventListener('mousedown', function (e) {
+                    e.preventDefault();
+                    startY = e.clientY;
+                    startVal = value;
+                    function onMove(e2) {
+                        value = Math.max(minVal, Math.min(maxVal, startVal - (e2.clientY - startY) * 0.5));
+                        onChange(value);
+                    }
+                    function onUp() {
+                        document.removeEventListener('mousemove', onMove);
+                        document.removeEventListener('mouseup', onUp);
+                    }
+                    document.addEventListener('mousemove', onMove);
+                    document.addEventListener('mouseup', onUp);
+                });
+                knobEl.addEventListener('keydown', function (e) {
+                    var step = e.shiftKey ? 10 : 5;
+                    if (e.key === 'ArrowUp' || e.key === 'ArrowRight') {
+                        e.preventDefault();
+                        value = Math.min(maxVal, value + step);
+                        onChange(value);
+                    } else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') {
+                        e.preventDefault();
+                        value = Math.max(minVal, value - step);
+                        onChange(value);
+                    }
+                });
+            }
+            if (knobAdjustEl && adjustInput) {
+                initRotaryKnob(knobAdjustEl, 50, 0, 100, function (v) {
+                    setAdjustKnobUI(v);
+                    adjustInput.dispatchEvent(new Event('input', { bubbles: true }));
+                });
+                setAdjustKnobUI(adjustInput.value);
+            }
             const mixKnob = document.getElementById('mastering-mix');
             const mixValueEl = document.getElementById('mastering-mix-value');
+            const knobMixEl = document.getElementById('knob-mix');
             if (mixKnob && masterDryGain !== undefined && masterWetGain !== undefined) {
                 function applyMixKnob() {
                     const pct = Math.max(0, Math.min(100, Number(mixKnob.value) || 100));
@@ -1488,6 +1624,18 @@
                 }
                 mixKnob.addEventListener('input', applyMixKnob);
                 if (mixValueEl) mixValueEl.textContent = (Number(mixKnob.value) || 100) + '%';
+                if (knobMixEl) {
+                    function setMixKnobUI(value) {
+                        var v = Math.max(0, Math.min(100, Number(value) || 100));
+                        mixKnob.value = v;
+                        var needle = knobMixEl.querySelector('.rotary-knob-needle');
+                        if (needle) needle.style.transform = 'rotate(' + ((v / 100) * 270 - 135) + 'deg)';
+                        knobMixEl.setAttribute('aria-valuenow', v);
+                        applyMixKnob();
+                    }
+                    initRotaryKnob(knobMixEl, 100, 0, 100, setMixKnobUI);
+                    setMixKnobUI(mixKnob.value);
+                }
             }
             function addMasteringChatMessage(who, text) {
                 if (!chatMessagesMastering) return;

@@ -132,6 +132,20 @@
         custom:   ['Clean and present', 'Vocal forward', 'Punchy drums', 'Warm low end', 'Bright and open', 'More glue']
     };
 
+    /** Step 3 quick prompts per genre: { label, prompt }[]. Keys match GENRE_BALANCE. */
+    const GENRE_QUICK_PROMPTS = {
+        rock:     [{ label: 'Kick & snare up', prompt: 'Make the kick and snare more prominent' }, { label: 'Vocal forward', prompt: 'Bring up the vocals' }, { label: 'More punch', prompt: 'Add more punch to the drums' }, { label: 'Brighter', prompt: 'Make it brighter' }, { label: 'Guitars down', prompt: 'Lower the guitars' }, { label: 'Warm low end', prompt: 'Warm up the low end' }],
+        metal:    [{ label: 'Kick punch', prompt: 'More kick punch' }, { label: 'Guitars forward', prompt: 'Bring guitars forward' }, { label: 'Clear vocals', prompt: 'Make vocals clearer' }, { label: 'Tighter', prompt: 'Tighten the mix' }, { label: 'Snare up', prompt: 'Bring up the snare' }, { label: 'Dark and heavy', prompt: 'More dark and heavy' }],
+        hiphop:   [{ label: '808 up', prompt: 'Bring up the 808/bass' }, { label: 'Vocal crisp', prompt: 'Make vocals crisper' }, { label: 'Punchy drums', prompt: 'More punchy drums' }, { label: 'Brighter', prompt: 'Make it brighter' }, { label: 'Thicker', prompt: 'Make it thicker' }, { label: 'Kick up', prompt: 'Bring up the kick' }],
+        pop:      [{ label: 'Vocal forward', prompt: 'Vocal forward' }, { label: 'Bright airy', prompt: 'Brighter and airier' }, { label: 'Punchy modern', prompt: 'More punchy and modern' }, { label: 'Warm intimate', prompt: 'Warmer and more intimate' }, { label: 'Radio ready', prompt: 'More radio ready' }, { label: 'Kick & snare up', prompt: 'Bring up kick and snare' }],
+        edm:      [{ label: 'Kick and bass locked', prompt: 'Lock kick and bass' }, { label: 'Bright and wide', prompt: 'Brighter and wider' }, { label: 'Punchy compress', prompt: 'More punchy compression' }, { label: 'Thick chorus', prompt: 'Thicker chorus' }, { label: 'Club ready', prompt: 'More club ready' }, { label: 'Atmospheric', prompt: 'More atmospheric' }],
+        rnb:      [{ label: 'Vocal forward', prompt: 'Vocal forward' }, { label: 'Smooth low end', prompt: 'Smoother low end' }, { label: 'Warm intimate', prompt: 'Warmer and more intimate' }, { label: 'Punchy snare', prompt: 'More punchy snare' }, { label: 'Bright airy', prompt: 'Brighter and airier' }, { label: 'Thick and present', prompt: 'Thicker and more present' }],
+        jazz:     [{ label: 'Natural balance', prompt: 'More natural balance' }, { label: 'Open and airy', prompt: 'More open and airy' }, { label: 'Bass present', prompt: 'Bass more present' }, { label: 'Warm intimate', prompt: 'Warmer and more intimate' }, { label: 'Brush and room', prompt: 'More brush and room' }, { label: 'Organic', prompt: 'More organic' }],
+        funk:     [{ label: 'Punchy drums', prompt: 'More punchy drums' }, { label: 'Bass forward', prompt: 'Bass forward' }, { label: 'Guitar bite', prompt: 'More guitar bite' }, { label: 'Tight and groovy', prompt: 'Tighter and groovier' }, { label: 'Bright and open', prompt: 'Brighter and more open' }, { label: 'Thick chorus', prompt: 'Thicker chorus' }],
+        country:  [{ label: 'Vocal forward', prompt: 'Vocal forward' }, { label: 'Acoustic present', prompt: 'Acoustic more present' }, { label: 'Warm and natural', prompt: 'Warmer and more natural' }, { label: 'Punchy kick', prompt: 'More punchy kick' }, { label: 'Bright and open', prompt: 'Brighter and more open' }, { label: 'Clean and present', prompt: 'Cleaner and more present' }],
+        custom:   [{ label: 'Kick & snare up', prompt: 'Make the kick and snare more prominent' }, { label: 'Vocal forward', prompt: 'Bring up the vocals' }, { label: 'More punch', prompt: 'Add more punch' }, { label: 'Brighter', prompt: 'Make it brighter' }, { label: 'Warm low end', prompt: 'Warm up the low end' }, { label: 'More glue', prompt: 'More glue and cohesion' }]
+    };
+
     function applyJoshResponse(tracksArr, response) {
         if (!response || !Array.isArray(response)) return;
         response.forEach(change => {
@@ -273,6 +287,8 @@
                     track.automation.pan[track.automation.pan.length - 1].value = track.pan;
                 }
             }
+            track.eqOn = true;
+            track.eqParams = { low: 0, mid: 0, high: 0.75 };
         });
     }
 
@@ -288,6 +304,7 @@
     window.MegaMix.inferRole = inferRole;
     window.MegaMix.GENRE_BALANCE = GENRE_BALANCE;
     window.MegaMix.GENRE_PROMPTS = GENRE_PROMPTS;
+    window.MegaMix.GENRE_QUICK_PROMPTS = GENRE_QUICK_PROMPTS;
     window.MegaMix.applyJoshResponse = applyJoshResponse;
     window.MegaMix.interpretChatMessage = interpretChatMessage;
     window.MegaMix.applyMusicalBalance = applyMusicalBalance;

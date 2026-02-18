@@ -26,6 +26,10 @@
         body.has-app-announcement { padding-top: 140px; }
         .navbar.app-nav { top: 40px; }
         body.has-app-announcement .auth-overlay { top: 140px; }
+        body.logged-in .app-announcement-bar { display: none; }
+        body.logged-in.has-app-announcement { padding-top: 100px; }
+        body.logged-in.has-app-announcement .navbar.app-nav { top: 0; }
+        body.logged-in.has-app-announcement .auth-overlay { top: 100px; }
     </style>
 </head>
 <body class="has-app-announcement">
@@ -131,7 +135,7 @@
                 <h3 class="josh-section-title">Listen & refine with Josh</h3>
                 <p class="josh-section-position" id="playback-position-label" aria-live="polite">Playback at 0:00</p>
                 <div class="mix-it-loading hidden" id="mix-it-loading" aria-live="polite">
-                    <div class="mix-it-loading-row">
+                    <div class="mix-it-loading-row" id="mix-it-loading-row">
                         <div class="loading-spinner" aria-hidden="true"></div>
                         <div class="mix-it-loading-status">
                             <span class="mix-it-loading-text" id="mix-it-loading-text">Mixing…</span>
@@ -140,6 +144,13 @@
                     </div>
                     <div class="mix-it-progress-track" aria-hidden="true">
                         <div class="mix-it-progress-fill" id="mix-it-progress-fill"></div>
+                    </div>
+                    <div class="mix-done-check hidden" id="mix-done-check" aria-hidden="true">
+                        <svg class="mix-done-checkmark" viewBox="0 0 52 52" aria-hidden="true">
+                            <circle class="mix-done-circle" cx="26" cy="26" r="24" fill="none" stroke="currentColor" stroke-width="2"/>
+                            <path class="mix-done-path" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M14 26 l8 8 16 -18"/>
+                        </svg>
+                        <span class="mix-done-label">Done</span>
                     </div>
                 </div>
                 <div class="step3-unified-card iterate-card">
@@ -176,6 +187,12 @@
                     </div>
                     <audio id="audio-before" preload="metadata"></audio>
                     <audio id="audio-after" preload="metadata"></audio>
+                </div>
+                <div class="josh-avatar-wrap" aria-hidden="true">
+                    <div class="josh-avatar-bubble">
+                        <img src="/assets/Joshpropic.png" alt="Josh" class="josh-avatar-img">
+                        <span class="josh-avatar-toast">I'm Josh!</span>
+                    </div>
                 </div>
                 <div class="chat-wrap chat-card">
                     <div class="step3-chat-header-row">
@@ -252,41 +269,53 @@
                 <button type="button" class="mastering-controls-header" id="mastering-controls-toggle" aria-expanded="false" aria-controls="mastering-controls-body">Mastering controls</button>
                 <div class="mastering-controls-body" id="mastering-controls-body">
                     <p class="mastering-controls-hint">Real-time compression and output. Affects playback only; download uses the rendered master.</p>
-                    <div class="mastering-controls-row">
-                        <label for="mastering-threshold">Threshold (dB)</label>
-                        <input type="range" id="mastering-threshold" min="0" max="100" value="40" step="1" aria-label="Threshold">
-                        <span class="mastering-controls-value" id="mastering-threshold-value">-18</span>
-                    </div>
-                    <div class="mastering-controls-row">
-                        <label for="mastering-ratio">Ratio</label>
-                        <input type="range" id="mastering-ratio" min="0" max="100" value="8" step="1" aria-label="Ratio">
-                        <span class="mastering-controls-value" id="mastering-ratio-value">2.5</span>
-                    </div>
-                    <div class="mastering-controls-row">
-                        <label for="mastering-attack">Attack (s)</label>
-                        <input type="range" id="mastering-attack" min="0" max="100" value="2" step="1" aria-label="Attack">
-                        <span class="mastering-controls-value" id="mastering-attack-value">0.01</span>
-                    </div>
-                    <div class="mastering-controls-row">
-                        <label for="mastering-release">Release (s)</label>
-                        <input type="range" id="mastering-release" min="0" max="100" value="10" step="1" aria-label="Release">
-                        <span class="mastering-controls-value" id="mastering-release-value">0.2</span>
-                    </div>
-                    <div class="mastering-controls-row">
-                        <label for="mastering-output">Output level</label>
-                        <input type="range" id="mastering-output" min="0" max="100" value="33" step="1" aria-label="Output level">
-                        <span class="mastering-controls-value" id="mastering-output-value">1</span>
-                    </div>
-                    <div class="mastering-knobs-row">
-                        <div class="mastering-knob-wrap">
-                            <label for="mastering-adjust">Adjust</label>
-                            <input type="range" id="mastering-adjust" class="mastering-knob" min="0" max="100" value="50" step="1" aria-label="Adjust mastering params ±25%">
-                            <span class="mastering-knob-label">12:00</span>
+                    <div class="mastering-controls-grid">
+                        <div class="mastering-controls-left">
+                            <div class="mastering-controls-row">
+                                <label for="mastering-threshold">Threshold (dB)</label>
+                                <input type="range" id="mastering-threshold" min="0" max="100" value="40" step="1" aria-label="Threshold">
+                                <span class="mastering-controls-value" id="mastering-threshold-value">-18</span>
+                            </div>
+                            <div class="mastering-controls-row">
+                                <label for="mastering-ratio">Ratio</label>
+                                <input type="range" id="mastering-ratio" min="0" max="100" value="8" step="1" aria-label="Ratio">
+                                <span class="mastering-controls-value" id="mastering-ratio-value">2.5</span>
+                            </div>
+                            <div class="mastering-controls-row">
+                                <label for="mastering-attack">Attack (s)</label>
+                                <input type="range" id="mastering-attack" min="0" max="100" value="2" step="1" aria-label="Attack">
+                                <span class="mastering-controls-value" id="mastering-attack-value">0.01</span>
+                            </div>
+                            <div class="mastering-controls-row">
+                                <label for="mastering-release">Release (s)</label>
+                                <input type="range" id="mastering-release" min="0" max="100" value="10" step="1" aria-label="Release">
+                                <span class="mastering-controls-value" id="mastering-release-value">0.2</span>
+                            </div>
+                            <div class="mastering-controls-row">
+                                <label for="mastering-output">Output level</label>
+                                <input type="range" id="mastering-output" min="0" max="100" value="33" step="1" aria-label="Output level">
+                                <span class="mastering-controls-value" id="mastering-output-value">1</span>
+                            </div>
                         </div>
-                        <div class="mastering-knob-wrap">
-                            <label for="mastering-mix">Mix</label>
-                            <input type="range" id="mastering-mix" class="mastering-knob" min="0" max="100" value="100" step="1" aria-label="Dry/wet mastering">
-                            <span class="mastering-knob-label" id="mastering-mix-value">100%</span>
+                        <div class="mastering-controls-right">
+                            <div class="mastering-knobs-row">
+                                <div class="mastering-knob-wrap">
+                                    <label for="mastering-adjust">Adjust</label>
+                                    <div class="rotary-knob" id="knob-adjust" role="slider" aria-label="Adjust mastering params" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" tabindex="0">
+                                        <div class="rotary-knob-dial"><span class="rotary-knob-needle"></span></div>
+                                    </div>
+                                    <input type="range" id="mastering-adjust" class="mastering-knob-input-sync" min="0" max="100" value="50" step="1" aria-hidden="true" tabindex="-1">
+                                    <span class="mastering-knob-label" id="adjust-knob-label">12:00</span>
+                                </div>
+                                <div class="mastering-knob-wrap">
+                                    <label for="mastering-mix">Mix</label>
+                                    <div class="rotary-knob" id="knob-mix" role="slider" aria-label="Dry/wet mastering" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" tabindex="0">
+                                        <div class="rotary-knob-dial"><span class="rotary-knob-needle"></span></div>
+                                    </div>
+                                    <input type="range" id="mastering-mix" class="mastering-knob-input-sync" min="0" max="100" value="100" step="1" aria-hidden="true" tabindex="-1">
+                                    <span class="mastering-knob-label" id="mastering-mix-value">100%</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
