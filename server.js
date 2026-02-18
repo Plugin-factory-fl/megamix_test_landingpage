@@ -62,6 +62,15 @@ if (smtpUser && smtpPass) {
 // Middleware
 app.use(cors());
 
+// Favicon first so browsers never get 404 (they request /favicon.ico by default)
+app.get('/favicon.ico', (req, res) => {
+  const faviconPath = path.join(__dirname, 'assets', 'Logo.png');
+  res.type('image/png');
+  res.sendFile(faviconPath, (err) => {
+    if (err) res.status(204).end();
+  });
+});
+
 // Serve static files from the assets directory
 app.use('/assets', express.static('assets'));
 

@@ -573,9 +573,9 @@ body {
 .josh-avatar-wrap {
     position: fixed;
     left: 12px;
-    top: 55%;
-    transform: translateY(-50%);
-    z-index: 5;
+    bottom: 24px;
+    top: auto;
+    z-index: 50;
     pointer-events: auto;
     cursor: grab;
     display: flex;

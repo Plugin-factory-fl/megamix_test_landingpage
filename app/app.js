@@ -1028,22 +1028,26 @@
         if (!wrapEl) return;
         var startX = 0, startY = 0, startLeft = 0, startTop = 0;
         var wrapWidth = 0, wrapHeight = 0;
-        function getRect() { return wrapEl.getBoundingClientRect(); }
         function clamp(x, min, max) { return Math.max(min, Math.min(max, x)); }
+        function applyPosition(el, leftPx, topPx) {
+            el.style.position = 'fixed';
+            el.style.right = 'auto';
+            el.style.bottom = '';
+            el.style.left = leftPx + 'px';
+            el.style.top = topPx + 'px';
+            el.style.transform = 'none';
+        }
         wrapEl.addEventListener('mousedown', function (e) {
             if (e.button !== 0) return;
             e.preventDefault();
-            var r = getRect();
+            var r = wrapEl.getBoundingClientRect();
             startX = e.clientX;
             startY = e.clientY;
             startLeft = r.left;
             startTop = r.top;
             wrapWidth = r.width;
             wrapHeight = r.height;
-            wrapEl.style.bottom = '';
-            wrapEl.style.left = startLeft + 'px';
-            wrapEl.style.top = startTop + 'px';
-            wrapEl.style.transform = 'none';
+            applyPosition(wrapEl, startLeft, startTop);
             function onMove(e2) {
                 var dx = e2.clientX - startX;
                 var dy = e2.clientY - startY;
@@ -1059,9 +1063,43 @@
             document.addEventListener('mousemove', onMove);
             document.addEventListener('mouseup', onUp);
         });
+        wrapEl.addEventListener('touchstart', function (e) {
+            if (e.touches.length === 0) return;
+            e.preventDefault();
+            var r = wrapEl.getBoundingClientRect();
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+            startLeft = r.left;
+            startTop = r.top;
+            wrapWidth = r.width;
+            wrapHeight = r.height;
+            applyPosition(wrapEl, startLeft, startTop);
+            function onMove(e2) {
+                if (e2.touches.length === 0) return;
+                e2.preventDefault();
+                var newLeft = clamp(startLeft + (e2.touches[0].clientX - startX), 0, window.innerWidth - wrapWidth);
+                var newTop = clamp(startTop + (e2.touches[0].clientY - startY), 0, window.innerHeight - wrapHeight);
+                wrapEl.style.left = newLeft + 'px';
+                wrapEl.style.top = newTop + 'px';
+            }
+            function onEnd() {
+                document.removeEventListener('touchmove', onMove, { passive: false });
+                document.removeEventListener('touchend', onEnd);
+                document.removeEventListener('touchcancel', onEnd);
+            }
+            document.addEventListener('touchmove', onMove, { passive: false });
+            document.addEventListener('touchend', onEnd);
+            document.addEventListener('touchcancel', onEnd);
+        }, { passive: false });
     }
-    initJoshAvatarDrag(document.getElementById('josh-avatar-mixing'));
-    initJoshAvatarDrag(document.getElementById('josh-avatar-mastering'));
+    (function () {
+        var mixingWrap = document.getElementById('josh-avatar-mixing');
+        var masteringWrap = document.getElementById('josh-avatar-mastering');
+        if (mixingWrap && mixingWrap.parentNode !== document.body) document.body.appendChild(mixingWrap);
+        if (masteringWrap && masteringWrap.parentNode !== document.body) document.body.appendChild(masteringWrap);
+        initJoshAvatarDrag(mixingWrap);
+        initJoshAvatarDrag(masteringWrap);
+    })();
 
     function sendChat() {
         const text = chatInput.value.trim();
