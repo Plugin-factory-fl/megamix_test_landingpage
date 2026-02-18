@@ -52,19 +52,26 @@
     let masterDryGain = null;
     let masterWetGain = null;
 
-    function showToast(html) {
-        var container = document.getElementById('toast-container');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'toast-container';
-            container.className = 'toast-container';
-            document.body.appendChild(container);
-        }
+    function showToast(html, anchorEl) {
         var toast = document.createElement('div');
-        toast.className = 'toast';
+        toast.className = 'toast toast-anchored';
         toast.setAttribute('role', 'alert');
         toast.innerHTML = html;
-        container.appendChild(toast);
+        document.body.appendChild(toast);
+        if (anchorEl && typeof anchorEl.getBoundingClientRect === 'function') {
+            var rect = anchorEl.getBoundingClientRect();
+            var toastRect = toast.getBoundingClientRect();
+            var spaceAbove = rect.top;
+            var spaceBelow = (window.innerHeight || document.documentElement.clientHeight) - rect.bottom;
+            var pad = 8;
+            if (spaceAbove >= toastRect.height + pad || spaceBelow < spaceAbove) {
+                toast.style.top = (rect.bottom + pad) + 'px';
+                toast.style.left = Math.max(pad, Math.min(rect.left, (window.innerWidth || document.documentElement.clientWidth) - toastRect.width - pad)) + 'px';
+            } else {
+                toast.style.top = (rect.top - toastRect.height - pad) + 'px';
+                toast.style.left = Math.max(pad, Math.min(rect.left, (window.innerWidth || document.documentElement.clientWidth) - toastRect.width - pad)) + 'px';
+            }
+        }
         setTimeout(function () {
             if (toast.parentNode) toast.parentNode.removeChild(toast);
         }, 5500);
@@ -713,14 +720,14 @@
         var beforeAfterInfoBtn = document.getElementById('before-after-info-btn');
         if (beforeAfterInfoBtn) {
             beforeAfterInfoBtn.addEventListener('click', function () {
-                showToast('<p><strong>A/B testing:</strong> Switch between Before (flat mix) and After (your mix with preset and fader/FX changes) to compare. Use the transport to play, pause, and seek.</p><p><strong>Refine with Josh:</strong> Use the quick prompt buttons or type in the chat (e.g. &quot;bring up the vocals&quot;, &quot;more punch&quot;). Josh applies changes to the After mix; listen and iterate.</p>');
+                showToast('<p><strong>A/B testing:</strong> Switch between Before (flat mix) and After (your mix with preset and fader/FX changes) to compare. Use the transport to play, pause, and seek.</p><p><strong>Refine with Josh:</strong> Use the quick prompt buttons or type in the chat (e.g. &quot;bring up the vocals&quot;, &quot;more punch&quot;). Josh applies changes to the After mix; listen and iterate.</p>', beforeAfterInfoBtn);
             });
         }
         var mixerInfoBtn = document.getElementById('mixer-info-btn');
         if (mixerInfoBtn) {
             mixerInfoBtn.addEventListener('click', function (e) {
                 e.stopPropagation();
-                showToast('<p>Use the mixer to <strong>manually adjust</strong> each track: drag the faders for level, pan left/right, and turn on EQ, compression, or reverb per track. Changes are reflected in the After playback and when you refine with Josh.</p>');
+                showToast('<p>Use the mixer to <strong>manually adjust</strong> each track: drag the faders for level, pan left/right, and turn on EQ, compression, or reverb per track. Changes are reflected in the After playback and when you refine with Josh.</p>', mixerInfoBtn);
             });
         }
         playBtn.addEventListener('click', function () {
@@ -1770,6 +1777,34 @@
                 });
                 setAdjustKnobUI(adjustInput.value);
             }
+            window.MegaMix.applyMasteringOptionsToControls = function (opts) {
+                if (!opts || !masteringGraphInited) return;
+                var punch = Math.max(0, Math.min(2, Number(opts.punch) || 0));
+                var loudness = Math.max(0, Math.min(2, Number(opts.loudness) || 0));
+                var compression = Math.max(0, Math.min(2, Number(opts.compression) !== undefined ? opts.compression : 1));
+                var thr = compression === 0 ? -12 : compression === 2 ? -24 : -18;
+                var ratio = compression === 0 ? 1.5 : compression === 2 ? 4 : 2.5;
+                var attack = punch === 0 ? 0.01 : punch === 1 ? 0.005 : 0.003;
+                var release = punch === 0 ? 0.2 : punch === 1 ? 0.15 : 0.1;
+                var output = loudness === 0 ? 0.85 : loudness === 2 ? 1.2 : 1;
+                masteringBaseValues.threshold = thr;
+                masteringBaseValues.ratio = ratio;
+                masteringBaseValues.attack = attack;
+                masteringBaseValues.release = release;
+                masteringBaseValues.output = output;
+                var thrSlider = document.getElementById('mastering-threshold');
+                var ratioSlider = document.getElementById('mastering-ratio');
+                var attackSlider = document.getElementById('mastering-attack');
+                var releaseSlider = document.getElementById('mastering-release');
+                var outputSlider = document.getElementById('mastering-output');
+                if (thrSlider) thrSlider.value = Math.round((thr + 30) / 30 * 100);
+                if (ratioSlider) ratioSlider.value = Math.round((ratio - 1) / 19 * 100);
+                if (attackSlider) attackSlider.value = Math.round((attack - 0.001) / 0.499 * 100);
+                if (releaseSlider) releaseSlider.value = Math.round((release - 0.01) / 1.99 * 100);
+                if (outputSlider) outputSlider.value = Math.round((output - 0.5) / 1.5 * 100);
+                setAdjustKnobUI(50);
+                applyMasteringFromSlidersAndAdjust();
+            };
             const mixKnob = document.getElementById('mastering-mix');
             const mixValueEl = document.getElementById('mastering-mix-value');
             const knobMixEl = document.getElementById('knob-mix');
@@ -1836,7 +1871,7 @@
                 return "Done. I've applied your changes. Have a listen.";
             }
             if (chatSendMastering && chatInputMastering) {
-                chatSendMastering.addEventListener('click', async function () {
+                chatSendMastering.addEventListener('click', function () {
                     const text = (chatInputMastering.value || '').trim();
                     if (!text) return;
                     addMasteringChatMessage('user', text);
@@ -1851,49 +1886,11 @@
                         addMasteringChatMessage('bot', 'Upload stems and run Mix it first, then AI Mastering, before refining here.');
                         return;
                     }
-                    const sendBtn = chatSendMastering;
-                    sendBtn.disabled = true;
-                    function removeThinking() {
-                        var el = chatMessagesMastering && chatMessagesMastering.querySelector('.mastering-thinking');
-                        if (el) el.remove();
+                    applyMasteringDelta(delta);
+                    if (typeof window.MegaMix.applyMasteringOptionsToControls === 'function') {
+                        window.MegaMix.applyMasteringOptionsToControls(state.masteringOptions);
                     }
-                    var thinkingEl = document.createElement('div');
-                    thinkingEl.className = 'msg bot mastering-thinking';
-                    thinkingEl.textContent = 'Josh: Thinking…';
-                    if (chatMessagesMastering) {
-                        chatMessagesMastering.appendChild(thinkingEl);
-                        chatMessagesMastering.scrollTop = chatMessagesMastering.scrollHeight;
-                    }
-                    try {
-                        const afterMix = await window.MegaMix.buildAfterMixWithFX();
-                        removeThinking();
-                        if (!afterMix) {
-                            addMasteringChatMessage('bot', 'Could not render the mix. Try again.');
-                            sendBtn.disabled = false;
-                            return;
-                        }
-                        applyMasteringDelta(delta);
-                        const mastered = await window.MegaMix.runMasteringChain(afterMix, state.masteringOptions);
-                        if (!mastered) {
-                            addMasteringChatMessage('bot', 'Mastering failed. Try again.');
-                            sendBtn.disabled = false;
-                            return;
-                        }
-                        if (state.masteredUrl) URL.revokeObjectURL(state.masteredUrl);
-                        state.masteredUrl = URL.createObjectURL(window.MegaMix.encodeWav(mastered.left, mastered.right, mastered.sampleRate));
-                        audioMastering.src = state.masteredUrl;
-                        audioMastering.onloadedmetadata = function () {
-                            if (audioMastering.duration && isFinite(audioMastering.duration) && durationMastering)
-                                durationMastering.textContent = formatTime(audioMastering.duration);
-                        };
-                        fillWaveformFromUrl(state.masteredUrl);
-                        addMasteringChatMessage('bot', masteringReplyForDelta(delta));
-                    } catch (e) {
-                        console.error('Mastering chat', e);
-                        removeThinking();
-                        addMasteringChatMessage('bot', 'Something went wrong. Please try again.');
-                    }
-                    sendBtn.disabled = false;
+                    addMasteringChatMessage('bot', masteringReplyForDelta(delta));
                 });
                 chatInputMastering.addEventListener('keydown', function (e) {
                     if (e.key === 'Enter') chatSendMastering.click();
@@ -1909,12 +1906,30 @@
                 });
             });
             if (btnDownloadMasteredFinal) {
-                btnDownloadMasteredFinal.addEventListener('click', function () {
-                    if (!state.masteredUrl) return;
+                btnDownloadMasteredFinal.addEventListener('click', async function () {
                     if (isPreviewMode()) {
                         pendingDownload = { type: 'mastered' };
                         if (window.MegaMixAuth && window.MegaMixAuth.showLoginRequired) window.MegaMixAuth.showLoginRequired();
                         return;
+                    }
+                    if (!state.mixReady || state.stemBuffers.length === 0) return;
+                    var btn = btnDownloadMasteredFinal;
+                    var origText = btn.textContent;
+                    btn.disabled = true;
+                    btn.textContent = 'Preparing…';
+                    try {
+                        var afterMix = await window.MegaMix.buildAfterMixWithFX();
+                        if (!afterMix) { btn.textContent = origText; btn.disabled = false; return; }
+                        state.masteringOptions = state.masteringOptions || { punch: 0, loudness: 0, compression: 1 };
+                        var mastered = await window.MegaMix.runMasteringChain(afterMix, state.masteringOptions);
+                        if (!mastered) { btn.textContent = origText; btn.disabled = false; return; }
+                        if (state.masteredUrl) URL.revokeObjectURL(state.masteredUrl);
+                        state.masteredUrl = URL.createObjectURL(window.MegaMix.encodeWav(mastered.left, mastered.right, mastered.sampleRate));
+                        if (audioMastering) audioMastering.src = state.masteredUrl;
+                        if (typeof fillWaveformFromUrl === 'function') fillWaveformFromUrl(state.masteredUrl);
+                    } finally {
+                        btn.textContent = origText;
+                        btn.disabled = false;
                     }
                     openEmailModal('mastered');
                 });
