@@ -212,16 +212,21 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(400).json({ error: 'License key is required' });
     }
 
+    const normalizedKey = normalizeLicenseKey(trimKey);
+    if (!normalizedKey || normalizedKey.length < 16) {
+      return res.status(401).json({ error: 'Invalid license key format.' });
+    }
+
     const result = await pool.query(
-      'SELECT * FROM licenses WHERE license_key = $1',
-      [trimKey]
+      `SELECT * FROM licenses WHERE UPPER(REPLACE(REPLACE(REPLACE(license_key, ' ', ''), '-', ''), '_', '')) = $1`,
+      [normalizedKey]
     );
     if (result.rows.length === 0) {
-      return res.status(401).json({ error: 'Invalid license key.' });
+      return res.status(401).json({ error: 'Invalid license key. Use the exact key from your plugin or the .txt file you received. You can leave the email field blank and enter only the license key.' });
     }
     const license = result.rows[0];
     if (trimEmail && license.customer_email && license.customer_email.toLowerCase() !== trimEmail.toLowerCase()) {
-      return res.status(401).json({ error: 'Email does not match this license.' });
+      return res.status(401).json({ error: 'Email does not match this license. Try logging in with only your license key (leave email blank), or use the email from your purchase receipt.' });
     }
     if (new Date() > new Date(license.expires_at)) {
       return res.status(403).json({ error: 'License has expired' });
@@ -648,6 +653,12 @@ function generateLicenseKey() {
   return result.match(/.{1,4}/g).join('-'); // Format: XXXX-XXXX-XXXX-XXXX
 }
 
+// Normalize license key for lookup: strip spaces/dashes, uppercase. So plugin and web accept same key in any format.
+function normalizeLicenseKey(key) {
+  if (typeof key !== 'string') return '';
+  return key.replace(/\s/g, '').replace(/-/g, '').replace(/_/g, '').toUpperCase();
+}
+
 // License validation endpoint (for the plugin to call).
 // The plugin uses the returned token and license.expires_at for offline validation; keep this response shape for compatibility.
 app.post('/verify-license', async (req, res) => {
@@ -660,10 +671,16 @@ app.post('/verify-license', async (req, res) => {
       return res.status(400).json({ error: 'License key is required' });
     }
 
-    // Query database for license
+    const trimKey = typeof licenseKey === 'string' ? licenseKey.trim() : '';
+    const normalizedKey = normalizeLicenseKey(trimKey);
+    if (!normalizedKey || normalizedKey.length < 16) {
+      return res.status(400).json({ error: 'Invalid license key format' });
+    }
+
+    // Query database for license (match normalized key so plugin and web accept same key in any format)
     const result = await pool.query(
-      `SELECT * FROM licenses WHERE license_key = $1`,
-      [licenseKey]
+      `SELECT * FROM licenses WHERE UPPER(REPLACE(REPLACE(REPLACE(license_key, ' ', ''), '-', ''), '_', '')) = $1`,
+      [normalizedKey]
     );
 
     if (result.rows.length === 0) {
