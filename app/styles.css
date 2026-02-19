@@ -1558,6 +1558,18 @@ body {
     width: 100%;
     justify-content: center;
 }
+.mixer-fx-slot.disabled .mixer-fx-power,
+.mixer-fx-slot.disabled .mixer-fx-name {
+    background: rgba(255,255,255,0.04);
+    color: #666;
+    cursor: not-allowed;
+    border-color: rgba(255,255,255,0.08);
+    opacity: 0.5;
+    pointer-events: none;
+}
+.mixer-fx-slot.disabled .mixer-fx-name:hover {
+    border-color: rgba(255,255,255,0.08);
+}
 .mixer-fx-power {
     width: 22px;
     height: 22px;

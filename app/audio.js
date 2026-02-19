@@ -299,7 +299,7 @@
             last = comp;
         }
 
-        if (track && track.reverbOn) {
+        if (track && track.reverbOn && !(window.MegaMix && window.MegaMix.JOSH_VERB_DISABLED)) {
             const rp = track.reverbParams || { mix: 0.25, decaySeconds: 0.4 };
             const mix = typeof rp.mix === 'number' ? Math.max(0, Math.min(1, rp.mix)) : 0.25;
             const decaySeconds = typeof rp.decaySeconds === 'number' ? rp.decaySeconds : 0.4;
@@ -407,7 +407,7 @@
                 last.connect(comp);
                 last = comp;
             }
-            if (track && track.reverbOn) {
+            if (track && track.reverbOn && !(window.MegaMix && window.MegaMix.JOSH_VERB_DISABLED)) {
                 const rp = track.reverbParams || { mix: 0.25, decaySeconds: 0.4 };
                 const mix = typeof rp.mix === 'number' ? Math.max(0, Math.min(1, rp.mix)) : 0.25;
                 const decaySeconds = typeof rp.decaySeconds === 'number' ? rp.decaySeconds : 0.4;
@@ -624,8 +624,9 @@
             chain.compNode.ratio.setTargetAtTime(1, liveGraph.ctx.currentTime, 0.01);
             chain.compNode.threshold.setTargetAtTime(0, liveGraph.ctx.currentTime, 0.01);
         }
+        const reverbDisabled = !!(window.MegaMix && window.MegaMix.JOSH_VERB_DISABLED);
         const rp = track.reverbParams || { mix: 0.25, decaySeconds: 0.4 };
-        const revMix = track.reverbOn ? (typeof rp.mix === 'number' ? Math.max(0, Math.min(1, rp.mix)) : 0.25) : 0;
+        const revMix = (!reverbDisabled && track.reverbOn) ? (typeof rp.mix === 'number' ? Math.max(0, Math.min(1, rp.mix)) : 0.25) : 0;
         if (chain.reverbPlate && chain.reverbPlate.updateParams) {
             chain.reverbPlate.updateParams(rp.decaySeconds, 0.5);
         }

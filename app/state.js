@@ -239,7 +239,7 @@
                 if (change.compParams.release != null) t.compParams.release = change.compParams.release;
                 if (change.compParams.knee != null) t.compParams.knee = change.compParams.knee;
             }
-            if (change.reverbOn != null) t.reverbOn = !!change.reverbOn;
+            if (change.reverbOn != null && !(window.MegaMix && window.MegaMix.JOSH_VERB_DISABLED)) t.reverbOn = !!change.reverbOn;
             if (change.reverbParams) {
                 t.reverbParams = t.reverbParams || { mix: 0.25, decaySeconds: 0.4 };
                 if (change.reverbParams.mix != null) t.reverbParams.mix = Math.max(0, Math.min(1, change.reverbParams.mix));

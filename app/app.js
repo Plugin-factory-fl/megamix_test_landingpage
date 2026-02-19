@@ -3,6 +3,7 @@
 
     const state = window.MegaMix && window.MegaMix.state;
     if (!state) return;
+    window.MegaMix.JOSH_VERB_DISABLED = true;
 
     const views = {
         app: document.getElementById('view-app'),
@@ -420,14 +421,16 @@
             fxRow.appendChild(eqSlot);
             fxRow.appendChild(compSlot);
             const verbSlot = document.createElement('div');
-            verbSlot.className = 'mixer-fx-slot';
+            verbSlot.className = 'mixer-fx-slot' + (window.MegaMix.JOSH_VERB_DISABLED ? ' disabled' : '');
             const verbPowerBtn = document.createElement('button');
             verbPowerBtn.type = 'button';
             verbPowerBtn.className = 'mixer-fx-power';
-            verbPowerBtn.setAttribute('aria-pressed', track.reverbOn);
-            verbPowerBtn.title = 'JoshVerb on/off';
-            verbPowerBtn.textContent = track.reverbOn ? '\u25CF' : '\u25CB';
+            verbPowerBtn.setAttribute('aria-pressed', (window.MegaMix.JOSH_VERB_DISABLED || !track.reverbOn) ? 'false' : 'true');
+            verbPowerBtn.title = window.MegaMix.JOSH_VERB_DISABLED ? 'Coming soon' : 'JoshVerb on/off';
+            verbPowerBtn.textContent = (window.MegaMix.JOSH_VERB_DISABLED || !track.reverbOn) ? '\u25CB' : '\u25CF';
+            verbPowerBtn.disabled = !!window.MegaMix.JOSH_VERB_DISABLED;
             verbPowerBtn.addEventListener('click', function (e) {
+                if (window.MegaMix.JOSH_VERB_DISABLED) return;
                 e.stopPropagation();
                 pushUndo();
                 track.reverbOn = !track.reverbOn;
@@ -441,7 +444,8 @@
             verbNameBtn.type = 'button';
             verbNameBtn.className = 'mixer-fx-name';
             verbNameBtn.textContent = 'JoshVerb';
-            verbNameBtn.title = 'Open JoshVerb settings';
+            verbNameBtn.title = window.MegaMix.JOSH_VERB_DISABLED ? 'Coming soon' : 'Open JoshVerb settings';
+            verbNameBtn.disabled = !!window.MegaMix.JOSH_VERB_DISABLED;
             const verbPopover = document.createElement('div');
             verbPopover.className = 'mixer-fx-popover mixer-fx-mini-panel hidden';
             verbPopover.setAttribute('aria-hidden', 'true');
@@ -484,6 +488,7 @@
             verbPopover.appendChild(verbMiniBg);
             verbPopover.appendChild(verbKnobRow);
             verbNameBtn.addEventListener('click', function (e) {
+                if (window.MegaMix.JOSH_VERB_DISABLED) return;
                 e.stopPropagation();
                 var open = !verbPopover.classList.contains('hidden');
                 document.querySelectorAll('.mixer-fx-mini-panel').forEach(function (p) { p.classList.add('hidden'); p.setAttribute('aria-hidden', 'true'); });
