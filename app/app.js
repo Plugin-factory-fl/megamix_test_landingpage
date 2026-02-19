@@ -501,6 +501,7 @@
             retroBtn.className = 'mixer-fx-btn disabled';
             retroBtn.textContent = 'Retro';
             retroBtn.title = 'Coming soon';
+            fxRow.appendChild(retroBtn);
             if (!track.automation) {
                 track.automation = { level: [{ t: 0, value: track.gain }, { t: 1, value: track.gain }], pan: [{ t: 0, value: track.pan }, { t: 1, value: track.pan }] };
             }
@@ -659,8 +660,6 @@
                     autoPanel.setAttribute('aria-hidden', 'false');
                 }
             });
-            fxRow.appendChild(verbBtn);
-            fxRow.appendChild(retroBtn);
             fxRow.appendChild(autoBtn);
             strip.appendChild(nameWrap);
             strip.appendChild(faderWrap);
