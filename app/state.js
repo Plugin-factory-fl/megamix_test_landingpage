@@ -96,7 +96,7 @@
         if (/\bvocal|voc|lead\s*vox|singer|main\s*vocal\b/.test(n)) return 'leadVocal';
         if (/\bbacking|bv|harmony|double|ad.?lib\b/.test(n)) return 'backingVocal';
         if (/\bguitar|gtr|rhythm|solo\b/.test(n)) return 'guitar';
-        if (/\boverhead|oh\b|room|cymbals|ride|hats?|hi.?hat\b/.test(n)) return 'overhead';
+        if (/\boverhead|oh\b|room|cymbals|ride|hats?|hi.?hat|click|clicking\b/.test(n)) return 'overhead';
         if (/\btom|floor\b/.test(n)) return 'tom';
         if (/\bkeys?|piano|rhodes|synth|pad|pluck|arp\b/.test(n)) return 'keys';
         if (/\bdrums?|perc\b/.test(n) && !/kick|snare|overhead|tom|hats|ride/.test(n)) return 'drums';
@@ -274,6 +274,7 @@
         if (/\bguitar|gtr\b/.test(lower)) rolesToChange.push('guitar');
         if (/\bdrums?|perc\b/.test(lower) && !rolesToChange.length) rolesToChange.push('kick', 'snare', 'drums', 'overhead', 'tom');
         if (/\boverhead|oh|cymbal|ride|hats?\b/.test(lower)) rolesToChange.push('overhead');
+        if (/\bclick|clicking|clicks\b/.test(lower)) rolesToChange.push('overhead');
         if (/\btom\b/.test(lower)) rolesToChange.push('tom');
         if (/\bkeys?|piano|synth\b/.test(lower)) rolesToChange.push('keys');
         const goUp = /more|prominent|bring up|boost|louder|stronger|up/.test(lower) && !/lower|down|less|reduce|weaker/.test(lower);
@@ -317,9 +318,9 @@
             if (lessReverb) {
                 delta.reverbOn = false;
             }
-            if (muteAsk) delta.mute = true;
+            if (muteAsk && (rolesToChange.length > 0 || /\ball|everything|whole\s*(song|mix)|entire\b/.test(lower))) delta.mute = true;
             if (unmuteAsk) delta.mute = false;
-            if (soloAsk) delta.solo = true;
+            if (soloAsk && (rolesToChange.length > 0 || /\ball|everything|whole\s*(song|mix)|entire\b/.test(lower))) delta.solo = true;
             if (unsoloAsk) delta.solo = false;
             if (Object.keys(delta).length) {
                 delta.i = i;
