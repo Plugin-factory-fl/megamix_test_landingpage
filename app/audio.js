@@ -412,6 +412,7 @@
         return { left, right, sampleRate, length: maxLen };
     }
 
+    /** Master the mix: compression (punch/compression opts) then peak-normalize to max loudness without clipping. */
     async function runMasteringChain(mix, options) {
         if (!mix || !mix.left || !mix.right) return null;
         const t0 = performance.now();
@@ -447,7 +448,8 @@
         for (let i = 0; i < len; i++) {
             peak = Math.max(peak, Math.abs(left[i]), Math.abs(right[i]));
         }
-        const targetPeak = loudness === 0 ? 0.99 : loudness === 1 ? 1 : 1;
+        // Primary goal: as loud as possible without clipping. Target just under full scale for safety.
+        const targetPeak = 0.99;
         const scale = peak > 0 ? targetPeak / peak : 1;
         for (let i = 0; i < len; i++) {
             left[i] = Math.max(-1, Math.min(1, left[i] * scale));

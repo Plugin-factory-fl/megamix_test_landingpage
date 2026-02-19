@@ -95,7 +95,19 @@
             void active.offsetHeight; // force reflow so fade-in animation runs
             setTimeout(() => active.classList.remove('view-visible'), 350);
         }
-        if (name === 'mastering') initMasteringPageWhenShown();
+        if (name === 'mastering') {
+            var ab = document.getElementById('audio-before');
+            var aa = document.getElementById('audio-after');
+            var pb = document.getElementById('play-btn');
+            if (ab) ab.pause();
+            if (aa) aa.pause();
+            if (window.MegaMix && typeof window.MegaMix.stopLivePlayback === 'function') window.MegaMix.stopLivePlayback();
+            if (pb) {
+                pb.classList.remove('playing');
+                pb.textContent = '\u25B6';
+            }
+            initMasteringPageWhenShown();
+        }
     }
     document.querySelectorAll('[data-view]').forEach(el => {
         el.addEventListener('click', function (e) {
@@ -1740,7 +1752,7 @@
                 if (state.unmasteredMixUrl) URL.revokeObjectURL(state.unmasteredMixUrl);
                 state.unmasteredMixUrl = URL.createObjectURL(window.MegaMix.encodeWav(afterMix.left, afterMix.right, afterMix.sampleRate));
                 showMasteringStatus('Applying AI mastering… (step 2 of 2)', 50);
-                state.masteringOptions = state.masteringOptions || { punch: 0, loudness: 0, compression: 1 };
+                state.masteringOptions = state.masteringOptions || { punch: 0, loudness: 1, compression: 1 };
                 const mastered = await window.MegaMix.runMasteringChain(afterMix, state.masteringOptions);
                 showMasteringStatus('', 0);
                 btnAiMastering.disabled = false;
@@ -2217,7 +2229,7 @@
                 return delta;
             }
             function applyMasteringDelta(delta) {
-                state.masteringOptions = state.masteringOptions || { punch: 0, loudness: 0, compression: 1 };
+                state.masteringOptions = state.masteringOptions || { punch: 0, loudness: 1, compression: 1 };
                 if (delta.punch !== undefined) state.masteringOptions.punch = Math.max(0, Math.min(2, (state.masteringOptions.punch || 0) + delta.punch));
                 if (delta.loudness !== undefined) state.masteringOptions.loudness = Math.max(0, Math.min(2, (state.masteringOptions.loudness || 0) + delta.loudness));
                 if (delta.compression !== undefined) state.masteringOptions.compression = Math.max(0, Math.min(2, (state.masteringOptions.compression !== undefined ? state.masteringOptions.compression : 1) + delta.compression));
@@ -2319,7 +2331,7 @@
                     try {
                         var afterMix = await window.MegaMix.buildAfterMixWithFX();
                         if (!afterMix) { btn.textContent = origText; btn.disabled = false; return; }
-                        state.masteringOptions = state.masteringOptions || { punch: 0, loudness: 0, compression: 1 };
+                        state.masteringOptions = state.masteringOptions || { punch: 0, loudness: 1, compression: 1 };
                         var mastered = await window.MegaMix.runMasteringChain(afterMix, state.masteringOptions);
                         if (!mastered) { btn.textContent = origText; btn.disabled = false; return; }
                         if (state.masteredUrl) URL.revokeObjectURL(state.masteredUrl);
