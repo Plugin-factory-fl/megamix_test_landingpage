@@ -66,22 +66,86 @@
         return { left, right };
     }
 
-    /** Generate a short plate-style IR: exponential decay for dense, bright tail. Stereo (2 ch) so ConvolverNode output is clearly stereo. */
-    function createPlateIR(ctxOrSampleRate, lengthSeconds) {
-        const sampleRate = typeof ctxOrSampleRate === 'number' ? ctxOrSampleRate : (ctxOrSampleRate && ctxOrSampleRate.sampleRate) ? ctxOrSampleRate.sampleRate : 48000;
-        const lengthSamples = Math.max(2, Math.floor(lengthSeconds * sampleRate));
-        const ctx = typeof ctxOrSampleRate !== 'number' && ctxOrSampleRate ? ctxOrSampleRate : getAudioContext();
-        const buffer = ctx.createBuffer(2, lengthSamples, sampleRate);
-        const ch0 = buffer.getChannelData(0);
-        const ch1 = buffer.getChannelData(1);
-        ch0[0] = 1;
-        ch1[0] = 1;
-        const decay = Math.exp(-3 / lengthSamples);
-        for (let i = 1; i < lengthSamples; i++) {
-            ch0[i] = ch0[i - 1] * decay;
-            ch1[i] = ch1[i - 1] * decay;
+    /**
+     * Algorithmic plate reverb (Schroeder/Freeverb-style): parallel comb filters + series allpass.
+     * Avoids convolution mud; gives clear, smooth tail. Returns { input, output, updateParams }.
+     */
+    function createAlgorithmicPlate(ctx, sampleRate, decaySeconds, damping) {
+        sampleRate = sampleRate || (ctx.sampleRate || 48000);
+        decaySeconds = Math.max(0.2, Math.min(2, decaySeconds || 0.4));
+        damping = Math.max(0, Math.min(1, damping !== undefined ? damping : 0.5));
+        const sr = sampleRate;
+        const scale = sr / 44100;
+        const combDelaysMs = [1116, 1188, 1277, 1356].map(n => (n * scale) / sr);
+        const allpassDelaysMs = [225, 556].map(n => (n * scale) / sr);
+        const maxDelay = Math.max(...combDelaysMs, ...allpassDelaysMs) + 0.1;
+        const combFeedback = Math.pow(10, -3 * (combDelaysMs[0]) / decaySeconds);
+        const feedbackGain = Math.max(0.5, Math.min(0.92, combFeedback));
+        const allpassG = 0.5;
+        const lpFreq = 800 + damping * 6000;
+
+        const input = ctx.createGain();
+        input.gain.value = 1;
+        const combsOut = ctx.createGain();
+        combsOut.gain.value = 1;
+        const combs = [];
+        for (let c = 0; c < 4; c++) {
+            const sum = ctx.createGain();
+            sum.gain.value = 1;
+            const delay = ctx.createDelay(maxDelay);
+            delay.delayTime.value = combDelaysMs[c];
+            const lowpass = ctx.createBiquadFilter();
+            lowpass.type = 'lowpass';
+            lowpass.frequency.value = lpFreq;
+            lowpass.Q.value = 0.7;
+            const fbGain = ctx.createGain();
+            fbGain.gain.value = feedbackGain;
+            input.connect(sum);
+            delay.connect(lowpass);
+            lowpass.connect(fbGain);
+            fbGain.connect(sum);
+            sum.connect(delay);
+            delay.connect(combsOut);
+            combs.push({ sum, delay, lowpass, fbGain });
         }
-        return buffer;
+        let apInput = combsOut;
+        const allpasses = [];
+        for (let a = 0; a < 2; a++) {
+            const sum = ctx.createGain();
+            sum.gain.value = 1;
+            const delay = ctx.createDelay(maxDelay);
+            delay.delayTime.value = allpassDelaysMs[a];
+            const gPos = ctx.createGain();
+            gPos.gain.value = allpassG;
+            const gNeg = ctx.createGain();
+            gNeg.gain.value = -allpassG;
+            const outSum = ctx.createGain();
+            outSum.gain.value = 1;
+            apInput.connect(sum);
+            apInput.connect(gNeg);
+            gNeg.connect(outSum);
+            delay.connect(outSum);
+            delay.connect(gPos);
+            gPos.connect(sum);
+            sum.connect(delay);
+            allpasses.push({ sum, delay, gPos, gNeg, outSum });
+            apInput = outSum;
+        }
+        const output = ctx.createGain();
+        output.gain.value = 1;
+        apInput.connect(output);
+
+        function updateParams(decaySec, damp) {
+            const d = Math.max(0.2, Math.min(2, decaySec || 0.4));
+            const g = Math.max(0.5, Math.min(0.92, Math.pow(10, -3 * combDelaysMs[0] / d)));
+            const freq = 800 + (damp !== undefined ? Math.max(0, Math.min(1, damp)) : damping) * 6000;
+            combs.forEach(co => {
+                co.fbGain.gain.setTargetAtTime(g, ctx.currentTime, 0.01);
+                co.lowpass.frequency.setTargetAtTime(freq, ctx.currentTime, 0.01);
+            });
+        }
+
+        return { input, output, updateParams, combs, allpasses };
     }
 
     const DECODE_PARALLEL = 6;
@@ -256,17 +320,15 @@
             const decaySeconds = typeof rp.decaySeconds === 'number' ? rp.decaySeconds : 0.4;
             const dryGain = ctx.createGain();
             dryGain.gain.value = 1;
-            const wetAmount = mix * 0.55;
+            const wetAmount = mix * 0.5;
             const wetGain = ctx.createGain();
             wetGain.gain.value = wetAmount;
-            const convolver = ctx.createConvolver();
-            convolver.buffer = createPlateIR(ctx, decaySeconds);
-            convolver.normalize = false;
+            const plate = createAlgorithmicPlate(ctx, ctx.sampleRate, decaySeconds, 0.5);
             const sumGain = ctx.createGain();
             sumGain.gain.value = 1 / (1 + wetAmount);
             last.connect(dryGain);
-            last.connect(convolver);
-            convolver.connect(wetGain);
+            last.connect(plate.input);
+            plate.output.connect(wetGain);
             dryGain.connect(sumGain);
             wetGain.connect(sumGain);
             last = sumGain;
@@ -366,17 +428,15 @@
                 const decaySeconds = typeof rp.decaySeconds === 'number' ? rp.decaySeconds : 0.4;
                 const dryGain = ctx.createGain();
                 dryGain.gain.value = 1;
-                const wetAmount = mix * 0.55;
+                const wetAmount = mix * 0.5;
                 const wetGain = ctx.createGain();
                 wetGain.gain.value = wetAmount;
-                const convolver = ctx.createConvolver();
-                convolver.buffer = createPlateIR(ctx, decaySeconds);
-                convolver.normalize = false;
+                const plate = createAlgorithmicPlate(ctx, ctx.sampleRate, decaySeconds, 0.5);
                 const sumGain = ctx.createGain();
                 sumGain.gain.value = 1 / (1 + wetAmount);
                 last.connect(dryGain);
-                last.connect(convolver);
-                convolver.connect(wetGain);
+                last.connect(plate.input);
+                plate.output.connect(wetGain);
                 dryGain.connect(sumGain);
                 wetGain.connect(sumGain);
                 last = sumGain;
@@ -534,9 +594,9 @@
             const comp = ctx.createDynamicsCompressor();
             const reverbDryGain = ctx.createGain();
             const reverbWetGain = ctx.createGain();
-            const reverbConvolver = ctx.createConvolver();
-            reverbConvolver.normalize = false;
-            reverbConvolver.buffer = createPlateIR(ctx, 0.4);
+            const track = tracks[i];
+            const rp0 = track && track.reverbParams ? track.reverbParams : { mix: 0.25, decaySeconds: 0.4 };
+            const plate = createAlgorithmicPlate(ctx, ctx.sampleRate, rp0.decaySeconds, 0.5);
             const reverbSumGain = ctx.createGain();
             reverbSumGain.gain.value = 1;
             gainNode.connect(panner);
@@ -545,12 +605,12 @@
             midPeak.connect(highShelf);
             highShelf.connect(comp);
             comp.connect(reverbDryGain);
-            comp.connect(reverbConvolver);
-            reverbConvolver.connect(reverbWetGain);
+            comp.connect(plate.input);
+            plate.output.connect(reverbWetGain);
             reverbDryGain.connect(reverbSumGain);
             reverbWetGain.connect(reverbSumGain);
             reverbSumGain.connect(liveGraph.masterGain);
-            liveGraph.tracks.push({ gainNode, pannerNode: panner, lowShelf, midPeak, highShelf, compNode: comp, reverbDryGain, reverbWetGain, reverbSumGain, reverbConvolver });
+            liveGraph.tracks.push({ gainNode, pannerNode: panner, lowShelf, midPeak, highShelf, compNode: comp, reverbDryGain, reverbWetGain, reverbSumGain, reverbPlate: plate });
         }
         console.log('[MegaMix perf] createLiveGraph: ' + (performance.now() - t0).toFixed(2) + ' ms');
         if (window.MegaMix.syncAllTracksToLiveGraph) window.MegaMix.syncAllTracksToLiveGraph();
@@ -581,8 +641,11 @@
         }
         const rp = track.reverbParams || { mix: 0.25, decaySeconds: 0.4 };
         const revMix = track.reverbOn ? (typeof rp.mix === 'number' ? Math.max(0, Math.min(1, rp.mix)) : 0.25) : 0;
+        if (chain.reverbPlate && chain.reverbPlate.updateParams) {
+            chain.reverbPlate.updateParams(rp.decaySeconds, 0.5);
+        }
         chain.reverbDryGain.gain.setTargetAtTime(1, liveGraph.ctx.currentTime, 0.01);
-        const wetAmount = revMix * 0.55;
+        const wetAmount = revMix * 0.5;
         chain.reverbWetGain.gain.setTargetAtTime(wetAmount, liveGraph.ctx.currentTime, 0.01);
         chain.reverbSumGain.gain.setTargetAtTime(1 / (1 + wetAmount), liveGraph.ctx.currentTime, 0.01);
     }
