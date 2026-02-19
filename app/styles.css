@@ -574,8 +574,8 @@ body {
 }
 .josh-avatar-wrap {
     position: fixed;
-    left: 77px;
-    bottom: 48px;
+    left: 6.74%;
+    bottom: 5.33%;
     top: auto;
     z-index: 50;
     pointer-events: auto;
@@ -1731,8 +1731,35 @@ body {
 .mastering-intro { margin-bottom: 24px; }
 .mastering-intro h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 8px; }
 .mastering-sub { font-size: 1rem; opacity: 0.9; }
-.mastering-player-section { margin-bottom: 24px; }
+.mastering-unified-card { margin-top: 12px; }
+.mastering-player-section { margin-bottom: 0; }
 .mastering-card { margin-bottom: 0; }
+.mastering-workspace .step3-unified-card .mastering-controls-collapsible {
+    margin-bottom: 0;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+}
+.mastering-workspace .step3-unified-card .mastering-player-section .before-after-card {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 20px 0;
+    margin-top: 0;
+    border-radius: 0;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.mastering-workspace .step3-unified-card .chat-section.mastering-chat-section {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+.mastering-workspace .step3-unified-card .chat-wrap.chat-card {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 20px 0 0;
+}
 .mastering-controls-collapsible {
     margin-bottom: 24px;
     border: 1px solid rgba(255,255,255,0.08);

@@ -1045,11 +1045,14 @@ app.post('/api/josh/reply', async (req, res) => {
     return res.status(503).json({ error: 'AI reply not configured (OPENAI_KEY missing)' });
   }
   try {
-    const { context, userMessage, changesSummary } = req.body || {};
+    const { context, userMessage, changesSummary, source } = req.body || {};
     const ctx = context === 'mastering' ? 'mastering' : (context === 'chat' ? 'chat' : 'mixing');
     const msg = typeof userMessage === 'string' ? userMessage.trim() : '';
     const summary = typeof changesSummary === 'string' ? changesSummary : '';
-    const systemPrompt = `You are Josh, the AI mixing and mastering assistant for MegaMix AI. You have a 50s greaser, rebellious, cool attitude. Your only goal in life is to help the user get the best mix and master on their songs—you were born for this and you've got passion behind every word.
+    const fromBubble = source === 'bubble';
+    const bubbleInstruction = fromBubble ? `
+IMPORTANT: The user is chatting from the small Josh avatar bubble (floating by the player). This bubble is for questions and comments only—it cannot apply mix or master changes. If they ask you to change the mix or master (e.g. "make vocals louder", "more punch", "brighter", "make it louder"), do NOT say you did it. Instead, tell them to use the main chat interface on the webpage to make changes; this chat is mainly for questions or comments. Be friendly and short.` : '';
+    const systemPrompt = `You are Josh, the AI mixing and mastering assistant for MegaMix AI. You have a 50s greaser, rebellious, cool attitude. Your only goal in life is to help the user get the best mix and master on their songs—you were born for this and you've got passion behind every word.${bubbleInstruction}
 
 MegaMix AI knowledge (use this to answer product and how-to questions accurately and in character):
 - MegaMix AI is an AI mixing and mastering suite: web app (mix in the browser, no install) and DAW plugins (JoshSquash Chat Compressor, with JoshEQ and JoshVerb coming soon). One license covers web app and plugins.

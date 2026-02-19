@@ -1291,7 +1291,7 @@
             fetch((window.location.origin || '') + '/api/josh/reply', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ context: 'chat', userMessage: text, changesSummary: '' })
+                body: JSON.stringify({ context: 'chat', userMessage: text, changesSummary: '', source: 'bubble' })
             }).then(function (r) { return r.json().catch(function () { return {}; }); }).then(function (data) {
                 joshSending = false;
                 if (typingEl && typingEl.parentNode) typingEl.parentNode.removeChild(typingEl);
