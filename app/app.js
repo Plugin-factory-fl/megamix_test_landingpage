@@ -1240,26 +1240,37 @@
         }
         function nudgeAvatarIfNeeded() {
             if (!joshWrap || !thoughtWrap) return;
-            var pad = 20;
+            var padTop = 32;
+            var padSides = 20;
             var vw = window.innerWidth;
             var vh = window.innerHeight;
+            function runNudge() {
+                var wr = joshWrap.getBoundingClientRect();
+                var target = thoughtWrap;
+                if (thoughtChat && !thoughtChat.classList.contains('hidden')) target = thoughtChat;
+                else if (thoughtInputRow && !thoughtInputRow.classList.contains('hidden')) target = thoughtInputRow;
+                var tr = target.getBoundingClientRect();
+                var currentLeft = wr.left;
+                var currentBottom = vh - wr.bottom;
+                var deltaLeft = 0;
+                var deltaBottom = 0;
+                if (tr.top < padTop) deltaBottom = padTop - tr.top;
+                if (tr.left < padSides) deltaLeft = padSides - tr.left;
+                if (tr.right > vw - padSides) deltaLeft = -(tr.right - (vw - padSides));
+                var newLeft = currentLeft + deltaLeft;
+                var newBottom = currentBottom - deltaBottom;
+                newLeft = Math.max(padSides, Math.min(vw - wr.width - padSides, newLeft));
+                var maxBottom = vh - wr.height - padTop;
+                var minBottom = padSides;
+                newBottom = Math.max(minBottom, Math.min(maxBottom, newBottom));
+                joshWrap.style.left = newLeft + 'px';
+                joshWrap.style.bottom = newBottom + 'px';
+            }
             requestAnimationFrame(function () {
                 requestAnimationFrame(function () {
-                    var wr = joshWrap.getBoundingClientRect();
-                    var tr = thoughtWrap.getBoundingClientRect();
-                    var currentLeft = wr.left;
-                    var currentBottom = vh - wr.bottom;
-                    var deltaLeft = 0;
-                    var deltaBottom = 0;
-                    if (tr.top < pad) deltaBottom = pad - tr.top;
-                    if (tr.left < pad) deltaLeft = pad - tr.left;
-                    if (tr.right > vw - pad) deltaLeft = -(tr.right - (vw - pad));
-                    var newLeft = currentLeft + deltaLeft;
-                    var newBottom = currentBottom - deltaBottom;
-                    newLeft = Math.max(pad, Math.min(vw - wr.width - pad, newLeft));
-                    newBottom = Math.max(pad, Math.min(vh - wr.height - pad, newBottom));
-                    joshWrap.style.left = newLeft + 'px';
-                    joshWrap.style.bottom = newBottom + 'px';
+                    runNudge();
+                    setTimeout(runNudge, 100);
+                    setTimeout(runNudge, 280);
                 });
             });
         }
