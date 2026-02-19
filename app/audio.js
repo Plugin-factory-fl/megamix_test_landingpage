@@ -255,17 +255,18 @@
             const mix = typeof rp.mix === 'number' ? Math.max(0, Math.min(1, rp.mix)) : 0.25;
             const decaySeconds = typeof rp.decaySeconds === 'number' ? rp.decaySeconds : 0.4;
             const dryGain = ctx.createGain();
-            dryGain.gain.value = 1 - mix;
+            dryGain.gain.value = 1;
+            const wetAmount = mix * 0.55;
             const wetGain = ctx.createGain();
-            wetGain.gain.value = mix * 2.2;
+            wetGain.gain.value = wetAmount;
             const convolver = ctx.createConvolver();
             convolver.buffer = createPlateIR(ctx, decaySeconds);
-            convolver.normalize = true;
+            convolver.normalize = false;
+            const sumGain = ctx.createGain();
+            sumGain.gain.value = 1 / (1 + wetAmount);
             last.connect(dryGain);
             last.connect(convolver);
             convolver.connect(wetGain);
-            const sumGain = ctx.createGain();
-            sumGain.gain.value = 1;
             dryGain.connect(sumGain);
             wetGain.connect(sumGain);
             last = sumGain;
@@ -364,17 +365,18 @@
                 const mix = typeof rp.mix === 'number' ? Math.max(0, Math.min(1, rp.mix)) : 0.25;
                 const decaySeconds = typeof rp.decaySeconds === 'number' ? rp.decaySeconds : 0.4;
                 const dryGain = ctx.createGain();
-                dryGain.gain.value = 1 - mix;
+                dryGain.gain.value = 1;
+                const wetAmount = mix * 0.55;
                 const wetGain = ctx.createGain();
-                wetGain.gain.value = mix * 2.2;
+                wetGain.gain.value = wetAmount;
                 const convolver = ctx.createConvolver();
                 convolver.buffer = createPlateIR(ctx, decaySeconds);
-                convolver.normalize = true;
+                convolver.normalize = false;
+                const sumGain = ctx.createGain();
+                sumGain.gain.value = 1 / (1 + wetAmount);
                 last.connect(dryGain);
                 last.connect(convolver);
                 convolver.connect(wetGain);
-                const sumGain = ctx.createGain();
-                sumGain.gain.value = 1;
                 dryGain.connect(sumGain);
                 wetGain.connect(sumGain);
                 last = sumGain;
@@ -532,10 +534,8 @@
             const comp = ctx.createDynamicsCompressor();
             const reverbDryGain = ctx.createGain();
             const reverbWetGain = ctx.createGain();
-            const reverbWetMakeup = ctx.createGain();
-            reverbWetMakeup.gain.value = 2.2;
             const reverbConvolver = ctx.createConvolver();
-            reverbConvolver.normalize = true;
+            reverbConvolver.normalize = false;
             reverbConvolver.buffer = createPlateIR(ctx, 0.4);
             const reverbSumGain = ctx.createGain();
             reverbSumGain.gain.value = 1;
@@ -546,12 +546,11 @@
             highShelf.connect(comp);
             comp.connect(reverbDryGain);
             comp.connect(reverbConvolver);
-            reverbConvolver.connect(reverbWetMakeup);
-            reverbWetMakeup.connect(reverbWetGain);
+            reverbConvolver.connect(reverbWetGain);
             reverbDryGain.connect(reverbSumGain);
             reverbWetGain.connect(reverbSumGain);
             reverbSumGain.connect(liveGraph.masterGain);
-            liveGraph.tracks.push({ gainNode, pannerNode: panner, lowShelf, midPeak, highShelf, compNode: comp, reverbDryGain, reverbWetGain, reverbConvolver });
+            liveGraph.tracks.push({ gainNode, pannerNode: panner, lowShelf, midPeak, highShelf, compNode: comp, reverbDryGain, reverbWetGain, reverbSumGain, reverbConvolver });
         }
         console.log('[MegaMix perf] createLiveGraph: ' + (performance.now() - t0).toFixed(2) + ' ms');
         if (window.MegaMix.syncAllTracksToLiveGraph) window.MegaMix.syncAllTracksToLiveGraph();
@@ -582,8 +581,10 @@
         }
         const rp = track.reverbParams || { mix: 0.25, decaySeconds: 0.4 };
         const revMix = track.reverbOn ? (typeof rp.mix === 'number' ? Math.max(0, Math.min(1, rp.mix)) : 0.25) : 0;
-        chain.reverbDryGain.gain.setTargetAtTime(1 - revMix, liveGraph.ctx.currentTime, 0.01);
-        chain.reverbWetGain.gain.setTargetAtTime(revMix, liveGraph.ctx.currentTime, 0.01);
+        chain.reverbDryGain.gain.setTargetAtTime(1, liveGraph.ctx.currentTime, 0.01);
+        const wetAmount = revMix * 0.55;
+        chain.reverbWetGain.gain.setTargetAtTime(wetAmount, liveGraph.ctx.currentTime, 0.01);
+        chain.reverbSumGain.gain.setTargetAtTime(1 / (1 + wetAmount), liveGraph.ctx.currentTime, 0.01);
     }
 
     function syncAllTracksToLiveGraph() {

@@ -2504,12 +2504,22 @@
     }
 
     var oneFileNotSupportedModal = document.getElementById('one-file-not-supported-modal');
+    var oneFileModalContent = document.getElementById('one-file-modal-content');
+    var oneFileMasterLoading = document.getElementById('one-file-master-loading');
+    var oneFileMasterLoadingText = document.getElementById('one-file-master-loading-text');
     function closeOneFileNotSupportedModal() {
         pendingSingleFile = null;
+        if (oneFileModalContent) oneFileModalContent.classList.remove('hidden');
+        if (oneFileMasterLoading) oneFileMasterLoading.classList.add('hidden');
         if (oneFileNotSupportedModal) {
             oneFileNotSupportedModal.classList.add('hidden');
             document.body.style.overflow = '';
         }
+    }
+    function showOneFileModalLoading(show, statusText) {
+        if (oneFileModalContent) oneFileModalContent.classList.toggle('hidden', !!show);
+        if (oneFileMasterLoading) oneFileMasterLoading.classList.toggle('hidden', !show);
+        if (oneFileMasterLoadingText && statusText !== undefined) oneFileMasterLoadingText.textContent = statusText;
     }
     var oneFileNotSupportedModalClose = document.getElementById('one-file-not-supported-modal-close');
     var oneFileNotSupportedModalOk = document.getElementById('one-file-not-supported-modal-ok');
@@ -2521,16 +2531,40 @@
             if (!pendingSingleFile) return;
             var f = pendingSingleFile;
             pendingSingleFile = null;
-            closeOneFileNotSupportedModal();
+            showOneFileModalLoading(true, 'Building your mix…');
             state.uploadedFiles.push({ file: f, name: f.name, url: URL.createObjectURL(f) });
             state.tracks = state.uploadedFiles.map(function (e, i) { return window.MegaMix.defaultTrack(e.name); });
             renderFileList();
             renderMixerStrips();
             updatePlaybackInstruction();
-            var panel = document.getElementById('panel-simple');
-            var step2 = panel ? panel.previousElementSibling : null;
-            if (step2) step2.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            await runMixIt({ thenShowMastering: true });
+            try {
+                await runMixIt();
+                showOneFileModalLoading(true, 'Applying AI mastering…');
+                var afterMix = await window.MegaMix.buildAfterMixWithFX();
+                if (!afterMix) {
+                    showOneFileModalLoading(false);
+                    closeOneFileNotSupportedModal();
+                    showToast('Could not render the mix. Please try again.');
+                    return;
+                }
+                if (state.unmasteredMixUrl) URL.revokeObjectURL(state.unmasteredMixUrl);
+                state.unmasteredMixUrl = URL.createObjectURL(window.MegaMix.encodeWav(afterMix.left, afterMix.right, afterMix.sampleRate));
+                state.masteringOptions = state.masteringOptions || { punch: 0, loudness: 1, compression: 1 };
+                var mastered = await window.MegaMix.runMasteringChain(afterMix, state.masteringOptions);
+                closeOneFileNotSupportedModal();
+                if (mastered) {
+                    if (state.masteredUrl) URL.revokeObjectURL(state.masteredUrl);
+                    state.masteredUrl = URL.createObjectURL(window.MegaMix.encodeWav(mastered.left, mastered.right, mastered.sampleRate));
+                    showView('mastering');
+                } else {
+                    showToast('Mastering did not produce output. Try again.');
+                }
+            } catch (e) {
+                console.error('Single-file master flow', e);
+                showOneFileModalLoading(false);
+                closeOneFileNotSupportedModal();
+                showToast('Something went wrong. Please try again.');
+            }
         });
     }
     if (oneFileNotSupportedModal) {
