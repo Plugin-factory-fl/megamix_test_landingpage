@@ -257,7 +257,7 @@
             const dryGain = ctx.createGain();
             dryGain.gain.value = 1 - mix;
             const wetGain = ctx.createGain();
-            wetGain.gain.value = mix;
+            wetGain.gain.value = mix * 2.2;
             const convolver = ctx.createConvolver();
             convolver.buffer = createPlateIR(ctx, decaySeconds);
             convolver.normalize = true;
@@ -315,6 +315,7 @@
         }
         const durationSec = maxLen / sampleRate;
         const ctx = new OfflineAudioContext({ length: maxLen, numberOfChannels: 2, sampleRate });
+        const anySolo = state.tracks.some(t => t.solo);
 
         for (let ti = 0; ti < state.stemBuffers.length; ti++) {
             if (myGen !== buildAfterGen) {
@@ -365,7 +366,7 @@
                 const dryGain = ctx.createGain();
                 dryGain.gain.value = 1 - mix;
                 const wetGain = ctx.createGain();
-                wetGain.gain.value = mix;
+                wetGain.gain.value = mix * 2.2;
                 const convolver = ctx.createConvolver();
                 convolver.buffer = createPlateIR(ctx, decaySeconds);
                 convolver.normalize = true;
@@ -386,9 +387,10 @@
 
             const levelPoints = (track && track.automation && track.automation.level && track.automation.level.length) ? track.automation.level : [{ t: 0, value: track ? track.gain : 1 }, { t: 1, value: track ? track.gain : 1 }];
             const panPoints = (track && track.automation && track.automation.pan && track.automation.pan.length) ? track.automation.pan : [{ t: 0, value: track ? track.pan : 0 }, { t: 1, value: track ? track.pan : 0 }];
-            gainNode.gain.setValueAtTime(levelPoints[0].value, 0);
+            const muteSoloMult = (track && track.mute) ? 0 : (anySolo ? (track && track.solo ? 1 : 0) : 1);
+            gainNode.gain.setValueAtTime(levelPoints[0].value * muteSoloMult, 0);
             for (let i = 1; i < levelPoints.length; i++) {
-                gainNode.gain.linearRampToValueAtTime(levelPoints[i].value, levelPoints[i].t * durationSec);
+                gainNode.gain.linearRampToValueAtTime(levelPoints[i].value * muteSoloMult, levelPoints[i].t * durationSec);
             }
             panner.pan.setValueAtTime(Math.max(-1, Math.min(1, panPoints[0].value)), 0);
             for (let i = 1; i < panPoints.length; i++) {
@@ -530,6 +532,8 @@
             const comp = ctx.createDynamicsCompressor();
             const reverbDryGain = ctx.createGain();
             const reverbWetGain = ctx.createGain();
+            const reverbWetMakeup = ctx.createGain();
+            reverbWetMakeup.gain.value = 2.2;
             const reverbConvolver = ctx.createConvolver();
             reverbConvolver.normalize = true;
             reverbConvolver.buffer = createPlateIR(ctx, 0.4);
@@ -542,7 +546,8 @@
             highShelf.connect(comp);
             comp.connect(reverbDryGain);
             comp.connect(reverbConvolver);
-            reverbConvolver.connect(reverbWetGain);
+            reverbConvolver.connect(reverbWetMakeup);
+            reverbWetMakeup.connect(reverbWetGain);
             reverbDryGain.connect(reverbSumGain);
             reverbWetGain.connect(reverbSumGain);
             reverbSumGain.connect(liveGraph.masterGain);
@@ -556,7 +561,9 @@
         if (!liveGraph || i < 0 || i >= liveGraph.tracks.length || i >= state.tracks.length) return;
         const track = state.tracks[i];
         const chain = liveGraph.tracks[i];
-        chain.gainNode.gain.setTargetAtTime(track.gain, liveGraph.ctx.currentTime, 0.01);
+        const anySolo = state.tracks.some(t => t.solo);
+        const effectiveGain = track.mute ? 0 : (anySolo ? (track.solo ? track.gain : 0) : track.gain);
+        chain.gainNode.gain.setTargetAtTime(effectiveGain, liveGraph.ctx.currentTime, 0.01);
         chain.pannerNode.pan.setTargetAtTime(Math.max(-1, Math.min(1, track.pan)), liveGraph.ctx.currentTime, 0.01);
         const eq = track.eqParams || { low: 0, mid: 0, high: 0 };
         chain.lowShelf.gain.setTargetAtTime(track.eqOn ? (eq.low || 0) : 0, liveGraph.ctx.currentTime, 0.01);

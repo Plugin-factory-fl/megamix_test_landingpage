@@ -10,6 +10,7 @@
         pricing: document.getElementById('view-pricing')
     };
     let pendingDownload = null;
+    let pendingSingleFile = null;
     const emailModalApp = document.getElementById('emailModalApp');
     const emailInputApp = document.getElementById('emailInputApp');
     const uploadZone = document.getElementById('upload-zone');
@@ -180,6 +181,7 @@
         });
         if (accepted.length === 0) return;
         if (accepted.length === 1) {
+            pendingSingleFile = accepted[0];
             var modalEl = document.getElementById('one-file-not-supported-modal');
             if (modalEl) {
                 modalEl.classList.remove('hidden');
@@ -496,12 +498,6 @@
             verbSlot.appendChild(verbNameBtn);
             verbSlot.appendChild(verbPopover);
             fxRow.appendChild(verbSlot);
-            const retroBtn = document.createElement('button');
-            retroBtn.type = 'button';
-            retroBtn.className = 'mixer-fx-btn disabled';
-            retroBtn.textContent = 'Retro';
-            retroBtn.title = 'Coming soon';
-            fxRow.appendChild(retroBtn);
             if (!track.automation) {
                 track.automation = { level: [{ t: 0, value: track.gain }, { t: 1, value: track.gain }], pan: [{ t: 0, value: track.pan }, { t: 1, value: track.pan }] };
             }
@@ -661,10 +657,41 @@
                 }
             });
             fxRow.appendChild(autoBtn);
+            var soloMuteRow = document.createElement('div');
+            soloMuteRow.className = 'mixer-solo-mute-row';
+            var soloBtn = document.createElement('button');
+            soloBtn.type = 'button';
+            soloBtn.className = 'mixer-solo-mute-btn';
+            soloBtn.setAttribute('aria-pressed', !!track.solo);
+            soloBtn.title = 'Solo';
+            soloBtn.textContent = 'S';
+            var muteBtn = document.createElement('button');
+            muteBtn.type = 'button';
+            muteBtn.className = 'mixer-solo-mute-btn';
+            muteBtn.setAttribute('aria-pressed', !!track.mute);
+            muteBtn.title = 'Mute';
+            muteBtn.textContent = 'M';
+            soloBtn.addEventListener('click', function () {
+                pushUndo();
+                track.solo = !track.solo;
+                soloBtn.setAttribute('aria-pressed', !!track.solo);
+                window.MegaMix.syncAllTracksToLiveGraph();
+                if (window.MegaMix.scheduleBuildAfter) window.MegaMix.scheduleBuildAfter();
+            });
+            muteBtn.addEventListener('click', function () {
+                pushUndo();
+                track.mute = !track.mute;
+                muteBtn.setAttribute('aria-pressed', !!track.mute);
+                window.MegaMix.syncAllTracksToLiveGraph();
+                if (window.MegaMix.scheduleBuildAfter) window.MegaMix.scheduleBuildAfter();
+            });
+            soloMuteRow.appendChild(soloBtn);
+            soloMuteRow.appendChild(muteBtn);
             strip.appendChild(nameWrap);
             strip.appendChild(faderWrap);
             strip.appendChild(panWrap);
             strip.appendChild(fxRow);
+            strip.appendChild(soloMuteRow);
             strip.appendChild(autoPanel);
             mixerStripsEl.appendChild(strip);
         });
@@ -937,7 +964,8 @@
         if (mixItLoadingText && statusText) mixItLoadingText.textContent = statusText;
     }
 
-    async function runMixIt() {
+    async function runMixIt(opts) {
+        opts = opts || {};
         if (state.uploadedFiles.length === 0) {
             addChatMessage('bot', 'Upload stems first, then click Mix it.');
             return;
@@ -1045,6 +1073,7 @@
                 const s = Math.floor(d % 60);
                 playbackDuration.textContent = m + ':' + (s < 10 ? '0' : '') + s;
             }
+            if (opts.thenShowMastering) showView('mastering');
         } catch (e) {
             console.error(e);
             setMixItLoading(false);
@@ -2476,6 +2505,7 @@
 
     var oneFileNotSupportedModal = document.getElementById('one-file-not-supported-modal');
     function closeOneFileNotSupportedModal() {
+        pendingSingleFile = null;
         if (oneFileNotSupportedModal) {
             oneFileNotSupportedModal.classList.add('hidden');
             document.body.style.overflow = '';
@@ -2483,8 +2513,26 @@
     }
     var oneFileNotSupportedModalClose = document.getElementById('one-file-not-supported-modal-close');
     var oneFileNotSupportedModalOk = document.getElementById('one-file-not-supported-modal-ok');
+    var oneFileMasterSingleBtn = document.getElementById('one-file-master-single-btn');
     if (oneFileNotSupportedModalClose) oneFileNotSupportedModalClose.addEventListener('click', closeOneFileNotSupportedModal);
     if (oneFileNotSupportedModalOk) oneFileNotSupportedModalOk.addEventListener('click', closeOneFileNotSupportedModal);
+    if (oneFileMasterSingleBtn) {
+        oneFileMasterSingleBtn.addEventListener('click', async function () {
+            if (!pendingSingleFile) return;
+            var f = pendingSingleFile;
+            pendingSingleFile = null;
+            closeOneFileNotSupportedModal();
+            state.uploadedFiles.push({ file: f, name: f.name, url: URL.createObjectURL(f) });
+            state.tracks = state.uploadedFiles.map(function (e, i) { return window.MegaMix.defaultTrack(e.name); });
+            renderFileList();
+            renderMixerStrips();
+            updatePlaybackInstruction();
+            var panel = document.getElementById('panel-simple');
+            var step2 = panel ? panel.previousElementSibling : null;
+            if (step2) step2.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            await runMixIt({ thenShowMastering: true });
+        });
+    }
     if (oneFileNotSupportedModal) {
         oneFileNotSupportedModal.addEventListener('click', function (e) {
             var content = oneFileNotSupportedModal.querySelector('.email-modal-app-content');

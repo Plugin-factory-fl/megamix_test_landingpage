@@ -24,6 +24,8 @@
             compParams: { threshold: -20, ratio: 2, attack: 0.003, release: 0.25, knee: 6 },
             reverbOn: false,
             retroOn: false,
+            mute: false,
+            solo: false,
             reverbParams: { mix: 0.25, decaySeconds: 0.4 },
             automation: {
                 level: [{ t: 0, value: 0.8 }, { t: 1, value: 0.8 }],
@@ -201,6 +203,10 @@
             if (change.addLevelPoint) {
                 parts.push('automation at ' + ((change.addLevelPoint.t || 0) * 100).toFixed(0) + '%');
             }
+            if (change.mute === true) parts.push('muted');
+            if (change.solo === true) parts.push('solo');
+            if (change.mute === false) parts.push('unmuted');
+            if (change.solo === false) parts.push('solo off');
             if (parts.length) lines.push(name + ': ' + parts.join('; '));
         });
         return lines;
@@ -246,6 +252,8 @@
                 t.automation.level.push({ t: tNorm, value: val });
                 t.automation.level.sort((a, b) => a.t - b.t);
             }
+            if (change.mute != null) t.mute = !!change.mute;
+            if (change.solo != null) t.solo = !!change.solo;
         });
     }
 
@@ -275,6 +283,10 @@
         const warmer = /warm|warmer|low|body/.test(lower);
         const reverbAsk = /\breverb|room|space|wetter|wet\b|add\s*reverb|more\s*room|atmosphere|airier\b/.test(lower);
         const lessReverb = /\bless\s*reverb|dryer|drier|less\s*room|no\s*reverb\b/.test(lower);
+        const muteAsk = /\bmute\b/.test(lower) && !/\bunmute\b/.test(lower);
+        const unmuteAsk = /\bunmute\b/.test(lower);
+        const soloAsk = /\bsolo\b/.test(lower) && !/\bunsolo\b/.test(lower) && !/solo\s*off\b/.test(lower);
+        const unsoloAsk = /\bunsolo\b|solo\s*off\b/.test(lower);
 
         tracksArr.forEach((track, i) => {
             const role = inferRole(track.name, i, n);
@@ -305,6 +317,10 @@
             if (lessReverb) {
                 delta.reverbOn = false;
             }
+            if (muteAsk) delta.mute = true;
+            if (unmuteAsk) delta.mute = false;
+            if (soloAsk) delta.solo = true;
+            if (unsoloAsk) delta.solo = false;
             if (Object.keys(delta).length) {
                 delta.i = i;
                 changes.push(delta);

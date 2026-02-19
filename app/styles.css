@@ -1629,6 +1629,38 @@ body {
     pointer-events: none;
 }
 .mixer-fx-btn:not(.disabled):hover { border-color: #8b5cf6; }
+
+.mixer-solo-mute-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    margin-top: 4px;
+}
+.mixer-solo-mute-btn {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(0,0,0,0.3);
+    color: rgba(255,255,255,0.6);
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+.mixer-solo-mute-btn:hover {
+    border-color: #8b5cf6;
+    color: #fff;
+}
+.mixer-solo-mute-btn[aria-pressed="true"] {
+    background: rgba(139, 92, 246, 0.35);
+    border-color: #8b5cf6;
+    color: #c4b5fd;
+}
+
 .mixer-fx-popover {
     position: absolute;
     background: #1a1a1a;
