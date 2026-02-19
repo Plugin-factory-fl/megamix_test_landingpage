@@ -1566,8 +1566,9 @@ body {
 .mixer-fx-mini-panel {
     position: absolute;
     left: 0;
-    top: 100%;
-    margin-top: 4px;
+    bottom: 100%;
+    margin-bottom: 4px;
+    top: auto;
     z-index: 100;
     min-width: 160px;
     padding: 10px;
@@ -1634,7 +1635,9 @@ body {
     border: 1px solid rgba(255,255,255,0.2);
     border-radius: 8px;
     padding: 10px;
-    margin-top: 4px;
+    bottom: 100%;
+    margin-bottom: 4px;
+    top: auto;
     z-index: 100;
     font-size: 0.8rem;
     box-shadow: 0 4px 12px rgba(0,0,0,0.5);

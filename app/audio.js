@@ -66,16 +66,21 @@
         return { left, right };
     }
 
-    /** Generate a short plate-style IR: exponential decay for dense, bright tail. */
+    /** Generate a short plate-style IR: exponential decay for dense, bright tail. Stereo (2 ch) so ConvolverNode output is clearly stereo. */
     function createPlateIR(ctxOrSampleRate, lengthSeconds) {
         const sampleRate = typeof ctxOrSampleRate === 'number' ? ctxOrSampleRate : (ctxOrSampleRate && ctxOrSampleRate.sampleRate) ? ctxOrSampleRate.sampleRate : 48000;
         const lengthSamples = Math.max(2, Math.floor(lengthSeconds * sampleRate));
         const ctx = typeof ctxOrSampleRate !== 'number' && ctxOrSampleRate ? ctxOrSampleRate : getAudioContext();
-        const buffer = ctx.createBuffer(1, lengthSamples, sampleRate);
-        const data = buffer.getChannelData(0);
-        data[0] = 1;
+        const buffer = ctx.createBuffer(2, lengthSamples, sampleRate);
+        const ch0 = buffer.getChannelData(0);
+        const ch1 = buffer.getChannelData(1);
+        ch0[0] = 1;
+        ch1[0] = 1;
         const decay = Math.exp(-3 / lengthSamples);
-        for (let i = 1; i < lengthSamples; i++) data[i] = data[i - 1] * decay;
+        for (let i = 1; i < lengthSamples; i++) {
+            ch0[i] = ch0[i - 1] * decay;
+            ch1[i] = ch1[i - 1] * decay;
+        }
         return buffer;
     }
 
@@ -570,17 +575,8 @@
         }
         const rp = track.reverbParams || { mix: 0.25, decaySeconds: 0.4 };
         const revMix = track.reverbOn ? (typeof rp.mix === 'number' ? Math.max(0, Math.min(1, rp.mix)) : 0.25) : 0;
-        const revDecay = typeof rp.decaySeconds === 'number' ? Math.max(0.15, Math.min(1.5, rp.decaySeconds)) : 0.4;
         chain.reverbDryGain.gain.setTargetAtTime(1 - revMix, liveGraph.ctx.currentTime, 0.01);
         chain.reverbWetGain.gain.setTargetAtTime(revMix, liveGraph.ctx.currentTime, 0.01);
-        if (track.reverbOn && chain.reverbConvolver) {
-            try {
-                const wantLen = Math.max(2, Math.floor(revDecay * (liveGraph.ctx.sampleRate || 48000)));
-                if (!chain.reverbConvolver.buffer || chain.reverbConvolver.buffer.length !== wantLen) {
-                    chain.reverbConvolver.buffer = createPlateIR(liveGraph.ctx, revDecay);
-                }
-            } catch (_) {}
-        }
     }
 
     function syncAllTracksToLiveGraph() {
