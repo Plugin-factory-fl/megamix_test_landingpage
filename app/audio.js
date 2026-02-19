@@ -432,8 +432,10 @@
             gainNode.connect(panner);
             panner.connect(ctx.destination);
 
-            const levelPoints = (track && track.automation && track.automation.level && track.automation.level.length) ? track.automation.level : [{ t: 0, value: track ? track.gain : 1 }, { t: 1, value: track ? track.gain : 1 }];
-            const panPoints = (track && track.automation && track.automation.pan && track.automation.pan.length) ? track.automation.pan : [{ t: 0, value: track ? track.pan : 0 }, { t: 1, value: track ? track.pan : 0 }];
+            let levelPoints = (track && track.automation && track.automation.level && track.automation.level.length) ? track.automation.level.slice().sort((a, b) => a.t - b.t).map(p => ({ t: p.t, value: p.value })) : [{ t: 0, value: track ? track.gain : 1 }, { t: 1, value: track ? track.gain : 1 }];
+            let panPoints = (track && track.automation && track.automation.pan && track.automation.pan.length) ? track.automation.pan.slice().sort((a, b) => a.t - b.t).map(p => ({ t: p.t, value: p.value })) : [{ t: 0, value: track ? track.pan : 0 }, { t: 1, value: track ? track.pan : 0 }];
+            if (levelPoints.length) { levelPoints[0].value = track ? track.gain : 1; levelPoints[levelPoints.length - 1].value = track ? track.gain : 1; }
+            if (panPoints.length) { panPoints[0].value = track ? track.pan : 0; panPoints[panPoints.length - 1].value = track ? track.pan : 0; }
             const muteSoloMult = (track && track.mute) ? 0 : (anySolo ? (track && track.solo ? 1 : 0) : 1);
             gainNode.gain.setValueAtTime(levelPoints[0].value * muteSoloMult, 0);
             for (let i = 1; i < levelPoints.length; i++) {

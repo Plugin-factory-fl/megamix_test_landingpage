@@ -110,6 +110,17 @@
             }
             initMasteringPageWhenShown();
         }
+        if (name === 'app') {
+            var amb = document.getElementById('audio-mastering-before');
+            var am = document.getElementById('audio-mastering');
+            var pm = document.getElementById('play-mastering');
+            if (amb) amb.pause();
+            if (am) am.pause();
+            if (pm) {
+                pm.classList.remove('playing');
+                pm.textContent = '\u25B6';
+            }
+        }
     }
     document.querySelectorAll('[data-view]').forEach(el => {
         el.addEventListener('click', function (e) {

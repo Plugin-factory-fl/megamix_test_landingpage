@@ -221,8 +221,18 @@
             if (change.makeupGainDb != null) {
                 const g = dbToGain(change.makeupGainDb);
                 t.gain = Math.max(0.01, Math.min(3, g));
+                if (t.automation && t.automation.level && t.automation.level.length >= 2) {
+                    t.automation.level[0].value = t.gain;
+                    t.automation.level[t.automation.level.length - 1].value = t.gain;
+                }
             }
-            if (change.pan != null) t.pan = Math.max(-1, Math.min(1, change.pan));
+            if (change.pan != null) {
+                t.pan = Math.max(-1, Math.min(1, change.pan));
+                if (t.automation && t.automation.pan && t.automation.pan.length >= 2) {
+                    t.automation.pan[0].value = t.pan;
+                    t.automation.pan[t.automation.pan.length - 1].value = t.pan;
+                }
+            }
             if (change.eqOn != null) t.eqOn = !!change.eqOn;
             if (change.eqParams) {
                 t.eqParams = t.eqParams || { low: 0, mid: 0, high: 0 };
