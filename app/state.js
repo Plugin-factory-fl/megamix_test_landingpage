@@ -120,6 +120,20 @@
         custom:   null
     };
 
+    /** Genre-based reverb: which roles get reverb on "Mix it" and with what settings (mix 0–1, decaySeconds). Industry-standard plate/room by genre. */
+    const GENRE_REVERB = {
+        rock:     { leadVocal: { mix: 0.18, decaySeconds: 0.32 }, backingVocal: { mix: 0.2, decaySeconds: 0.35 }, snare: { mix: 0.08, decaySeconds: 0.22 } },
+        metal:    { leadVocal: { mix: 0.12, decaySeconds: 0.25 }, overhead: { mix: 0.08, decaySeconds: 0.22 } },
+        hiphop:   { leadVocal: { mix: 0.1, decaySeconds: 0.25 } },
+        pop:      { leadVocal: { mix: 0.22, decaySeconds: 0.4 }, backingVocal: { mix: 0.25, decaySeconds: 0.42 } },
+        edm:      { leadVocal: { mix: 0.2, decaySeconds: 0.4 }, keys: { mix: 0.18, decaySeconds: 0.38 }, other: { mix: 0.15, decaySeconds: 0.35 } },
+        rnb:      { leadVocal: { mix: 0.22, decaySeconds: 0.42 }, backingVocal: { mix: 0.2, decaySeconds: 0.38 } },
+        jazz:     { leadVocal: { mix: 0.18, decaySeconds: 0.38 }, overhead: { mix: 0.15, decaySeconds: 0.35 }, bass: { mix: 0.08, decaySeconds: 0.28 } },
+        funk:     { leadVocal: { mix: 0.12, decaySeconds: 0.28 } },
+        country:  { leadVocal: { mix: 0.2, decaySeconds: 0.4 } },
+        custom:   {}
+    };
+
     /** Genre-specific preset prompts for Step 2 "Words of guidance". Keys match GENRE_BALANCE. */
     const GENRE_PROMPTS = {
         rock:     ['Clean and present', 'Punchy drums', 'Vocal forward', 'Warm low end', 'Bright and open', 'Glue and punch'],
@@ -178,6 +192,12 @@
                 const ratio = c.ratio != null ? c.ratio : 3;
                 parts.push('comp (thr ' + thr + ' dB, ratio ' + ratio + ':1)');
             }
+            if (change.reverbOn != null && change.reverbOn) {
+                const r = change.reverbParams || {};
+                const mix = r.mix != null ? Math.round(r.mix * 100) : 25;
+                const decay = r.decaySeconds != null ? r.decaySeconds.toFixed(2) : '0.40';
+                parts.push('reverb (mix ' + mix + '%, decay ' + decay + 's)');
+            }
             if (change.addLevelPoint) {
                 parts.push('automation at ' + ((change.addLevelPoint.t || 0) * 100).toFixed(0) + '%');
             }
@@ -213,6 +233,12 @@
                 if (change.compParams.release != null) t.compParams.release = change.compParams.release;
                 if (change.compParams.knee != null) t.compParams.knee = change.compParams.knee;
             }
+            if (change.reverbOn != null) t.reverbOn = !!change.reverbOn;
+            if (change.reverbParams) {
+                t.reverbParams = t.reverbParams || { mix: 0.25, decaySeconds: 0.4 };
+                if (change.reverbParams.mix != null) t.reverbParams.mix = Math.max(0, Math.min(1, change.reverbParams.mix));
+                if (change.reverbParams.decaySeconds != null) t.reverbParams.decaySeconds = Math.max(0.15, Math.min(1.5, change.reverbParams.decaySeconds));
+            }
             if (change.addLevelPoint != null && t.automation && t.automation.level) {
                 const pt = change.addLevelPoint;
                 const tNorm = Math.max(0, Math.min(1, pt.t));
@@ -247,6 +273,8 @@
         const brighter = /bright|brighter|air|top|high/.test(lower);
         const punch = /punch|punchy|tight|compress/.test(lower);
         const warmer = /warm|warmer|low|body/.test(lower);
+        const reverbAsk = /\breverb|room|space|wetter|wet\b|add\s*reverb|more\s*room|atmosphere|airier\b/.test(lower);
+        const lessReverb = /\bless\s*reverb|dryer|drier|less\s*room|no\s*reverb\b/.test(lower);
 
         tracksArr.forEach((track, i) => {
             const role = inferRole(track.name, i, n);
@@ -266,6 +294,16 @@
             if (warmer) {
                 delta.eqOn = true;
                 delta.eqParams = { ...(track.eqParams || { low: 0, mid: 0, high: 0 }), low: (track.eqParams && track.eqParams.low) ? track.eqParams.low + 1.5 : 1.5 };
+            }
+            if (reverbAsk) {
+                delta.reverbOn = true;
+                var rp = track.reverbParams || { mix: 0.25, decaySeconds: 0.4 };
+                var mix = (rp.mix != null ? rp.mix : 0.25) + 0.1;
+                var decay = (rp.decaySeconds != null ? rp.decaySeconds : 0.4) + 0.05;
+                delta.reverbParams = { mix: Math.min(0.5, mix), decaySeconds: Math.min(1.2, decay) };
+            }
+            if (lessReverb) {
+                delta.reverbOn = false;
             }
             if (Object.keys(delta).length) {
                 delta.i = i;
@@ -310,6 +348,7 @@
 
     function applyMusicalBalance(tracksArr, genre) {
         const balance = GENRE_BALANCE[genre];
+        const reverbCfg = GENRE_REVERB[genre] || GENRE_REVERB.custom;
         if (!balance) return;
         const n = tracksArr.length;
         tracksArr.forEach((track, i) => {
@@ -329,6 +368,14 @@
             }
             track.eqOn = true;
             track.eqParams = { low: 0, mid: 0, high: 0.75 };
+            var rev = reverbCfg[role];
+            if (rev && typeof rev.mix === 'number' && typeof rev.decaySeconds === 'number') {
+                track.reverbOn = true;
+                track.reverbParams = { mix: Math.max(0, Math.min(1, rev.mix)), decaySeconds: Math.max(0.15, Math.min(1.5, rev.decaySeconds)) };
+            } else {
+                track.reverbOn = false;
+                track.reverbParams = track.reverbParams || { mix: 0.25, decaySeconds: 0.4 };
+            }
         });
     }
 

@@ -3,11 +3,14 @@ const path = require('path');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
 const nodemailer = require('nodemailer');
 const mailchimp = require('@mailchimp/mailchimp_marketing');
 const OpenAI = require('openai').default;
 const { pool, initializeDatabase } = require('./database/connection');
 require('dotenv').config();
+
+const uploadMem = multer({ storage: multer.memoryStorage(), limits: { fileSize: 100 * 1024 * 1024 } });
 
 const OPENAI_API_KEY = process.env.OPENAI_KEY || process.env.OPENAI_API_KEY;
 
@@ -278,6 +281,42 @@ app.get('/api/auth/me', (req, res) => {
     res.json({ ok: true, email });
   } catch (e) {
     return res.status(401).json({ error: 'Invalid or expired token' });
+  }
+});
+
+// Require valid JWT for API routes that need a subscriber
+function requireSubscriber(req, res, next) {
+  try {
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+    if (!token) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    req.auth = jwt.verify(token, JWT_SECRET);
+    next();
+  } catch (e) {
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
+}
+
+// One-file stem separation (subscribers only). Returns { stems: [ { name, data: base64 } ] }.
+// Stub: returns the same file 4 times with standard names. Replace with Replicate/Demucs for real separation.
+app.post('/api/separate', requireSubscriber, uploadMem.single('audio'), async (req, res) => {
+  try {
+    if (!req.file || !req.file.buffer) {
+      return res.status(400).json({ error: 'No audio file uploaded. Send a single file in the "audio" field.' });
+    }
+    const base64 = req.file.buffer.toString('base64');
+    const stems = [
+      { name: 'Vocals', data: base64 },
+      { name: 'Drums', data: base64 },
+      { name: 'Bass', data: base64 },
+      { name: 'Other', data: base64 }
+    ];
+    res.json({ stems });
+  } catch (err) {
+    console.error('[api/separate]', err.message || err);
+    res.status(500).json({ error: err.message || 'Stem separation failed' });
   }
 });
 
@@ -987,7 +1026,9 @@ app.post('/api/josh/interpret', async (req, res) => {
       eqOn: !!t.eqOn,
       compOn: !!t.compOn,
       eqParams: t.eqParams || { low: 0, mid: 0, high: 0 },
-      compParams: t.compParams || { threshold: -20, ratio: 2 }
+      compParams: t.compParams || { threshold: -20, ratio: 2 },
+      reverbOn: !!t.reverbOn,
+      reverbParams: t.reverbParams || { mix: 0.25, decaySeconds: 0.4 }
     }));
     const systemPrompt = `You are Josh, an AI mixing assistant. The user describes how they want their mix to sound. You output a JSON array of mixer changes.
 
@@ -999,12 +1040,16 @@ Each change object has:
 - eqParams (optional): { low, mid, high } in dB
 - compOn (optional): true/false
 - compParams (optional): { threshold, ratio, attack, release, knee }
+- reverbOn (optional): true/false (JoshVerb plate reverb)
+- reverbParams (optional): { mix: 0-1 (wet amount), decaySeconds: 0.15-1.5 }
 
 Examples:
 - "bring up vocals" -> { "i": 3, "makeupGainDb": 2 } (vocals track)
 - "make kick and snare punchier" -> [{ "i": 0, "compOn": true, "compParams": { "threshold": -18, "ratio": 3 } }, { "i": 1, "compOn": true, "compParams": { "threshold": -18, "ratio": 3 } }]
 - "brighter" -> multiple tracks with eqOn: true, eqParams: { high: 2 }
 - "lower guitars" -> { "i": 5, "makeupGainDb": -2 }
+- "add reverb to vocals" or "more room on vocals" -> { "i": 3, "reverbOn": true, "reverbParams": { "mix": 0.2, "decaySeconds": 0.35 } }
+- "less reverb" or "dryer" -> set reverbOn: false on relevant tracks
 
 Respond ONLY with a JSON array of change objects, no other text. Empty array [] if you cannot interpret.`;
 

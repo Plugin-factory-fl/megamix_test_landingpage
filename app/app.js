@@ -178,6 +178,15 @@
             const n = f.name.toLowerCase();
             return n.endsWith('.wav') || n.endsWith('.mp3') || (f.type && f.type.startsWith('audio/'));
         });
+        if (accepted.length === 0) return;
+        if (accepted.length === 1) {
+            var modalEl = document.getElementById('one-file-not-supported-modal');
+            if (modalEl) {
+                modalEl.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            }
+            return;
+        }
         const existingLen = state.uploadedFiles.length;
         for (const f of accepted) {
             if (state.uploadedFiles.length >= window.MegaMix.MAX_FILES) break;
@@ -408,19 +417,85 @@
                 [1, 8], 0.5);
             fxRow.appendChild(eqSlot);
             fxRow.appendChild(compSlot);
-            const verbBtn = document.createElement('button');
-            verbBtn.type = 'button';
-            verbBtn.className = 'mixer-fx-btn disabled' + (track.reverbOn ? ' on' : '');
-            verbBtn.textContent = 'Reverb';
-            verbBtn.title = 'Plate reverb (coming soon)';
-            verbBtn.disabled = true;
-            verbBtn.addEventListener('click', () => {
+            const verbSlot = document.createElement('div');
+            verbSlot.className = 'mixer-fx-slot';
+            const verbPowerBtn = document.createElement('button');
+            verbPowerBtn.type = 'button';
+            verbPowerBtn.className = 'mixer-fx-power';
+            verbPowerBtn.setAttribute('aria-pressed', track.reverbOn);
+            verbPowerBtn.title = 'JoshVerb on/off';
+            verbPowerBtn.textContent = track.reverbOn ? '\u25CF' : '\u25CB';
+            verbPowerBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
                 pushUndo();
                 track.reverbOn = !track.reverbOn;
-                verbBtn.classList.toggle('on', track.reverbOn);
+                verbPowerBtn.setAttribute('aria-pressed', track.reverbOn);
+                verbPowerBtn.textContent = track.reverbOn ? '\u25CF' : '\u25CB';
                 window.MegaMix.syncTrackToLiveGraph(i);
                 window.MegaMix.syncAllTracksToLiveGraph();
+                if (window.MegaMix.scheduleBuildAfter) window.MegaMix.scheduleBuildAfter();
             });
+            const verbNameBtn = document.createElement('button');
+            verbNameBtn.type = 'button';
+            verbNameBtn.className = 'mixer-fx-name';
+            verbNameBtn.textContent = 'JoshVerb';
+            verbNameBtn.title = 'Open JoshVerb settings';
+            const verbPopover = document.createElement('div');
+            verbPopover.className = 'mixer-fx-popover mixer-fx-mini-panel hidden';
+            verbPopover.setAttribute('aria-hidden', 'true');
+            const verbMiniBg = document.createElement('div');
+            verbMiniBg.className = 'mixer-fx-mini-bg mixer-fx-mini-bg-eq';
+            const verbKnobRow = document.createElement('div');
+            verbKnobRow.className = 'mixer-fx-mini-knobs';
+            const verbMixLabel = document.createElement('label');
+            verbMixLabel.textContent = 'Mix';
+            const verbMixInput = document.createElement('input');
+            verbMixInput.type = 'range';
+            verbMixInput.min = 0;
+            verbMixInput.max = 100;
+            verbMixInput.step = 1;
+            verbMixInput.value = Math.round(((track.reverbParams && track.reverbParams.mix != null) ? track.reverbParams.mix : 0.25) * 100);
+            verbMixInput.title = 'Wet amount';
+            const verbDecayLabel = document.createElement('label');
+            verbDecayLabel.textContent = 'Decay (s)';
+            const verbDecayInput = document.createElement('input');
+            verbDecayInput.type = 'range';
+            verbDecayInput.min = 15;
+            verbDecayInput.max = 120;
+            verbDecayInput.step = 5;
+            verbDecayInput.value = Math.round(((track.reverbParams && track.reverbParams.decaySeconds != null) ? track.reverbParams.decaySeconds : 0.4) * 100);
+            verbDecayInput.title = 'Decay time';
+            function updateVerbFromPopover() {
+                track.reverbParams = track.reverbParams || { mix: 0.25, decaySeconds: 0.4 };
+                track.reverbParams.mix = Math.max(0, Math.min(1, parseInt(verbMixInput.value, 10) / 100));
+                track.reverbParams.decaySeconds = Math.max(0.15, Math.min(1.5, parseInt(verbDecayInput.value, 10) / 100));
+                window.MegaMix.syncTrackToLiveGraph(i);
+                window.MegaMix.syncAllTracksToLiveGraph();
+                if (window.MegaMix.scheduleBuildAfter) window.MegaMix.scheduleBuildAfter();
+            }
+            verbMixInput.addEventListener('input', updateVerbFromPopover);
+            verbDecayInput.addEventListener('input', updateVerbFromPopover);
+            verbKnobRow.appendChild(verbMixLabel);
+            verbKnobRow.appendChild(verbMixInput);
+            verbKnobRow.appendChild(verbDecayLabel);
+            verbKnobRow.appendChild(verbDecayInput);
+            verbPopover.appendChild(verbMiniBg);
+            verbPopover.appendChild(verbKnobRow);
+            verbNameBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                var open = !verbPopover.classList.contains('hidden');
+                document.querySelectorAll('.mixer-fx-mini-panel').forEach(function (p) { p.classList.add('hidden'); p.setAttribute('aria-hidden', 'true'); });
+                if (!open) {
+                    verbPopover.classList.remove('hidden');
+                    verbPopover.setAttribute('aria-hidden', 'false');
+                    verbMixInput.value = Math.round(((track.reverbParams && track.reverbParams.mix != null) ? track.reverbParams.mix : 0.25) * 100);
+                    verbDecayInput.value = Math.round(((track.reverbParams && track.reverbParams.decaySeconds != null) ? track.reverbParams.decaySeconds : 0.4) * 100);
+                }
+            });
+            verbSlot.appendChild(verbPowerBtn);
+            verbSlot.appendChild(verbNameBtn);
+            verbSlot.appendChild(verbPopover);
+            fxRow.appendChild(verbSlot);
             const retroBtn = document.createElement('button');
             retroBtn.type = 'button';
             retroBtn.className = 'mixer-fx-btn disabled';
@@ -2397,6 +2472,24 @@
             if (content && !content.contains(e.target)) {
                 closeLoginOrTrialModal();
             }
+        });
+    }
+
+    var oneFileNotSupportedModal = document.getElementById('one-file-not-supported-modal');
+    function closeOneFileNotSupportedModal() {
+        if (oneFileNotSupportedModal) {
+            oneFileNotSupportedModal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+    }
+    var oneFileNotSupportedModalClose = document.getElementById('one-file-not-supported-modal-close');
+    var oneFileNotSupportedModalOk = document.getElementById('one-file-not-supported-modal-ok');
+    if (oneFileNotSupportedModalClose) oneFileNotSupportedModalClose.addEventListener('click', closeOneFileNotSupportedModal);
+    if (oneFileNotSupportedModalOk) oneFileNotSupportedModalOk.addEventListener('click', closeOneFileNotSupportedModal);
+    if (oneFileNotSupportedModal) {
+        oneFileNotSupportedModal.addEventListener('click', function (e) {
+            var content = oneFileNotSupportedModal.querySelector('.email-modal-app-content');
+            if (content && !content.contains(e.target)) closeOneFileNotSupportedModal();
         });
     }
 

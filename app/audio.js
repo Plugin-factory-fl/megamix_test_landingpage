@@ -523,13 +523,25 @@
             highShelf.type = 'highshelf';
             highShelf.frequency.value = 3200;
             const comp = ctx.createDynamicsCompressor();
+            const reverbDryGain = ctx.createGain();
+            const reverbWetGain = ctx.createGain();
+            const reverbConvolver = ctx.createConvolver();
+            reverbConvolver.normalize = true;
+            reverbConvolver.buffer = createPlateIR(ctx, 0.4);
+            const reverbSumGain = ctx.createGain();
+            reverbSumGain.gain.value = 1;
             gainNode.connect(panner);
             panner.connect(lowShelf);
             lowShelf.connect(midPeak);
             midPeak.connect(highShelf);
             highShelf.connect(comp);
-            comp.connect(liveGraph.masterGain);
-            liveGraph.tracks.push({ gainNode, pannerNode: panner, lowShelf, midPeak, highShelf, compNode: comp });
+            comp.connect(reverbDryGain);
+            comp.connect(reverbConvolver);
+            reverbConvolver.connect(reverbWetGain);
+            reverbDryGain.connect(reverbSumGain);
+            reverbWetGain.connect(reverbSumGain);
+            reverbSumGain.connect(liveGraph.masterGain);
+            liveGraph.tracks.push({ gainNode, pannerNode: panner, lowShelf, midPeak, highShelf, compNode: comp, reverbDryGain, reverbWetGain, reverbConvolver });
         }
         console.log('[MegaMix perf] createLiveGraph: ' + (performance.now() - t0).toFixed(2) + ' ms');
         if (window.MegaMix.syncAllTracksToLiveGraph) window.MegaMix.syncAllTracksToLiveGraph();
@@ -555,6 +567,19 @@
         } else {
             chain.compNode.ratio.setTargetAtTime(1, liveGraph.ctx.currentTime, 0.01);
             chain.compNode.threshold.setTargetAtTime(0, liveGraph.ctx.currentTime, 0.01);
+        }
+        const rp = track.reverbParams || { mix: 0.25, decaySeconds: 0.4 };
+        const revMix = track.reverbOn ? (typeof rp.mix === 'number' ? Math.max(0, Math.min(1, rp.mix)) : 0.25) : 0;
+        const revDecay = typeof rp.decaySeconds === 'number' ? Math.max(0.15, Math.min(1.5, rp.decaySeconds)) : 0.4;
+        chain.reverbDryGain.gain.setTargetAtTime(1 - revMix, liveGraph.ctx.currentTime, 0.01);
+        chain.reverbWetGain.gain.setTargetAtTime(revMix, liveGraph.ctx.currentTime, 0.01);
+        if (track.reverbOn && chain.reverbConvolver) {
+            try {
+                const wantLen = Math.max(2, Math.floor(revDecay * (liveGraph.ctx.sampleRate || 48000)));
+                if (!chain.reverbConvolver.buffer || chain.reverbConvolver.buffer.length !== wantLen) {
+                    chain.reverbConvolver.buffer = createPlateIR(liveGraph.ctx, revDecay);
+                }
+            } catch (_) {}
         }
     }
 
