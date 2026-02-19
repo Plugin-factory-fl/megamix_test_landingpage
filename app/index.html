@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MegaMix AI – AI Mixing & Mastering</title>
     <base href="/app/">
-    <link rel="icon" type="image/png" href="/favicon.ico">
-    <link rel="icon" type="image/png" href="/assets/Logo.png">
     <link rel="stylesheet" href="styles.css">
     <style>
         .app-announcement-bar {
@@ -63,8 +61,10 @@
         <div id="login-modal" class="login-modal">
             <h2>Welcome to MegaMix AI</h2>
             <p class="login-welcome">Mix and master your tracks in the browser with AI. No install required—upload stems, chat with Josh to refine, and get a pro sound in minutes.</p>
-            <p class="login-hint">Enter your license key (the same one you use in the plugin).</p>
+            <p class="login-hint">Enter the email and license key from your free trial or subscription.</p>
             <form id="login-form">
+                <label for="login-email">Email</label>
+                <input type="email" id="login-email" name="email" placeholder="your@email.com" autocomplete="email">
                 <label for="login-license">License key</label>
                 <input type="text" id="login-license" name="licenseKey" placeholder="XXXX-XXXX-XXXX-XXXX" autocomplete="off">
                 <button type="submit" class="btn btn-primary">Log in</button>
@@ -155,10 +155,7 @@
                 </div>
                 <div class="step3-unified-card iterate-card">
                 <div class="mixer-collapsible collapsed" id="mixer-collapsible">
-                    <div class="mixer-collapsible-header-wrap">
-                        <button type="button" class="mixer-collapsible-header" id="mixer-collapsible-toggle" aria-expanded="false" aria-controls="mixer-collapsible-body">Mixer</button>
-                        <button type="button" class="btn-icon-info mixer-info-btn" id="mixer-info-btn" aria-label="Mixer help" title="How to use the mixer">&#8505;</button>
-                    </div>
+                    <button type="button" class="mixer-collapsible-header" id="mixer-collapsible-toggle" aria-expanded="false" aria-controls="mixer-collapsible-body">Mixer</button>
                     <div class="mixer-collapsible-body" id="mixer-collapsible-body">
                         <p class="mixer-hint">Per-track level, pan, and FX. Reverb available; Retro coming soon.</p>
                         <p class="mixer-hint mixer-hint-live">Changes in the mixer are reflected live in the transport player.</p>
@@ -167,12 +164,9 @@
                 </div>
                 <div class="before-after-card" id="before-after-card">
                     <div class="before-after-card-header">
-                        <div class="before-after-tabs-wrap">
-                            <div class="before-after-tabs" role="tablist">
-                                <button type="button" role="tab" aria-selected="false" class="before-after-tab" data-mode="before">Before</button>
-                                <button type="button" role="tab" aria-selected="true" class="before-after-tab active" data-mode="after">After</button>
-                            </div>
-                            <button type="button" class="btn-icon-info" id="before-after-info-btn" aria-label="How to use A/B and chat" title="How to use A/B and chat">&#8505;</button>
+                        <div class="before-after-tabs" role="tablist">
+                            <button type="button" role="tab" aria-selected="false" class="before-after-tab" data-mode="before">Before</button>
+                            <button type="button" role="tab" aria-selected="true" class="before-after-tab active" data-mode="after">After</button>
                         </div>
                     </div>
                     <p class="before-after-instruction" id="playback-instruction">Upload stems, then press Play. Before = flat mix; After = your mix (preset + faders + FX).</p>
@@ -194,8 +188,8 @@
                     <audio id="audio-before" preload="metadata"></audio>
                     <audio id="audio-after" preload="metadata"></audio>
                 </div>
-                <div class="josh-avatar-wrap" id="josh-avatar" aria-hidden="false">
-                    <span class="josh-avatar-thought" id="josh-avatar-thought">I'm Josh!</span>
+                <div class="josh-avatar-wrap" id="josh-avatar-mixing" aria-hidden="true">
+                    <span class="josh-avatar-thought">I'm Josh!</span>
                     <div class="josh-avatar-bubble">
                         <img src="/assets/Joshpropic.png" alt="Josh" class="josh-avatar-img">
                     </div>
@@ -209,12 +203,6 @@
                         </div>
                     </div>
                     <div class="chat-messages" id="chat-messages"></div>
-                    <div id="josh-transparency-wrap" class="josh-transparency-wrap hidden">
-                        <button type="button" class="josh-transparency-toggle" id="josh-transparency-toggle" aria-expanded="false" aria-controls="josh-transparency-body">What Josh did</button>
-                        <div class="josh-transparency-body collapsed" id="josh-transparency-body">
-                            <ul class="josh-transparency-list" id="josh-transparency-list"></ul>
-                        </div>
-                    </div>
                     <div class="quick-prompts" id="quick-prompts">
                         <button type="button" class="btn btn-ghost btn-small quick-prompt" data-prompt="Make the kick and snare more prominent">Kick & snare up</button>
                         <button type="button" class="btn btn-ghost btn-small quick-prompt" data-prompt="Bring up the vocals">Vocals up</button>
@@ -255,6 +243,31 @@
             <section class="mastering-intro">
                 <h2>Mastering</h2>
                 <p class="mastering-sub">Your mix has been mastered. Preview below and download when ready.</p>
+            </section>
+            <section class="mastering-player-section">
+                <div class="before-after-card mastering-card">
+                    <div class="before-after-card-header">
+                        <h3 class="before-after-card-title">Mastered preview</h3>
+                        <div class="before-after-tabs" role="tablist">
+                            <button type="button" role="tab" aria-selected="false" class="before-after-tab mastering-tab" data-mode="before">Before</button>
+                            <button type="button" role="tab" aria-selected="true" class="before-after-tab mastering-tab active" data-mode="after">After</button>
+                        </div>
+                    </div>
+                    <p class="before-after-instruction">Before = unmastered mix; After = mastered. Switch tabs to A/B at the same position.</p>
+                    <div class="before-after-play-wrap">
+                        <button type="button" class="before-after-play-btn" id="play-mastering" aria-label="Play" title="Play">&#9658;</button>
+                    </div>
+                    <div class="waveform-wrap-mastering">
+                        <canvas id="waveform-mastering" class="waveform-canvas-mastering" width="600" height="70" aria-hidden="true"></canvas>
+                    </div>
+                    <div class="before-after-progress-wrap">
+                        <span class="before-after-time" id="time-mastering" aria-live="polite">0:00</span>
+                        <input type="range" class="before-after-progress" id="progress-mastering" min="0" max="100" value="0" step="0.1" aria-label="Seek">
+                        <span class="before-after-duration" id="duration-mastering">0:00</span>
+                    </div>
+                    <audio id="audio-mastering-before" preload="metadata"></audio>
+                    <audio id="audio-mastering" preload="metadata"></audio>
+                </div>
             </section>
             <div class="mastering-controls-collapsible collapsed" id="mastering-controls-collapsible">
                 <button type="button" class="mastering-controls-header" id="mastering-controls-toggle" aria-expanded="false" aria-controls="mastering-controls-body">Mastering controls</button>
@@ -311,34 +324,16 @@
                     </div>
                 </div>
             </div>
-            <section class="mastering-player-section">
-                <div class="before-after-card mastering-card">
-                    <div class="before-after-card-header">
-                        <h3 class="before-after-card-title">Mastered preview</h3>
-                        <div class="before-after-tabs" role="tablist">
-                            <button type="button" role="tab" aria-selected="false" class="before-after-tab mastering-tab" data-mode="before">Before</button>
-                            <button type="button" role="tab" aria-selected="true" class="before-after-tab mastering-tab active" data-mode="after">After</button>
-                        </div>
-                    </div>
-                    <p class="before-after-instruction">Before = unmastered mix; After = mastered. Switch tabs to A/B at the same position.</p>
-                    <div class="before-after-play-wrap">
-                        <button type="button" class="before-after-play-btn" id="play-mastering" aria-label="Play" title="Play">&#9658;</button>
-                    </div>
-                    <div class="waveform-wrap-mastering">
-                        <canvas id="waveform-mastering" class="waveform-canvas-mastering" width="600" height="70" aria-hidden="true"></canvas>
-                    </div>
-                    <div class="before-after-progress-wrap">
-                        <span class="before-after-time" id="time-mastering" aria-live="polite">0:00</span>
-                        <input type="range" class="before-after-progress" id="progress-mastering" min="0" max="100" value="0" step="0.1" aria-label="Seek">
-                        <span class="before-after-duration" id="duration-mastering">0:00</span>
-                    </div>
-                    <audio id="audio-mastering-before" preload="metadata"></audio>
-                    <audio id="audio-mastering" preload="metadata"></audio>
+            <div class="josh-avatar-wrap" id="josh-avatar-mastering" aria-hidden="true">
+                <span class="josh-avatar-thought">I'm Josh!</span>
+                <div class="josh-avatar-bubble">
+                    <img src="/assets/Joshpropic.png" alt="Josh" class="josh-avatar-img">
                 </div>
-            </section>
+            </div>
             <section class="chat-section chat-attached">
                 <div class="chat-wrap chat-card">
-                    <h4>Refine your master with Josh</h4>
+                    <h4>Mastering adjustments</h4>
+                    <p class="chat-purpose">Use this chat to iterate on your master—send multiple suggestions over time to refine it.</p>
                     <div class="chat-messages" id="chat-messages-mastering"></div>
                     <div class="quick-prompts" id="quick-prompts-mastering">
                         <button type="button" class="btn btn-ghost btn-small quick-prompt-mastering" data-prompt="Make it louder">Make it louder</button>
@@ -444,29 +439,12 @@
         </div>
     </div>
 
-    <!-- Preview user: log in or get trial to download (dismissible) -->
-    <div id="loginOrTrialModalApp" class="email-modal-app hidden" aria-label="Log in or get free trial to download">
-        <div class="email-modal-app-content login-or-trial-content">
-            <div class="email-modal-app-header">
-                <h3>Download requires an account</h3>
-                <button type="button" class="email-modal-app-close" id="loginOrTrialModalAppClose" aria-label="Close">&times;</button>
-            </div>
-            <div class="email-modal-app-body">
-                <p class="email-modal-app-p">You're previewing MegaMix AI. To download your mix or master, log in with your license or get a free trial.</p>
-                <div class="email-modal-app-buttons" style="flex-direction: column; gap: 12px;">
-                    <button type="button" class="btn btn-primary" id="loginOrTrialModalAppLogin">Log in</button>
-                    <button type="button" class="btn btn-ghost" id="loginOrTrialModalAppTrial">Get free trial</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Email signup modal (before mix/mastered download) -->
     <div id="emailModalApp" class="email-modal-app hidden">
         <div class="email-modal-app-content">
             <div class="email-modal-app-header">
                 <h3>Join the MegaMixAI Community!</h3>
-                <button type="button" class="email-modal-app-close" id="emailModalAppClose" aria-label="Close">&times;</button>
+                <span class="email-modal-app-close" id="emailModalAppClose">&times;</span>
             </div>
             <div class="email-modal-app-body">
                 <p class="email-modal-app-p">Be the first to find out about our next releases by signing up now.</p>

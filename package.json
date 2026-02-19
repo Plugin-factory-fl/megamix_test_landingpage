@@ -9,15 +9,14 @@
     "sync-version": "node sync-version.js"
   },
   "dependencies": {
-    "@mailchimp/mailchimp_marketing": "^3.0.80",
+    "express": "^4.18.2",
+    "stripe": "^14.5.0",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
-    "express": "^4.18.2",
+    "pg": "^8.11.3",
     "jsonwebtoken": "^9.0.2",
     "nodemailer": "^6.9.7",
-    "openai": "^6.22.0",
-    "pg": "^8.11.3",
-    "stripe": "^14.5.0"
+    "@mailchimp/mailchimp_marketing": "^3.0.80"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

@@ -409,8 +409,6 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     text-align: center;
-    min-height: 2.8em;
-    padding: 12px 10px;
 }
 .panel .guidance-input {
     width: 100%;
@@ -575,9 +573,9 @@ body {
 .josh-avatar-wrap {
     position: fixed;
     left: 12px;
-    bottom: 24px;
-    top: auto;
-    z-index: 50;
+    top: 55%;
+    transform: translateY(-50%);
+    z-index: 5;
     pointer-events: auto;
     cursor: grab;
     display: flex;
@@ -590,18 +588,14 @@ body {
     display: inline-block;
     padding: 6px 12px;
     margin-bottom: 6px;
-    min-width: 240px;
-    max-width: 240px;
-    text-align: center;
     background: rgba(30, 30, 30, 0.98);
     border: 2px solid rgba(139, 92, 246, 0.4);
     border-radius: 12px;
     font-size: 0.75rem;
     font-weight: 600;
     color: #a78bfa;
-    white-space: normal;
+    white-space: nowrap;
     box-shadow: 0 2px 12px rgba(0,0,0,0.35);
-    box-sizing: border-box;
 }
 .josh-avatar-thought::after {
     content: '';
@@ -784,41 +778,6 @@ body {
 }
 .chat-messages .msg.user { color: #a78bfa; }
 .chat-messages .msg.bot { color: #94a3b8; }
-.josh-transparency-wrap {
-    margin-top: 12px;
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 10px;
-    background: rgba(0,0,0,0.2);
-}
-.josh-transparency-wrap.hidden { display: none; }
-.josh-transparency-toggle {
-    width: 100%;
-    padding: 10px 14px;
-    text-align: left;
-    background: transparent;
-    border: none;
-    color: #a78bfa;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-.josh-transparency-toggle:hover { background: rgba(139,92,246,0.1); }
-.josh-transparency-toggle[aria-expanded="true"]::after { content: '−'; }
-.josh-transparency-toggle[aria-expanded="false"]::after { content: '+'; }
-.josh-transparency-body {
-    padding: 0 14px 12px;
-}
-.josh-transparency-body.collapsed { display: none; }
-.josh-transparency-list {
-    margin: 0;
-    padding-left: 1.25rem;
-    font-size: 0.85rem;
-    color: #94a3b8;
-    line-height: 1.6;
-}
 .chat-input-wrap {
     display: flex;
     gap: 10px;
@@ -1012,63 +971,6 @@ body {
     color: #111;
 }
 .before-after-tabs button:not(.active):hover { color: #fff; }
-.before-after-tabs-wrap {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-.btn-icon-info {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    border: 1px solid rgba(255,255,255,0.35);
-    background: rgba(255,255,255,0.1);
-    color: rgba(255,255,255,0.9);
-    font-size: 1rem;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    transition: background 0.2s ease, border-color 0.2s ease;
-}
-.btn-icon-info:hover {
-    background: rgba(255,255,255,0.2);
-    border-color: rgba(255,255,255,0.5);
-}
-/* Toast notifications: appear from the info button you clicked */
-.toast {
-    pointer-events: auto;
-    padding: 14px 18px;
-    max-width: min(420px, calc(100vw - 32px));
-    background: rgba(20, 20, 25, 0.97);
-    border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 12px;
-    font-size: 0.85rem;
-    line-height: 1.5;
-    color: rgba(255,255,255,0.95);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-    animation: toast-in 0.25s ease-out;
-}
-.toast-anchored {
-    position: fixed;
-    z-index: 9999;
-}
-.toast p { margin: 0 0 8px 0; }
-.toast p:last-child { margin-bottom: 0; }
-@keyframes toast-in {
-    from { opacity: 0; transform: translateY(4px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-.mixer-collapsible-header-wrap {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    width: 100%;
-}
-.mixer-collapsible-header-wrap .mixer-collapsible-header { flex: 1; }
-.mixer-info-btn { flex-shrink: 0; }
 .before-after-instruction,
 .before-after-building {
     font-size: 0.8rem;
@@ -2011,10 +1913,6 @@ body {
     font-size: 1.75rem;
     color: #94a3b8;
     cursor: pointer;
-    background: none;
-    border: none;
-    padding: 0 4px;
-    line-height: 1;
     line-height: 1;
 }
 .email-modal-app-close:hover { color: #fff; }

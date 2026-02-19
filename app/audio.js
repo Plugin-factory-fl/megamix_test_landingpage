@@ -9,7 +9,6 @@
     if (!state) return;
 
     let buildAfterTimer = null;
-    let buildAfterGen = 0;
     let liveGraph = null;
     let livePlaybackSources = [];
     let transportOffset = 0;
@@ -79,37 +78,23 @@
         return buffer;
     }
 
-    const DECODE_PARALLEL = 6;
-
     async function decodeStemsToBuffers() {
         if (state.uploadedFiles.length === 0) { state.stemBuffers = []; state.trackAnalyses = []; return; }
-        console.log('[MegaMix perf] decodeStemsToBuffers: start, files=' + state.uploadedFiles.length + ', parallel=' + DECODE_PARALLEL);
-        const t0 = performance.now();
         const ctx = getAudioContext();
-        const buffers = new Array(state.uploadedFiles.length);
-        async function decodeOne(i) {
-            const entry = state.uploadedFiles[i];
-            const tFile = performance.now();
+        const buffers = [];
+        for (const entry of state.uploadedFiles) {
             const ab = await entry.file.arrayBuffer();
             const buf = await ctx.decodeAudioData(ab.slice(0));
-            buffers[i] = buf;
-            console.log('[MegaMix perf]   decode file ' + (i + 1) + '/' + state.uploadedFiles.length + ' "' + (entry.name || '') + '": ' + (performance.now() - tFile).toFixed(2) + ' ms');
-        }
-        for (let c = 0; c < state.uploadedFiles.length; c += DECODE_PARALLEL) {
-            const chunk = [];
-            for (let i = c; i < Math.min(c + DECODE_PARALLEL, state.uploadedFiles.length); i++) chunk.push(decodeOne(i));
-            await Promise.all(chunk);
+            buffers.push(buf);
         }
         state.stemBuffers = buffers;
         analyzeStems();
-        console.log('[MegaMix perf] decodeStemsToBuffers: total ' + (performance.now() - t0).toFixed(2) + ' ms');
     }
 
     /** ARA-style: analyze each stem for dynamics, loudest/softest blocks, and inferred role. Fills state.trackAnalyses. */
     function analyzeStems() {
         state.trackAnalyses = [];
         if (!state.stemBuffers.length || !state.uploadedFiles.length) return;
-        const t0 = performance.now();
         const inferRole = window.MegaMix && window.MegaMix.inferRole;
         const total = state.stemBuffers.length;
         for (let i = 0; i < state.stemBuffers.length; i++) {
@@ -159,12 +144,10 @@
                 inferredRole: inferRole ? inferRole(entry.name, i, total) : 'other'
             });
         }
-        console.log('[MegaMix perf] analyzeStems: ' + (performance.now() - t0).toFixed(2) + ' ms (stems=' + state.stemBuffers.length + ')');
     }
 
     function buildMixedBuffer(useBefore) {
         if (state.stemBuffers.length === 0) return null;
-        const t0 = performance.now();
         let maxLen = 0;
         let sampleRate = state.stemBuffers[0].sampleRate;
         for (const b of state.stemBuffers) {
@@ -199,125 +182,25 @@
                 right[i] *= scale;
             }
         }
-        console.log('[MegaMix perf] buildMixedBuffer(' + (useBefore ? 'before' : 'after') + '): ' + (performance.now() - t0).toFixed(2) + ' ms (len=' + maxLen + ')');
         return { left, right, sampleRate, length: maxLen };
     }
 
-    async function renderOneTrackWithFX(ti, maxLen, sampleRate) {
-        const interpolateAutomation = window.MegaMix.interpolateAutomation;
-        const buf = state.stemBuffers[ti];
-        const track = state.tracks[ti];
-        const ctx = new OfflineAudioContext({ length: maxLen, numberOfChannels: 2, sampleRate });
-        const src = ctx.createBufferSource();
-        src.buffer = buf;
-        let last = src;
-
-        if (track && track.eqOn && track.eqParams) {
-            const eq = track.eqParams;
-            const lowShelf = ctx.createBiquadFilter();
-            lowShelf.type = 'lowshelf';
-            lowShelf.frequency.value = 320;
-            lowShelf.gain.value = typeof eq.low === 'number' ? eq.low : 0;
-            const midPeak = ctx.createBiquadFilter();
-            midPeak.type = 'peaking';
-            midPeak.frequency.value = 1000;
-            midPeak.Q.value = 1;
-            midPeak.gain.value = typeof eq.mid === 'number' ? eq.mid : 0;
-            const highShelf = ctx.createBiquadFilter();
-            highShelf.type = 'highshelf';
-            highShelf.frequency.value = 3200;
-            highShelf.gain.value = typeof eq.high === 'number' ? eq.high : 0;
-            last.connect(lowShelf);
-            lowShelf.connect(midPeak);
-            midPeak.connect(highShelf);
-            last = highShelf;
-        }
-
-        if (track && track.compOn && track.compParams) {
-            const c = track.compParams;
-            const comp = ctx.createDynamicsCompressor();
-            comp.threshold.value = typeof c.threshold === 'number' ? c.threshold : -20;
-            comp.knee.value = typeof c.knee === 'number' ? c.knee : 6;
-            comp.ratio.value = typeof c.ratio === 'number' ? c.ratio : 2;
-            comp.attack.value = typeof c.attack === 'number' ? c.attack : 0.003;
-            comp.release.value = typeof c.release === 'number' ? c.release : 0.25;
-            last.connect(comp);
-            last = comp;
-        }
-
-        if (track && track.reverbOn) {
-            const rp = track.reverbParams || { mix: 0.25, decaySeconds: 0.4 };
-            const mix = typeof rp.mix === 'number' ? Math.max(0, Math.min(1, rp.mix)) : 0.25;
-            const decaySeconds = typeof rp.decaySeconds === 'number' ? rp.decaySeconds : 0.4;
-            const dryGain = ctx.createGain();
-            dryGain.gain.value = 1 - mix;
-            const wetGain = ctx.createGain();
-            wetGain.gain.value = mix;
-            const convolver = ctx.createConvolver();
-            convolver.buffer = createPlateIR(ctx, decaySeconds);
-            convolver.normalize = true;
-            last.connect(dryGain);
-            last.connect(convolver);
-            convolver.connect(wetGain);
-            const sumGain = ctx.createGain();
-            sumGain.gain.value = 1;
-            dryGain.connect(sumGain);
-            wetGain.connect(sumGain);
-            last = sumGain;
-        }
-
-        const gainNode = ctx.createGain();
-        gainNode.gain.value = 1;
-        last.connect(gainNode);
-        const panner = ctx.createStereoPanner();
-        panner.pan.value = 0;
-        gainNode.connect(panner);
-        panner.connect(ctx.destination);
-
-        src.start(0);
-        const rendered = await ctx.startRendering();
-        const ch0 = rendered.getChannelData(0);
-        const ch1 = rendered.getChannelData(1);
-
-        const levelPoints = (track && track.automation && track.automation.level && track.automation.level.length) ? track.automation.level : [{ t: 0, value: track ? track.gain : 1 }, { t: 1, value: track ? track.gain : 1 }];
-        const panPoints = (track && track.automation && track.automation.pan && track.automation.pan.length) ? track.automation.pan : [{ t: 0, value: track ? track.pan : 0 }, { t: 1, value: track ? track.pan : 0 }];
-
-        const leftContrib = new Float32Array(maxLen);
-        const rightContrib = new Float32Array(maxLen);
-        for (let i = 0; i < maxLen; i++) {
-            const t = i / maxLen;
-            const g = interpolateAutomation(levelPoints, t);
-            const p = interpolateAutomation(panPoints, t);
-            const { left: gL, right: gR } = panGain(p);
-            const volL = g * gL;
-            const volR = g * gR;
-            leftContrib[i] = ch0[i] * volL + ch1[i] * volL;
-            rightContrib[i] = ch0[i] * volR + ch1[i] * volR;
-        }
-        return { leftContrib, rightContrib };
-    }
-
-    /** Single OfflineAudioContext render: all tracks in one pass (much faster than 23 separate renders). */
     async function buildAfterMixWithFX() {
         if (state.stemBuffers.length === 0) return null;
-        const myGen = ++buildAfterGen;
-        const t0 = performance.now();
-        console.log('[MegaMix perf] buildAfterMixWithFX: start (tracks=' + state.stemBuffers.length + ', gen=' + myGen + ')');
+        const interpolateAutomation = window.MegaMix.interpolateAutomation;
+        const tracks = state.tracks;
         let maxLen = 0;
         const sampleRate = state.stemBuffers[0].sampleRate;
         for (const b of state.stemBuffers) {
             if (b.length > maxLen) maxLen = b.length;
         }
-        const durationSec = maxLen / sampleRate;
-        const ctx = new OfflineAudioContext({ length: maxLen, numberOfChannels: 2, sampleRate });
+        const left = new Float32Array(maxLen);
+        const right = new Float32Array(maxLen);
 
         for (let ti = 0; ti < state.stemBuffers.length; ti++) {
-            if (myGen !== buildAfterGen) {
-                console.log('[MegaMix perf] buildAfterMixWithFX: cancelled (gen ' + myGen + ')');
-                return null;
-            }
             const buf = state.stemBuffers[ti];
-            const track = state.tracks[ti];
+            const track = tracks[ti];
+            const ctx = new OfflineAudioContext({ length: maxLen, numberOfChannels: 2, sampleRate });
             const src = ctx.createBufferSource();
             src.buffer = buf;
             let last = src;
@@ -342,6 +225,7 @@
                 midPeak.connect(highShelf);
                 last = highShelf;
             }
+
             if (track && track.compOn && track.compParams) {
                 const c = track.compParams;
                 const comp = ctx.createDynamicsCompressor();
@@ -353,6 +237,7 @@
                 last.connect(comp);
                 last = comp;
             }
+
             if (track && track.reverbOn) {
                 const rp = track.reverbParams || { mix: 0.25, decaySeconds: 0.4 };
                 const mix = typeof rp.mix === 'number' ? Math.max(0, Math.min(1, rp.mix)) : 0.25;
@@ -373,30 +258,35 @@
                 wetGain.connect(sumGain);
                 last = sumGain;
             }
+
             const gainNode = ctx.createGain();
-            const panner = ctx.createStereoPanner();
+            gainNode.gain.value = 1;
             last.connect(gainNode);
+            const panner = ctx.createStereoPanner();
+            panner.pan.value = 0;
             gainNode.connect(panner);
             panner.connect(ctx.destination);
 
+            src.start(0);
+            const rendered = await ctx.startRendering();
+            const ch0 = rendered.getChannelData(0);
+            const ch1 = rendered.getChannelData(1);
+
             const levelPoints = (track && track.automation && track.automation.level && track.automation.level.length) ? track.automation.level : [{ t: 0, value: track ? track.gain : 1 }, { t: 1, value: track ? track.gain : 1 }];
             const panPoints = (track && track.automation && track.automation.pan && track.automation.pan.length) ? track.automation.pan : [{ t: 0, value: track ? track.pan : 0 }, { t: 1, value: track ? track.pan : 0 }];
-            gainNode.gain.setValueAtTime(levelPoints[0].value, 0);
-            for (let i = 1; i < levelPoints.length; i++) {
-                gainNode.gain.linearRampToValueAtTime(levelPoints[i].value, levelPoints[i].t * durationSec);
+
+            for (let i = 0; i < rendered.length; i++) {
+                const t = i / maxLen;
+                const g = interpolateAutomation(levelPoints, t);
+                const p = interpolateAutomation(panPoints, t);
+                const { left: gL, right: gR } = panGain(p);
+                const volL = g * gL;
+                const volR = g * gR;
+                left[i] += ch0[i] * volL + ch1[i] * volL;
+                right[i] += ch0[i] * volR + ch1[i] * volR;
             }
-            panner.pan.setValueAtTime(Math.max(-1, Math.min(1, panPoints[0].value)), 0);
-            for (let i = 1; i < panPoints.length; i++) {
-                panner.pan.linearRampToValueAtTime(Math.max(-1, Math.min(1, panPoints[i].value)), panPoints[i].t * durationSec);
-            }
-            src.start(0);
         }
 
-        if (myGen !== buildAfterGen) return null;
-        const rendered = await ctx.startRendering();
-        if (myGen !== buildAfterGen) return null;
-        const left = rendered.getChannelData(0);
-        const right = rendered.getChannelData(1);
         let peak = 0;
         for (let i = 0; i < maxLen; i++) {
             peak = Math.max(peak, Math.abs(left[i]), Math.abs(right[i]));
@@ -408,14 +298,11 @@
                 right[i] *= scale;
             }
         }
-        console.log('[MegaMix perf] buildAfterMixWithFX: total ' + (performance.now() - t0).toFixed(2) + ' ms');
         return { left, right, sampleRate, length: maxLen };
     }
 
     async function runMasteringChain(mix, options) {
         if (!mix || !mix.left || !mix.right) return null;
-        const t0 = performance.now();
-        console.log('[MegaMix perf] runMasteringChain: start (samples=' + (mix.left && mix.left.length) + ')');
         const opts = options || {};
         const punch = Math.max(0, Math.min(2, Number(opts.punch) || 0));
         const loudness = Math.max(0, Math.min(2, Number(opts.loudness) || 0));
@@ -440,7 +327,6 @@
         comp.connect(ctx.destination);
         src.start(0);
         const rendered = await ctx.startRendering();
-        console.log('[MegaMix perf] runMasteringChain: OfflineAudioContext.startRendering ' + (performance.now() - t0).toFixed(2) + ' ms');
         const left = rendered.getChannelData(0);
         const right = rendered.getChannelData(1);
         let peak = 0;
@@ -453,7 +339,6 @@
             left[i] = Math.max(-1, Math.min(1, left[i] * scale));
             right[i] = Math.max(-1, Math.min(1, right[i] * scale));
         }
-        console.log('[MegaMix perf] runMasteringChain: total ' + (performance.now() - t0).toFixed(2) + ' ms');
         return { left, right, sampleRate: sr, length: len };
     }
 
@@ -473,22 +358,17 @@
                 if (window.MegaMix.syncAllTracksToLiveGraph) window.MegaMix.syncAllTracksToLiveGraph();
                 if (typeof window.MegaMix.onAfterMixBuilt === 'function') window.MegaMix.onAfterMixBuilt();
             });
-        }, 1000);
+        }, 500);
     }
 
     async function buildAfterOnly() {
         if (state.stemBuffers.length === 0 || state.uploadedFiles.length === 0) return;
-        const t0 = performance.now();
-        console.log('[MegaMix perf] buildAfterOnly: start');
         try {
             const afterMix = await buildAfterMixWithFX();
             if (afterMix) {
-                const tEncode = performance.now();
                 if (state.mixedAfterUrl) URL.revokeObjectURL(state.mixedAfterUrl);
                 state.mixedAfterUrl = URL.createObjectURL(encodeWav(afterMix.left, afterMix.right, afterMix.sampleRate));
-                console.log('[MegaMix perf] buildAfterOnly: encodeWav + createObjectURL ' + (performance.now() - tEncode).toFixed(2) + ' ms');
             }
-            console.log('[MegaMix perf] buildAfterOnly: total ' + (performance.now() - t0).toFixed(2) + ' ms');
         } catch (e) {
             console.error('buildAfterOnly', e);
         }
@@ -496,8 +376,6 @@
 
     function createLiveGraph() {
         if (state.stemBuffers.length === 0 || !state.tracks.length) return;
-        const t0 = performance.now();
-        console.log('[MegaMix perf] createLiveGraph: start (tracks=' + state.tracks.length + ')');
         const ctx = getAudioContext();
         if (liveGraph) {
             try {
@@ -529,7 +407,6 @@
             comp.connect(liveGraph.masterGain);
             liveGraph.tracks.push({ gainNode, pannerNode: panner, lowShelf, midPeak, highShelf, compNode: comp });
         }
-        console.log('[MegaMix perf] createLiveGraph: ' + (performance.now() - t0).toFixed(2) + ' ms');
         if (window.MegaMix.syncAllTracksToLiveGraph) window.MegaMix.syncAllTracksToLiveGraph();
     }
 
@@ -558,9 +435,7 @@
 
     function syncAllTracksToLiveGraph() {
         if (!liveGraph) return;
-        const t0 = performance.now();
         for (let i = 0; i < liveGraph.tracks.length && i < state.tracks.length; i++) syncTrackToLiveGraph(i);
-        console.log('[MegaMix perf] syncAllTracksToLiveGraph: ' + (performance.now() - t0).toFixed(2) + ' ms (tracks=' + liveGraph.tracks.length + ')');
     }
 
     function stopLivePlayback() {
