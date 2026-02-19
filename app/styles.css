@@ -591,6 +591,13 @@ body {
     min-width: 240px;
     max-width: 240px;
 }
+.josh-thought-wrap.josh-bubble-empty .josh-thought-simple {
+    display: none;
+}
+.josh-thought-wrap.josh-bubble-empty {
+    min-height: 0;
+    margin-bottom: 0;
+}
 .josh-thought-simple { display: block; }
 .josh-thought-simple.hidden { display: none; }
 .josh-avatar-thought {
@@ -670,12 +677,14 @@ body {
 }
 .josh-thought-send:hover { background: rgba(139, 92, 246, 0.9); }
 .josh-thought-chat {
-    position: fixed;
+    position: absolute;
+    bottom: 100%;
     left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
+    transform: translateX(-50%);
+    margin-bottom: 8px;
     width: min(420px, calc(100vw - 32px));
-    max-height: 70vh;
+    max-width: 320px;
+    max-height: min(50vh, 380px);
     display: flex;
     flex-direction: column;
     background: rgba(30, 30, 30, 0.98);

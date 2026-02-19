@@ -1185,6 +1185,7 @@
         var thoughtMessages = document.getElementById('josh-thought-messages');
         var thoughtChatInput = document.getElementById('josh-thought-chat-input');
         var thoughtChatSend = document.getElementById('josh-thought-chat-send');
+        var thoughtWrap = document.getElementById('josh-thought-wrap');
 
         var joshBubbleMessages = [
             "Click on 'Mixer'/'Mastering controls' to manually control your mix!",
@@ -1207,14 +1208,19 @@
                     joshPhase = 'message';
                     joshShowMessageAt = now;
                     if (thoughtEl) thoughtEl.textContent = pickRandomMessage();
-                } else if (thoughtEl) {
-                    thoughtEl.textContent = '';
+                    if (thoughtWrap) thoughtWrap.classList.remove('josh-bubble-empty');
+                } else {
+                    if (thoughtEl) thoughtEl.textContent = '';
+                    if (thoughtWrap) thoughtWrap.classList.add('josh-bubble-empty');
                 }
             } else {
                 if (now - joshShowMessageAt >= JOSH_MESSAGE_MS) {
                     joshPhase = 'blank';
                     joshShowMessageAt = now;
                     if (thoughtEl) thoughtEl.textContent = '';
+                    if (thoughtWrap) thoughtWrap.classList.add('josh-bubble-empty');
+                } else if (thoughtWrap) {
+                    thoughtWrap.classList.remove('josh-bubble-empty');
                 }
             }
         }
@@ -1222,6 +1228,7 @@
             thoughtEl.textContent = '';
             setInterval(runJoshBubbleTimer, 500);
         }
+        if (thoughtWrap) thoughtWrap.classList.add('josh-bubble-empty');
 
         function showJoshSimple() {
             if (thoughtSimple) thoughtSimple.classList.remove('hidden');
@@ -1325,6 +1332,14 @@
         }
         if (thoughtClose) {
             thoughtClose.addEventListener('click', function () {
+                showJoshSimple();
+            });
+        }
+        if (joshWrap) {
+            document.addEventListener('mousedown', function (e) {
+                if (!thoughtInputRow || thoughtInputRow.classList.contains('hidden')) return;
+                if (thoughtChat && !thoughtChat.classList.contains('hidden')) return;
+                if (joshWrap.contains(e.target)) return;
                 showJoshSimple();
             });
         }
