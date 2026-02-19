@@ -585,11 +585,39 @@ body {
     align-items: center;
 }
 .josh-avatar-wrap:active { cursor: grabbing; }
+.josh-avatar-help {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1px solid rgba(139, 92, 246, 0.5);
+    background: rgba(30, 30, 30, 0.95);
+    color: #a78bfa;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    pointer-events: auto;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.3);
+}
+.josh-avatar-help:hover {
+    background: rgba(139, 92, 246, 0.25);
+    color: #c4b5fd;
+}
 .josh-thought-wrap {
-    position: relative;
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
     margin-bottom: 6px;
     min-width: 240px;
     max-width: 240px;
+    pointer-events: auto;
 }
 .josh-thought-wrap.josh-bubble-empty .josh-thought-simple {
     display: none;
@@ -598,8 +626,21 @@ body {
     min-height: 0;
     margin-bottom: 0;
 }
-.josh-thought-simple { display: block; }
+.josh-thought-simple {
+    display: block;
+    animation: josh-bubble-fade-in 0.35s ease-out;
+}
 .josh-thought-simple.hidden { display: none; }
+.josh-thought-input-row {
+    animation: josh-bubble-fade-in 0.3s ease-out;
+}
+.josh-thought-chat:not(.hidden) {
+    animation: josh-bubble-fade-in 0.3s ease-out;
+}
+@keyframes josh-bubble-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
 .josh-avatar-thought {
     position: relative;
     display: inline-block;
@@ -716,7 +757,15 @@ body {
     min-height: 120px;
     max-height: 40vh;
 }
-.josh-thought-messages .josh-msg { margin-bottom: 10px; font-size: 0.9rem; }
+.josh-thought-messages .josh-msg {
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    animation: josh-msg-fade-in 0.35s ease-out;
+}
+@keyframes josh-msg-fade-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 .josh-thought-messages .josh-msg.user { color: #a78bfa; }
 .josh-thought-messages .josh-msg.bot { color: #94a3b8; }
 .josh-thought-chat-input-row {

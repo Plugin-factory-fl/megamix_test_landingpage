@@ -1182,6 +1182,7 @@
         var thoughtSend = document.getElementById('josh-thought-send');
         var thoughtChat = document.getElementById('josh-thought-chat');
         var thoughtClose = document.getElementById('josh-thought-close');
+        var joshAvatarHelp = document.getElementById('josh-avatar-help');
         var thoughtMessages = document.getElementById('josh-thought-messages');
         var thoughtChatInput = document.getElementById('josh-thought-chat-input');
         var thoughtChatSend = document.getElementById('josh-thought-chat-send');
@@ -1267,10 +1268,14 @@
             });
             thoughtMessages.scrollTop = thoughtMessages.scrollHeight;
         }
+        var joshSending = false;
         function sendJoshBubbleMessage(text, fromChatInput) {
             text = (text || '').trim();
             if (!text) return;
+            if (joshSending) return;
+            joshSending = true;
             joshBubbleChatHistory.push({ role: 'user', text: text });
+            if (!fromChatInput && thoughtInput) thoughtInput.value = '';
             if (fromChatInput) {
                 renderJoshBubbleMessages();
                 if (thoughtChatInput) thoughtChatInput.value = '';
@@ -1288,6 +1293,7 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ context: 'chat', userMessage: text, changesSummary: '' })
             }).then(function (r) { return r.json().catch(function () { return {}; }); }).then(function (data) {
+                joshSending = false;
                 if (typingEl && typingEl.parentNode) typingEl.parentNode.removeChild(typingEl);
                 var reply = (data.reply || 'Something went wrong. Try again.').trim();
                 joshBubbleChatHistory.push({ role: 'bot', text: reply });
@@ -1297,6 +1303,7 @@
                     showJoshChat();
                 }
             }).catch(function () {
+                joshSending = false;
                 if (typingEl && typingEl.parentNode) typingEl.parentNode.removeChild(typingEl);
                 joshBubbleChatHistory.push({ role: 'bot', text: "Couldn't reach Josh. Try again in a sec." });
                 if (fromChatInput) renderJoshBubbleMessages(); else showJoshChat();
@@ -1326,13 +1333,23 @@
             thoughtInput.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
-                    sendJoshBubbleMessage(thoughtInput.value, false);
+                    var val = thoughtInput.value;
+                    if ((val || '').trim()) sendJoshBubbleMessage(val, false);
                 }
             });
         }
         if (thoughtClose) {
             thoughtClose.addEventListener('click', function () {
                 showJoshSimple();
+            });
+        }
+        if (joshAvatarHelp) {
+            joshAvatarHelp.addEventListener('mousedown', function (e) { e.stopPropagation(); });
+            joshAvatarHelp.addEventListener('click', function (e) {
+                e.stopPropagation();
+                e.preventDefault();
+                showJoshInputRow();
+                if (thoughtInput) thoughtInput.focus();
             });
         }
         if (joshWrap) {
