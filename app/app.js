@@ -1051,6 +1051,8 @@
                     }
                     if (mixLoadingRow) mixLoadingRow.classList.remove('hidden');
                     if (mixProgressTrack) mixProgressTrack.classList.remove('hidden');
+                    var refineHeading = document.getElementById('refine-with-josh-heading');
+                    if (refineHeading) refineHeading.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }, 500);
             }, 2000);
             if (mixLoadingBlock) mixLoadingBlock.classList.add('hidden');

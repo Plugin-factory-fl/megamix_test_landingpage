@@ -67,8 +67,8 @@
     }
 
     /**
-     * Algorithmic plate reverb (Schroeder/Freeverb-style): parallel comb filters + series allpass.
-     * Avoids convolution mud; gives clear, smooth tail. Returns { input, output, updateParams }.
+     * Smooth plate reverb: pre-delay + 4 allpass in series + output lowpass.
+     * No comb filters (avoids metallic ring); allpass-only gives a soft, diffuse tail.
      */
     function createAlgorithmicPlate(ctx, sampleRate, decaySeconds, damping) {
         sampleRate = sampleRate || (ctx.sampleRate || 48000);
@@ -76,45 +76,25 @@
         damping = Math.max(0, Math.min(1, damping !== undefined ? damping : 0.5));
         const sr = sampleRate;
         const scale = sr / 44100;
-        const combDelaysMs = [1116, 1188, 1277, 1356].map(n => (n * scale) / sr);
-        const allpassDelaysMs = [225, 556].map(n => (n * scale) / sr);
-        const maxDelay = Math.max(...combDelaysMs, ...allpassDelaysMs) + 0.1;
-        const combFeedback = Math.pow(10, -3 * (combDelaysMs[0]) / decaySeconds);
-        const feedbackGain = Math.max(0.5, Math.min(0.92, combFeedback));
-        const allpassG = 0.5;
-        const lpFreq = 500 + damping * 2000;
+        const preDelaySec = 0.022;
+        const allpassDelaysSec = [347 / 44100, 113 / 44100, 37 / 44100, 59 / 44100].map(n => n * scale);
+        const maxDelay = Math.max(preDelaySec, ...allpassDelaysSec) + 0.05;
+        const gFromDecay = 0.48 + 0.12 * Math.min(1, decaySeconds / 0.6);
+        const allpassG = Math.max(0.45, Math.min(0.58, gFromDecay));
+        const lpFreq = 1800 + damping * 1200;
 
         const input = ctx.createGain();
         input.gain.value = 1;
-        const combsOut = ctx.createGain();
-        combsOut.gain.value = 1;
-        const combs = [];
-        for (let c = 0; c < 4; c++) {
-            const sum = ctx.createGain();
-            sum.gain.value = 1;
-            const delay = ctx.createDelay(maxDelay);
-            delay.delayTime.value = combDelaysMs[c];
-            const lowpass = ctx.createBiquadFilter();
-            lowpass.type = 'lowpass';
-            lowpass.frequency.value = lpFreq;
-            lowpass.Q.value = 0.35;
-            const fbGain = ctx.createGain();
-            fbGain.gain.value = feedbackGain;
-            input.connect(sum);
-            delay.connect(lowpass);
-            lowpass.connect(fbGain);
-            fbGain.connect(sum);
-            sum.connect(delay);
-            delay.connect(combsOut);
-            combs.push({ sum, delay, lowpass, fbGain });
-        }
-        let apInput = combsOut;
+        const preDelay = ctx.createDelay(maxDelay);
+        preDelay.delayTime.value = preDelaySec;
+        input.connect(preDelay);
+        let apInput = preDelay;
         const allpasses = [];
-        for (let a = 0; a < 2; a++) {
+        for (let a = 0; a < 4; a++) {
             const sum = ctx.createGain();
             sum.gain.value = 1;
             const delay = ctx.createDelay(maxDelay);
-            delay.delayTime.value = allpassDelaysMs[a];
+            delay.delayTime.value = allpassDelaysSec[a];
             const gPos = ctx.createGain();
             gPos.gain.value = allpassG;
             const gNeg = ctx.createGain();
@@ -133,8 +113,8 @@
         }
         const outputLp = ctx.createBiquadFilter();
         outputLp.type = 'lowpass';
-        outputLp.frequency.value = 4200;
-        outputLp.Q.value = 0.7;
+        outputLp.frequency.value = lpFreq;
+        outputLp.Q.value = 0.5;
         const output = ctx.createGain();
         output.gain.value = 1;
         apInput.connect(outputLp);
@@ -142,15 +122,15 @@
 
         function updateParams(decaySec, damp) {
             const d = Math.max(0.2, Math.min(2, decaySec || 0.4));
-            const g = Math.max(0.5, Math.min(0.92, Math.pow(10, -3 * combDelaysMs[0] / d)));
-            const freq = 500 + (damp !== undefined ? Math.max(0, Math.min(1, damp)) : damping) * 2000;
-            combs.forEach(co => {
-                co.fbGain.gain.setTargetAtTime(g, ctx.currentTime, 0.01);
-                co.lowpass.frequency.setTargetAtTime(freq, ctx.currentTime, 0.01);
+            const g = Math.max(0.45, Math.min(0.58, 0.48 + 0.12 * Math.min(1, d / 0.6)));
+            const freq = 1800 + (damp !== undefined ? Math.max(0, Math.min(1, damp)) : damping) * 1200;
+            allpasses.forEach(ap => {
+                ap.gPos.gain.setTargetAtTime(g, ctx.currentTime, 0.01);
             });
+            outputLp.frequency.setTargetAtTime(freq, ctx.currentTime, 0.01);
         }
 
-        return { input, output, updateParams, combs, allpasses };
+        return { input, output, updateParams, allpasses };
     }
 
     const DECODE_PARALLEL = 6;
