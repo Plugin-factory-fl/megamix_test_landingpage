@@ -82,7 +82,7 @@
         const combFeedback = Math.pow(10, -3 * (combDelaysMs[0]) / decaySeconds);
         const feedbackGain = Math.max(0.5, Math.min(0.92, combFeedback));
         const allpassG = 0.5;
-        const lpFreq = 800 + damping * 6000;
+        const lpFreq = 500 + damping * 2000;
 
         const input = ctx.createGain();
         input.gain.value = 1;
@@ -97,7 +97,7 @@
             const lowpass = ctx.createBiquadFilter();
             lowpass.type = 'lowpass';
             lowpass.frequency.value = lpFreq;
-            lowpass.Q.value = 0.7;
+            lowpass.Q.value = 0.35;
             const fbGain = ctx.createGain();
             fbGain.gain.value = feedbackGain;
             input.connect(sum);
@@ -131,14 +131,19 @@
             allpasses.push({ sum, delay, gPos, gNeg, outSum });
             apInput = outSum;
         }
+        const outputLp = ctx.createBiquadFilter();
+        outputLp.type = 'lowpass';
+        outputLp.frequency.value = 4200;
+        outputLp.Q.value = 0.7;
         const output = ctx.createGain();
         output.gain.value = 1;
-        apInput.connect(output);
+        apInput.connect(outputLp);
+        outputLp.connect(output);
 
         function updateParams(decaySec, damp) {
             const d = Math.max(0.2, Math.min(2, decaySec || 0.4));
             const g = Math.max(0.5, Math.min(0.92, Math.pow(10, -3 * combDelaysMs[0] / d)));
-            const freq = 800 + (damp !== undefined ? Math.max(0, Math.min(1, damp)) : damping) * 6000;
+            const freq = 500 + (damp !== undefined ? Math.max(0, Math.min(1, damp)) : damping) * 2000;
             combs.forEach(co => {
                 co.fbGain.gain.setTargetAtTime(g, ctx.currentTime, 0.01);
                 co.lowpass.frequency.setTargetAtTime(freq, ctx.currentTime, 0.01);
