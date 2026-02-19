@@ -64,7 +64,9 @@
         mixReady: false,
         hasInitialMix: false,
         masteredUrl: null,
-        unmasteredMixUrl: null
+        unmasteredMixUrl: null,
+        /** Last Josh changes as human-readable strings for "What Josh did" transparency panel */
+        lastJoshChangesSummary: []
     };
 
     /** Snapshot for undo: deep clone of tracks. */
@@ -145,6 +147,44 @@
         country:  [{ label: 'Vocal forward', prompt: 'Vocal forward' }, { label: 'Acoustic present', prompt: 'Acoustic more present' }, { label: 'Warm and natural', prompt: 'Warmer and more natural' }, { label: 'Punchy kick', prompt: 'More punchy kick' }, { label: 'Bright and open', prompt: 'Brighter and more open' }, { label: 'Clean and present', prompt: 'Cleaner and more present' }],
         custom:   [{ label: 'Kick & snare up', prompt: 'Make the kick and snare more prominent' }, { label: 'Vocal forward', prompt: 'Bring up the vocals' }, { label: 'More punch', prompt: 'Add more punch' }, { label: 'Brighter', prompt: 'Make it brighter' }, { label: 'Warm low end', prompt: 'Warm up the low end' }, { label: 'More glue', prompt: 'More glue and cohesion' }]
     };
+
+    /** Convert Josh changes to human-readable strings for the transparency panel */
+    function formatJoshChangesForDisplay(changes, tracksArr) {
+        if (!changes || !Array.isArray(changes)) return [];
+        const lines = [];
+        changes.forEach(change => {
+            const i = change.i;
+            const name = (tracksArr[i] && tracksArr[i].name) ? tracksArr[i].name : 'Track ' + (i + 1);
+            const parts = [];
+            if (change.makeupGainDb != null) {
+                const db = change.makeupGainDb;
+                const dir = db >= 0 ? '+' : '';
+                parts.push(dir + db.toFixed(1) + ' dB');
+            }
+            if (change.pan != null) {
+                parts.push('pan ' + (change.pan >= 0 ? 'R' : 'L') + ' ' + Math.abs(change.pan * 100).toFixed(0) + '%');
+            }
+            if (change.eqOn && change.eqParams) {
+                const eq = change.eqParams;
+                const bands = [];
+                if (eq.low != null && eq.low !== 0) bands.push('low ' + (eq.low >= 0 ? '+' : '') + eq.low.toFixed(1) + ' dB');
+                if (eq.mid != null && eq.mid !== 0) bands.push('mid ' + (eq.mid >= 0 ? '+' : '') + eq.mid.toFixed(1) + ' dB');
+                if (eq.high != null && eq.high !== 0) bands.push('high ' + (eq.high >= 0 ? '+' : '') + eq.high.toFixed(1) + ' dB');
+                if (bands.length) parts.push('EQ: ' + bands.join(', '));
+            }
+            if (change.compOn) {
+                const c = change.compParams || {};
+                const thr = c.threshold != null ? c.threshold : -18;
+                const ratio = c.ratio != null ? c.ratio : 3;
+                parts.push('comp (thr ' + thr + ' dB, ratio ' + ratio + ':1)');
+            }
+            if (change.addLevelPoint) {
+                parts.push('automation at ' + ((change.addLevelPoint.t || 0) * 100).toFixed(0) + '%');
+            }
+            if (parts.length) lines.push(name + ': ' + parts.join('; '));
+        });
+        return lines;
+    }
 
     function applyJoshResponse(tracksArr, response) {
         if (!response || !Array.isArray(response)) return;
@@ -306,6 +346,7 @@
     window.MegaMix.GENRE_PROMPTS = GENRE_PROMPTS;
     window.MegaMix.GENRE_QUICK_PROMPTS = GENRE_QUICK_PROMPTS;
     window.MegaMix.applyJoshResponse = applyJoshResponse;
+    window.MegaMix.formatJoshChangesForDisplay = formatJoshChangesForDisplay;
     window.MegaMix.interpretChatMessage = interpretChatMessage;
     window.MegaMix.applyMusicalBalance = applyMusicalBalance;
 })();

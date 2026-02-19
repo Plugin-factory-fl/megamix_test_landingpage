@@ -5,8 +5,11 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const mailchimp = require('@mailchimp/mailchimp_marketing');
+const OpenAI = require('openai').default;
 const { pool, initializeDatabase } = require('./database/connection');
 require('dotenv').config();
+
+const OPENAI_API_KEY = process.env.OPENAI_KEY || process.env.OPENAI_API_KEY;
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -963,6 +966,76 @@ app.post('/contact-support', async (req, res) => {
       error: 'Failed to process contact form submission',
       details: error.message || 'Unknown error'
     });
+  }
+});
+
+// Josh LLM: interpret natural-language mix instructions via OpenAI
+app.post('/api/josh/interpret', async (req, res) => {
+  if (!OPENAI_API_KEY) {
+    return res.status(503).json({ error: 'AI interpretation not configured (OPENAI_KEY missing)' });
+  }
+  try {
+    const { message, tracks } = req.body || {};
+    if (!message || typeof message !== 'string' || !Array.isArray(tracks) || tracks.length === 0) {
+      return res.status(400).json({ error: 'message (string) and tracks (array) required' });
+    }
+    const trackContext = tracks.slice(0, 32).map((t, i) => ({
+      i,
+      name: t.name || `Track ${i + 1}`,
+      gain: typeof t.gain === 'number' ? t.gain : 0.8,
+      pan: typeof t.pan === 'number' ? t.pan : 0,
+      eqOn: !!t.eqOn,
+      compOn: !!t.compOn,
+      eqParams: t.eqParams || { low: 0, mid: 0, high: 0 },
+      compParams: t.compParams || { threshold: -20, ratio: 2 }
+    }));
+    const systemPrompt = `You are Josh, an AI mixing assistant. The user describes how they want their mix to sound. You output a JSON array of mixer changes.
+
+Each change object has:
+- i (required): track index 0-based
+- makeupGainDb (optional): target gain in dB (e.g. +2 to raise, -2 to lower)
+- pan (optional): -1 to 1
+- eqOn (optional): true/false
+- eqParams (optional): { low, mid, high } in dB
+- compOn (optional): true/false
+- compParams (optional): { threshold, ratio, attack, release, knee }
+
+Examples:
+- "bring up vocals" -> { "i": 3, "makeupGainDb": 2 } (vocals track)
+- "make kick and snare punchier" -> [{ "i": 0, "compOn": true, "compParams": { "threshold": -18, "ratio": 3 } }, { "i": 1, "compOn": true, "compParams": { "threshold": -18, "ratio": 3 } }]
+- "brighter" -> multiple tracks with eqOn: true, eqParams: { high: 2 }
+- "lower guitars" -> { "i": 5, "makeupGainDb": -2 }
+
+Respond ONLY with a JSON array of change objects, no other text. Empty array [] if you cannot interpret.`;
+
+    const userContent = `Tracks:\n${JSON.stringify(trackContext)}\n\nUser request: "${message}"`;
+
+    const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userContent }
+      ],
+      temperature: 0.2,
+      max_tokens: 1024
+    });
+    const text = completion.choices?.[0]?.message?.content?.trim();
+    if (!text) {
+      return res.status(502).json({ error: 'No response from AI' });
+    }
+    let changes;
+    try {
+      const parsed = JSON.parse(text.replace(/```json?\s*/g, '').replace(/```\s*/g, '').trim());
+      changes = Array.isArray(parsed) ? parsed : [];
+    } catch (_) {
+      return res.status(502).json({ error: 'Invalid AI response format' });
+    }
+    const valid = changes.filter(c => typeof c === 'object' && typeof c.i === 'number' && c.i >= 0 && c.i < tracks.length);
+    res.json({ changes: valid });
+  } catch (err) {
+    console.error('[api/josh/interpret]', err.message || err);
+    res.status(500).json({ error: err.message || 'AI interpretation failed' });
   }
 });
 

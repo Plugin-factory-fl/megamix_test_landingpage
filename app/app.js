@@ -891,6 +891,8 @@
                 if (changes && changes.length > 0) {
                     pushUndo();
                     window.MegaMix.applyJoshResponse(state.tracks, changes);
+                    state.lastJoshChangesSummary = window.MegaMix.formatJoshChangesForDisplay(changes, state.tracks);
+                    updateJoshTransparencyPanel();
                     renderMixerStrips();
                 }
             }
@@ -1028,6 +1030,34 @@
     }
     chatSend.addEventListener('click', sendChat);
     chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChat(); });
+    function updateJoshTransparencyPanel() {
+        const wrap = document.getElementById('josh-transparency-wrap');
+        const body = document.getElementById('josh-transparency-body');
+        const list = document.getElementById('josh-transparency-list');
+        const toggle = document.getElementById('josh-transparency-toggle');
+        if (!wrap || !list) return;
+        const summary = state.lastJoshChangesSummary || [];
+        if (summary.length === 0) {
+            wrap.classList.add('hidden');
+            return;
+        }
+        wrap.classList.remove('hidden');
+        list.innerHTML = '';
+        summary.forEach(function (s) {
+            const li = document.createElement('li');
+            li.textContent = s;
+            list.appendChild(li);
+        });
+        if (toggle) toggle.setAttribute('aria-expanded', body && !body.classList.contains('collapsed') ? 'true' : 'false');
+    }
+    var joshTransparencyToggle = document.getElementById('josh-transparency-toggle');
+    var joshTransparencyBody = document.getElementById('josh-transparency-body');
+    if (joshTransparencyToggle && joshTransparencyBody) {
+        joshTransparencyToggle.addEventListener('click', function () {
+            joshTransparencyBody.classList.toggle('collapsed');
+            joshTransparencyToggle.setAttribute('aria-expanded', joshTransparencyBody.classList.contains('collapsed') ? 'false' : 'true');
+        });
+    }
     function updateStep3QuickPrompts() {
         const container = document.getElementById('quick-prompts');
         const genre = (presetSelect && presetSelect.value) ? presetSelect.value : 'rock';
@@ -1142,7 +1172,7 @@
         }
     })();
 
-    function sendChat() {
+    async function sendChat() {
         const text = chatInput.value.trim();
         if (!text) return;
         addChatMessage('user', text);
@@ -1151,12 +1181,31 @@
             setTimeout(() => addChatMessage('bot', 'Create your mix first: click Mix it, then I can help you refine it.'), 400);
             return;
         }
-        const changes = window.MegaMix.interpretChatMessage(text, state.tracks, state.trackAnalyses);
+        let changes = null;
+        try {
+            const res = await fetch((window.location.origin || '') + '/api/josh/interpret', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text, tracks: state.tracks })
+            });
+            const data = await res.json().catch(() => ({}));
+            if (res.ok && data.changes && Array.isArray(data.changes)) {
+                changes = data.changes;
+                console.log('[MegaMix] Josh LLM: ' + changes.length + ' changes');
+            }
+        } catch (e) {
+            console.warn('[MegaMix] Josh LLM fallback:', e.message || e);
+        }
+        if (!changes || changes.length === 0) {
+            changes = window.MegaMix.interpretChatMessage(text, state.tracks, state.trackAnalyses);
+        }
         if (changes && changes.length > 0) {
             var tJosh = performance.now();
             console.log('[MegaMix perf] Josh chat: applying ' + changes.length + ' changes');
             pushUndo();
             window.MegaMix.applyJoshResponse(state.tracks, changes);
+            state.lastJoshChangesSummary = window.MegaMix.formatJoshChangesForDisplay(changes, state.tracks);
+            updateJoshTransparencyPanel();
             console.log('[MegaMix perf] Josh chat: applyJoshResponse ' + (performance.now() - tJosh).toFixed(2) + ' ms');
             renderMixerStrips();
             window.MegaMix.syncAllTracksToLiveGraph();
