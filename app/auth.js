@@ -4,7 +4,6 @@
     const PREVIEW_KEY = 'megamix_preview';
     const overlay = document.getElementById('auth-overlay');
     const loginForm = document.getElementById('login-form');
-    const loginEmail = document.getElementById('login-email');
     const loginLicense = document.getElementById('login-license');
     const btnFreeTrial = document.getElementById('btn-free-trial');
     const btnSignin = document.getElementById('btn-signin');
@@ -108,7 +107,7 @@
                 } catch (e) {}
                 return true;
             }
-            alert(data.error || 'Login failed. Check your email and license key.');
+            alert(data.error || 'Login failed. Check your license key.');
             return false;
         } catch (e) {
             console.error('Login error', e);
@@ -148,9 +147,8 @@
         if (loginForm) {
             loginForm.addEventListener('submit', async function (e) {
                 e.preventDefault();
-                const email = loginEmail ? loginEmail.value.trim() : '';
                 const licenseKey = loginLicense ? loginLicense.value.trim() : '';
-                await doLogin(email, licenseKey);
+                await doLogin('', licenseKey);
             });
         }
         if (btnFreeTrial) {

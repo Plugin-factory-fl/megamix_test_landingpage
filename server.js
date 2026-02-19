@@ -5,8 +5,11 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const mailchimp = require('@mailchimp/mailchimp_marketing');
+const OpenAI = require('openai').default;
 const { pool, initializeDatabase } = require('./database/connection');
 require('dotenv').config();
+
+const OPENAI_API_KEY = process.env.OPENAI_KEY || process.env.OPENAI_API_KEY;
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -61,6 +64,15 @@ if (smtpUser && smtpPass) {
 
 // Middleware
 app.use(cors());
+
+// Favicon first so browsers never get 404 (they request /favicon.ico by default)
+app.get('/favicon.ico', (req, res) => {
+  const faviconPath = path.join(__dirname, 'assets', 'Logo.png');
+  res.type('image/png');
+  res.sendFile(faviconPath, (err) => {
+    if (err) res.status(204).end();
+  });
+});
 
 // Serve static files from the assets directory
 app.use('/assets', express.static('assets'));
@@ -203,16 +215,21 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(400).json({ error: 'License key is required' });
     }
 
+    const normalizedKey = normalizeLicenseKey(trimKey);
+    if (!normalizedKey || normalizedKey.length < 16) {
+      return res.status(401).json({ error: 'Invalid license key format.' });
+    }
+
     const result = await pool.query(
-      'SELECT * FROM licenses WHERE license_key = $1',
-      [trimKey]
+      `SELECT * FROM licenses WHERE UPPER(REPLACE(REPLACE(REPLACE(license_key, ' ', ''), '-', ''), '_', '')) = $1`,
+      [normalizedKey]
     );
     if (result.rows.length === 0) {
-      return res.status(401).json({ error: 'Invalid license key.' });
+      return res.status(401).json({ error: 'Invalid license key. Use the exact key from your plugin or the .txt file you received.' });
     }
     const license = result.rows[0];
     if (trimEmail && license.customer_email && license.customer_email.toLowerCase() !== trimEmail.toLowerCase()) {
-      return res.status(401).json({ error: 'Email does not match this license.' });
+      return res.status(401).json({ error: 'Email does not match this license. Use the license key from your plugin or purchase receipt.' });
     }
     if (new Date() > new Date(license.expires_at)) {
       return res.status(403).json({ error: 'License has expired' });
@@ -458,10 +475,10 @@ app.get('/success', async (req, res) => {
         <body>
           <div class="container">
             <h1>🎉 Payment Successful!</h1>
-            <div class="subtitle">Chat your way to pro-level audio for the first time in human history.</div>
+            <div class="subtitle">Your license key is ready.</div>
             
             <div class="info">
-              <p>Here's your license key for access to the MegaMixAI Chat Suite:</p>
+              <p>Here's your license key:</p>
             </div>
             
             <div class="license-key">
@@ -470,15 +487,18 @@ app.get('/success', async (req, res) => {
             </div>
             
             <div class="info">
-              <p>This license provides you access to the JoshSquash™ Chat Compressor and all upcoming plugins that will soon be available in the MegaMixAI Chat Suite.</p>
+              <p><strong>This license key works for all MegaMix AI products.</strong> Use it to sign in to the web app, authorize the plugin, and access everything in your subscription.</p>
               
-              <p>Your license key document will automatically download now. If it doesn't start automatically, <a href="/download-license/${licenseKey}" class="download-btn" style="color: white; text-decoration: none;">click HERE</a>.</p>
+              <p>Head back to the website to sign in with your new license key and get started.</p>
+              
+              <p style="font-size: 0.95rem; opacity: 0.85;">Your license key document will download automatically. If it doesn't, <a href="/download-license/${licenseKey}" class="download-btn" style="color: white; text-decoration: none;">download it here</a>.</p>
             </div>
             
             <div class="download-redirect" style="text-align: center; margin: 40px 0; padding: 30px; background: rgba(139, 92, 246, 0.1); border-radius: 15px; border: 2px solid rgba(139, 92, 246, 0.3);">
-              <h3 style="color: #8b5cf6; margin: 0 0 20px 0; font-size: 1.8rem; font-weight: bold;">Download JoshSquash™ on the home page.</h3>
+              <h3 style="color: #8b5cf6; margin: 0 0 20px 0; font-size: 1.8rem; font-weight: bold;">Back to MegaMix AI</h3>
+              <p style="margin: 0 0 20px 0; opacity: 0.9;">Sign in at the website to access the app, plugin, and more.</p>
               <button class="redirect-btn" onclick="goToHomePage()" style="background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%); color: white; border: none; padding: 15px 30px; border-radius: 10px; font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 5px 15px rgba(139, 92, 246, 0.3);">
-                Take me there
+                Go to website
               </button>
             </div>
           </div>
@@ -513,8 +533,7 @@ app.get('/success', async (req, res) => {
             }
             
             function goToHomePage() {
-              // Redirect to home page and scroll to download section
-              window.location.href = '/#plugin-downloads';
+              window.location.href = '/';
             }
           </script>
         </body>
@@ -530,21 +549,17 @@ app.get('/success', async (req, res) => {
 app.get('/download-license/:licenseKey', (req, res) => {
   const licenseKey = req.params.licenseKey;
   
-  const licenseContent = `MegaMixAI Chat Suite - License Key
+  const licenseContent = `MegaMix AI - License Key
 
 Your License Key: ${licenseKey}
 
-This license provides you access to:
-- JoshSquash Chat Compressor
-- All upcoming plugins in the MegaMixAI Chat Suite
+This license key works for all MegaMix AI products. Use it to:
+- Sign in to the MegaMix AI web app (megamixai.com)
+- Authorize the MegaMix AI plugin in your DAW
+
+Head to the website to sign in and access your products.
 
 IMPORTANT: Keep this license key safe and don't share it with others.
-
-To use your license:
-1. Download the MegaMixAI plugin
-2. Open the plugin in your DAW
-3. Enter this license key when prompted
-4. Enjoy your new audio tools!
 
 For support, contact: support@megamixai.com
 
@@ -639,6 +654,12 @@ function generateLicenseKey() {
   return result.match(/.{1,4}/g).join('-'); // Format: XXXX-XXXX-XXXX-XXXX
 }
 
+// Normalize license key for lookup: strip spaces/dashes, uppercase. So plugin and web accept same key in any format.
+function normalizeLicenseKey(key) {
+  if (typeof key !== 'string') return '';
+  return key.replace(/\s/g, '').replace(/-/g, '').replace(/_/g, '').toUpperCase();
+}
+
 // License validation endpoint (for the plugin to call).
 // The plugin uses the returned token and license.expires_at for offline validation; keep this response shape for compatibility.
 app.post('/verify-license', async (req, res) => {
@@ -651,10 +672,16 @@ app.post('/verify-license', async (req, res) => {
       return res.status(400).json({ error: 'License key is required' });
     }
 
-    // Query database for license
+    const trimKey = typeof licenseKey === 'string' ? licenseKey.trim() : '';
+    const normalizedKey = normalizeLicenseKey(trimKey);
+    if (!normalizedKey || normalizedKey.length < 16) {
+      return res.status(400).json({ error: 'Invalid license key format' });
+    }
+
+    // Query database for license (match normalized key so plugin and web accept same key in any format)
     const result = await pool.query(
-      `SELECT * FROM licenses WHERE license_key = $1`,
-      [licenseKey]
+      `SELECT * FROM licenses WHERE UPPER(REPLACE(REPLACE(REPLACE(license_key, ' ', ''), '-', ''), '_', '')) = $1`,
+      [normalizedKey]
     );
 
     if (result.rows.length === 0) {
@@ -939,6 +966,118 @@ app.post('/contact-support', async (req, res) => {
       error: 'Failed to process contact form submission',
       details: error.message || 'Unknown error'
     });
+  }
+});
+
+// Josh LLM: interpret natural-language mix instructions via OpenAI
+app.post('/api/josh/interpret', async (req, res) => {
+  if (!OPENAI_API_KEY) {
+    return res.status(503).json({ error: 'AI interpretation not configured (OPENAI_KEY missing)' });
+  }
+  try {
+    const { message, tracks } = req.body || {};
+    if (!message || typeof message !== 'string' || !Array.isArray(tracks) || tracks.length === 0) {
+      return res.status(400).json({ error: 'message (string) and tracks (array) required' });
+    }
+    const trackContext = tracks.slice(0, 32).map((t, i) => ({
+      i,
+      name: t.name || `Track ${i + 1}`,
+      gain: typeof t.gain === 'number' ? t.gain : 0.8,
+      pan: typeof t.pan === 'number' ? t.pan : 0,
+      eqOn: !!t.eqOn,
+      compOn: !!t.compOn,
+      eqParams: t.eqParams || { low: 0, mid: 0, high: 0 },
+      compParams: t.compParams || { threshold: -20, ratio: 2 }
+    }));
+    const systemPrompt = `You are Josh, an AI mixing assistant. The user describes how they want their mix to sound. You output a JSON array of mixer changes.
+
+Each change object has:
+- i (required): track index 0-based
+- makeupGainDb (optional): target gain in dB (e.g. +2 to raise, -2 to lower)
+- pan (optional): -1 to 1
+- eqOn (optional): true/false
+- eqParams (optional): { low, mid, high } in dB
+- compOn (optional): true/false
+- compParams (optional): { threshold, ratio, attack, release, knee }
+
+Examples:
+- "bring up vocals" -> { "i": 3, "makeupGainDb": 2 } (vocals track)
+- "make kick and snare punchier" -> [{ "i": 0, "compOn": true, "compParams": { "threshold": -18, "ratio": 3 } }, { "i": 1, "compOn": true, "compParams": { "threshold": -18, "ratio": 3 } }]
+- "brighter" -> multiple tracks with eqOn: true, eqParams: { high: 2 }
+- "lower guitars" -> { "i": 5, "makeupGainDb": -2 }
+
+Respond ONLY with a JSON array of change objects, no other text. Empty array [] if you cannot interpret.`;
+
+    const userContent = `Tracks:\n${JSON.stringify(trackContext)}\n\nUser request: "${message}"`;
+
+    const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userContent }
+      ],
+      temperature: 0.2,
+      max_tokens: 1024
+    });
+    const text = completion.choices?.[0]?.message?.content?.trim();
+    if (!text) {
+      return res.status(502).json({ error: 'No response from AI' });
+    }
+    let changes;
+    try {
+      const parsed = JSON.parse(text.replace(/```json?\s*/g, '').replace(/```\s*/g, '').trim());
+      changes = Array.isArray(parsed) ? parsed : [];
+    } catch (_) {
+      return res.status(502).json({ error: 'Invalid AI response format' });
+    }
+    const valid = changes.filter(c => typeof c === 'object' && typeof c.i === 'number' && c.i >= 0 && c.i < tracks.length);
+    res.json({ changes: valid });
+  } catch (err) {
+    console.error('[api/josh/interpret]', err.message || err);
+    res.status(500).json({ error: err.message || 'AI interpretation failed' });
+  }
+});
+
+// Josh LLM: personality-driven reply (mixing or mastering)
+app.post('/api/josh/reply', async (req, res) => {
+  if (!OPENAI_API_KEY) {
+    return res.status(503).json({ error: 'AI reply not configured (OPENAI_KEY missing)' });
+  }
+  try {
+    const { context, userMessage, changesSummary } = req.body || {};
+    const ctx = context === 'mastering' ? 'mastering' : (context === 'chat' ? 'chat' : 'mixing');
+    const msg = typeof userMessage === 'string' ? userMessage.trim() : '';
+    const summary = typeof changesSummary === 'string' ? changesSummary : '';
+    const systemPrompt = `You are Josh, the AI mixing and mastering assistant. You have a 50s greaser, rebellious, cool attitude. Your only goal in life is to help the user get the best mix and master on their songs—you were born for this and you've got passion behind every word.
+
+Reply in 1-2 short sentences. Be punchy, a little cocky in a friendly way, never cookie-cutter. If they asked for a mix/master change and you did it: confirm with personality (e.g. "Done. Crank it and see how it hits." or "There you go—that'll sit right."). If they said something off-topic, weird, or rude: deflect with cool attitude and steer them back to the mix (e.g. "Hey, I'm here to make your track sound mean, not to chat about the news. Try 'more punch' or 'make it louder'—let's get this master right."). No corporate speak. No "I've applied those changes. Have a listen."-style blandness. When context is just chat (no mix applied), answer in character—friendly, cool, maybe mention mixing or the plugin, but keep it short and fun.`;
+    let userContent;
+    if (ctx === 'mastering') {
+      userContent = `Context: user is on the MASTERING stage. They said: "${msg}". What we did: ${summary || 'adjusted mastering settings'}. Reply as Josh.`;
+    } else if (ctx === 'chat') {
+      userContent = `Context: user is just chatting with you (freeform). They said: "${msg}". Reply as Josh in character. Keep it short (1-2 sentences).`;
+    } else {
+      userContent = `Context: user is on the MIXING stage. They said: "${msg}". What we did to the mix: ${summary || 'applied their requested changes'}. Reply as Josh.`;
+    }
+    const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userContent }
+      ],
+      temperature: 0.7,
+      max_tokens: 150
+    });
+    const reply = completion.choices?.[0]?.message?.content?.trim();
+    if (!reply) {
+      return res.status(502).json({ error: 'No reply from AI' });
+    }
+    res.json({ reply });
+  } catch (err) {
+    console.error('[api/josh/reply]', err.message || err);
+    res.status(500).json({ error: err.message || 'AI reply failed' });
   }
 });
 
