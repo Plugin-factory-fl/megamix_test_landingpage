@@ -1238,6 +1238,31 @@
             if (thoughtInput) thoughtInput.value = '';
             runJoshBubbleTimer();
         }
+        function nudgeAvatarIfNeeded() {
+            if (!joshWrap || !thoughtWrap) return;
+            var pad = 20;
+            var vw = window.innerWidth;
+            var vh = window.innerHeight;
+            requestAnimationFrame(function () {
+                requestAnimationFrame(function () {
+                    var wr = joshWrap.getBoundingClientRect();
+                    var tr = thoughtWrap.getBoundingClientRect();
+                    var currentLeft = wr.left;
+                    var currentBottom = vh - wr.bottom;
+                    var deltaLeft = 0;
+                    var deltaBottom = 0;
+                    if (tr.top < pad) deltaBottom = pad - tr.top;
+                    if (tr.left < pad) deltaLeft = pad - tr.left;
+                    if (tr.right > vw - pad) deltaLeft = -(tr.right - (vw - pad));
+                    var newLeft = currentLeft + deltaLeft;
+                    var newBottom = currentBottom - deltaBottom;
+                    newLeft = Math.max(pad, Math.min(vw - wr.width - pad, newLeft));
+                    newBottom = Math.max(pad, Math.min(vh - wr.height - pad, newBottom));
+                    joshWrap.style.left = newLeft + 'px';
+                    joshWrap.style.bottom = newBottom + 'px';
+                });
+            });
+        }
         function showJoshInputRow() {
             if (thoughtSimple) thoughtSimple.classList.add('hidden');
             if (thoughtInputRow) thoughtInputRow.classList.remove('hidden');
@@ -1246,6 +1271,7 @@
                 thoughtInput.value = '';
                 thoughtInput.focus();
             }
+            nudgeAvatarIfNeeded();
         }
         function showJoshChat() {
             if (thoughtSimple) thoughtSimple.classList.add('hidden');
@@ -1256,6 +1282,7 @@
                 thoughtChatInput.value = '';
                 thoughtChatInput.focus();
             }
+            nudgeAvatarIfNeeded();
         }
         function renderJoshBubbleMessages() {
             if (!thoughtMessages) return;
@@ -1358,6 +1385,10 @@
                 if (thoughtChat && !thoughtChat.classList.contains('hidden')) return;
                 if (joshWrap.contains(e.target)) return;
                 showJoshSimple();
+            });
+            window.addEventListener('resize', function () {
+                if (thoughtInputRow && !thoughtInputRow.classList.contains('hidden')) nudgeAvatarIfNeeded();
+                else if (thoughtChat && !thoughtChat.classList.contains('hidden')) nudgeAvatarIfNeeded();
             });
         }
         if (thoughtChatSend && thoughtChatInput) {

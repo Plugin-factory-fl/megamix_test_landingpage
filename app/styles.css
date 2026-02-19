@@ -583,6 +583,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    transition: left 0.35s ease, bottom 0.35s ease;
 }
 .josh-avatar-wrap:active { cursor: grabbing; }
 .josh-avatar-help {
