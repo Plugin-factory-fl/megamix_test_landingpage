@@ -1284,7 +1284,7 @@
             window.MegaMix.buildAfterMixWithFX().then(function (afterMix) {
                 if (afterMix) {
                     const blob = window.MegaMix.encodeWav(afterMix.left, afterMix.right, afterMix.sampleRate);
-                    const filename = (state.uploadedFiles[0].name.replace(/\.[^.]+$/, '') || 'mix') + '-mix.wav';
+                    const filename = 'MegaMix_Download_Nomaster.wav';
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
@@ -1308,7 +1308,7 @@
         if (!state.masteredUrl) return;
         const a = document.createElement('a');
         a.href = state.masteredUrl;
-        a.download = (state.uploadedFiles[0] ? state.uploadedFiles[0].name.replace(/\.[^.]+$/, '') : 'mix') + '-mastered.wav';
+        a.download = 'MegaMix_Download_Master.wav';
         a.click();
     }
     function performPendingDownload() {

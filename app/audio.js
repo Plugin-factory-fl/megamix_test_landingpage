@@ -297,12 +297,7 @@
         return { leftContrib, rightContrib };
     }
 
-    const BUILD_AFTER_PARALLEL_CHUNK = 4;
-
-    function yieldToMain() {
-        return new Promise(function (resolve) { setTimeout(resolve, 0); });
-    }
-
+    /** Single OfflineAudioContext render: all tracks in one pass (much faster than 23 separate renders). */
     async function buildAfterMixWithFX() {
         if (state.stemBuffers.length === 0) return null;
         const myGen = ++buildAfterGen;
@@ -313,30 +308,95 @@
         for (const b of state.stemBuffers) {
             if (b.length > maxLen) maxLen = b.length;
         }
-        const left = new Float32Array(maxLen);
-        const right = new Float32Array(maxLen);
+        const durationSec = maxLen / sampleRate;
+        const ctx = new OfflineAudioContext({ length: maxLen, numberOfChannels: 2, sampleRate });
 
-        for (let c = 0; c < state.stemBuffers.length; c += BUILD_AFTER_PARALLEL_CHUNK) {
+        for (let ti = 0; ti < state.stemBuffers.length; ti++) {
             if (myGen !== buildAfterGen) {
                 console.log('[MegaMix perf] buildAfterMixWithFX: cancelled (gen ' + myGen + ')');
                 return null;
             }
-            const chunk = [];
-            for (let ti = c; ti < Math.min(c + BUILD_AFTER_PARALLEL_CHUNK, state.stemBuffers.length); ti++) {
-                chunk.push(renderOneTrackWithFX(ti, maxLen, sampleRate));
+            const buf = state.stemBuffers[ti];
+            const track = state.tracks[ti];
+            const src = ctx.createBufferSource();
+            src.buffer = buf;
+            let last = src;
+
+            if (track && track.eqOn && track.eqParams) {
+                const eq = track.eqParams;
+                const lowShelf = ctx.createBiquadFilter();
+                lowShelf.type = 'lowshelf';
+                lowShelf.frequency.value = 320;
+                lowShelf.gain.value = typeof eq.low === 'number' ? eq.low : 0;
+                const midPeak = ctx.createBiquadFilter();
+                midPeak.type = 'peaking';
+                midPeak.frequency.value = 1000;
+                midPeak.Q.value = 1;
+                midPeak.gain.value = typeof eq.mid === 'number' ? eq.mid : 0;
+                const highShelf = ctx.createBiquadFilter();
+                highShelf.type = 'highshelf';
+                highShelf.frequency.value = 3200;
+                highShelf.gain.value = typeof eq.high === 'number' ? eq.high : 0;
+                last.connect(lowShelf);
+                lowShelf.connect(midPeak);
+                midPeak.connect(highShelf);
+                last = highShelf;
             }
-            const results = await Promise.all(chunk);
-            if (myGen !== buildAfterGen) return null;
-            for (const r of results) {
-                for (let i = 0; i < maxLen; i++) {
-                    left[i] += r.leftContrib[i];
-                    right[i] += r.rightContrib[i];
-                }
+            if (track && track.compOn && track.compParams) {
+                const c = track.compParams;
+                const comp = ctx.createDynamicsCompressor();
+                comp.threshold.value = typeof c.threshold === 'number' ? c.threshold : -20;
+                comp.knee.value = typeof c.knee === 'number' ? c.knee : 6;
+                comp.ratio.value = typeof c.ratio === 'number' ? c.ratio : 2;
+                comp.attack.value = typeof c.attack === 'number' ? c.attack : 0.003;
+                comp.release.value = typeof c.release === 'number' ? c.release : 0.25;
+                last.connect(comp);
+                last = comp;
             }
-            await yieldToMain();
+            if (track && track.reverbOn) {
+                const rp = track.reverbParams || { mix: 0.25, decaySeconds: 0.4 };
+                const mix = typeof rp.mix === 'number' ? Math.max(0, Math.min(1, rp.mix)) : 0.25;
+                const decaySeconds = typeof rp.decaySeconds === 'number' ? rp.decaySeconds : 0.4;
+                const dryGain = ctx.createGain();
+                dryGain.gain.value = 1 - mix;
+                const wetGain = ctx.createGain();
+                wetGain.gain.value = mix;
+                const convolver = ctx.createConvolver();
+                convolver.buffer = createPlateIR(ctx, decaySeconds);
+                convolver.normalize = true;
+                last.connect(dryGain);
+                last.connect(convolver);
+                convolver.connect(wetGain);
+                const sumGain = ctx.createGain();
+                sumGain.gain.value = 1;
+                dryGain.connect(sumGain);
+                wetGain.connect(sumGain);
+                last = sumGain;
+            }
+            const gainNode = ctx.createGain();
+            const panner = ctx.createStereoPanner();
+            last.connect(gainNode);
+            gainNode.connect(panner);
+            panner.connect(ctx.destination);
+
+            const levelPoints = (track && track.automation && track.automation.level && track.automation.level.length) ? track.automation.level : [{ t: 0, value: track ? track.gain : 1 }, { t: 1, value: track ? track.gain : 1 }];
+            const panPoints = (track && track.automation && track.automation.pan && track.automation.pan.length) ? track.automation.pan : [{ t: 0, value: track ? track.pan : 0 }, { t: 1, value: track ? track.pan : 0 }];
+            gainNode.gain.setValueAtTime(levelPoints[0].value, 0);
+            for (let i = 1; i < levelPoints.length; i++) {
+                gainNode.gain.linearRampToValueAtTime(levelPoints[i].value, levelPoints[i].t * durationSec);
+            }
+            panner.pan.setValueAtTime(Math.max(-1, Math.min(1, panPoints[0].value)), 0);
+            for (let i = 1; i < panPoints.length; i++) {
+                panner.pan.linearRampToValueAtTime(Math.max(-1, Math.min(1, panPoints[i].value)), panPoints[i].t * durationSec);
+            }
+            src.start(0);
         }
 
         if (myGen !== buildAfterGen) return null;
+        const rendered = await ctx.startRendering();
+        if (myGen !== buildAfterGen) return null;
+        const left = rendered.getChannelData(0);
+        const right = rendered.getChannelData(1);
         let peak = 0;
         for (let i = 0; i < maxLen; i++) {
             peak = Math.max(peak, Math.abs(left[i]), Math.abs(right[i]));
